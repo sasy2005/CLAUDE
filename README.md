@@ -20,7 +20,7 @@ Scarica `index.html` e aprilo con un doppio clic in qualsiasi browser. Funziona 
 | Modalità | Costo | Cosa serve | Come funziona |
 |---|---|---|---|
 | 🆓 **Analizza gratis su Claude** | **Zero crediti API** | Un account [claude.ai](https://claude.ai) (va bene il piano gratuito) | Un clic apre claude.ai con il prompt già precompilato (azienda, budget, data) e lo copia anche negli appunti: attivi la ricerca web e invii |
-| 🔍 **Analizza qui con API** | ~$0,05–0,55 per analisi (vedi sotto) | Una API key di Anthropic | Il sito chiama direttamente Claude con la ricerca web e mostra l'analisi in streaming nella pagina |
+| 🔍 **Analizza qui con API** | ~$0,15–0,55 per analisi (vedi sotto) | Una API key di Anthropic | Il sito chiama direttamente Claude con la ricerca web e mostra l'analisi in streaming nella pagina |
 
 > 💡 **Se vuoi spendere zero, usa sempre la modalità gratis**: è la stessa identica analisi, fatta dal tuo abbonamento claude.ai invece che dai crediti API. La modalità API serve solo se preferisci tutto dentro la pagina (con storico, costi mostrati, download).
 
@@ -28,8 +28,7 @@ Scarica `index.html` e aprilo con un doppio clic in qualsiasi browser. Funziona 
 
 | Modello | Stima con 4 ricerche web | Note |
 |---|---|---|
-| **Claude Haiku 4.5** (default) | **~$0,10** | Il più economico, qualità buona |
-| Claude Sonnet 5 | ~$0,25 | Bilanciato |
+| **Claude Sonnet 5** (default) | **~$0,25** | Qualità vicina a Opus a circa metà prezzo |
 | Claude Opus 4.8 | ~$0,45 | Qualità massima |
 
 Il sito mostra la stima **prima** di lanciare l'analisi, chiede conferma al primo utilizzo e a fine analisi mostra il costo effettivo calcolato sui token reali. Puoi ridurre ulteriormente il costo abbassando le ricerche web a 3 nelle impostazioni.

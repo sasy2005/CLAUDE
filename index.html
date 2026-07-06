@@ -144,8 +144,7 @@
         <div>
           <label for="model">Modello (modalità API)</label>
           <select id="model">
-            <option value="claude-haiku-4-5" selected>Claude Haiku 4.5 — il più economico</option>
-            <option value="claude-sonnet-5">Claude Sonnet 5 — bilanciato</option>
+            <option value="claude-sonnet-5" selected>Claude Sonnet 5 — consigliato (qualità/prezzo)</option>
             <option value="claude-opus-4-8">Claude Opus 4.8 — qualità massima</option>
           </select>
           <label for="maxSearches" style="margin-top:12px">Ricerche web max per analisi</label>
@@ -207,18 +206,17 @@ const assetEl=$("asset"), budgetEl=$("budget"), tipoEl=$("tipo"),
       promptPreview=$("promptPreview"), toastEl=$("toast");
 
 const PRICING = { // USD per milione di token + ricerche web $10/1000
-  "claude-haiku-4-5":{input:1, output:5,  label:"Haiku 4.5"},
   "claude-sonnet-5":{input:3, output:15, label:"Sonnet 5"},
-  "claude-opus-4-8":{input:5, output:25, label:"Opus 4.8"}
+  "claude-opus-4-8":{input:5, output:25, label:"Opus 4.8"},
+  "claude-haiku-4-5":{input:1, output:5, label:"Haiku 4.5"} // solo per storico legacy
 };
 const MODEL_CONF = { // versione dello strumento di ricerca e thinking per modello
-  "claude-haiku-4-5":{searchTool:"web_search_20250305", adaptive:false, maxTokens:6000},
-  "claude-sonnet-5":{searchTool:"web_search_20260209", adaptive:true,  maxTokens:16000},
-  "claude-opus-4-8":{searchTool:"web_search_20260209", adaptive:true,  maxTokens:16000}
+  "claude-sonnet-5":{searchTool:"web_search_20260209", adaptive:true, maxTokens:16000},
+  "claude-opus-4-8":{searchTool:"web_search_20260209", adaptive:true, maxTokens:16000}
 };
 function stimaCosto(model,searches){
-  const p=PRICING[model]||PRICING["claude-haiku-4-5"];
-  const conf=MODEL_CONF[model]||MODEL_CONF["claude-haiku-4-5"];
+  const p=PRICING[model]||PRICING["claude-sonnet-5"];
+  const conf=MODEL_CONF[model]||MODEL_CONF["claude-sonnet-5"];
   const inTok=3000+searches*12000, outTok=conf.adaptive?4000:2800;
   return inTok/1e6*p.input+outTok/1e6*p.output+searches*0.01;
 }
@@ -475,7 +473,7 @@ async function analizza(){
   resultCard.scrollIntoView({behavior:"smooth",block:"start"});
 
   const model=modelEl.value;
-  const conf=MODEL_CONF[model]||MODEL_CONF["claude-haiku-4-5"];
+  const conf=MODEL_CONF[model]||MODEL_CONF["claude-sonnet-5"];
   const messages=[{role:"user",content:buildPrompt()}];
   const basePayload=()=>{
     const p={
@@ -540,7 +538,7 @@ function friendlyError(e){
 }
 function showError(msg){errorBox.textContent="⚠️ "+msg;errorBox.style.display="block";}
 function showUsage(model,u){
-  const p=PRICING[model]||PRICING["claude-opus-4-8"];
+  const p=PRICING[model]||PRICING["claude-sonnet-5"];
   const cost=u.input/1e6*p.input+u.output/1e6*p.output+u.searches*0.01;
   usageBar.innerHTML="✅ Analisi completata · Modello: "+p.label+
     " · Token: "+fmtNum(u.input)+" in / "+fmtNum(u.output)+" out · Ricerche web: "+u.searches+
@@ -679,7 +677,7 @@ function saveSettings(){
 function loadSettings(){
   try{
     apiKeyEl.value=localStorage.getItem("anthropic_api_key")||"";
-    const m=localStorage.getItem("analisi_model");if(m&&PRICING[m])modelEl.value=m;
+    const m=localStorage.getItem("analisi_model");if(m&&MODEL_CONF[m])modelEl.value=m;
     const s=localStorage.getItem("analisi_max_searches");if(s)maxSearchesEl.value=s;
   }catch(_){}
 }
