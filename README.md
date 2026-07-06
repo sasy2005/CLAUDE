@@ -1,10 +1,10 @@
 # 📊 Analisi Investimenti AI
 
-Un sito a pagina singola (`index.html`) dove scrivi il nome di un'**azienda o di un ETF** e il tuo **budget**, e un bot basato su Claude cerca sul web i dati aggiornati e produce un'analisi completa per l'investimento a lungo termine (5–10 anni): voto pesato su 100, bull/bear case, peso consigliato in portafoglio, 3 alternative dello stesso settore, fonti e sintesi.
+Un sito a pagina singola (`index.html`) dove scrivi il nome di un'**azienda o di un ETF** e il tuo **budget**, e un bot basato su Claude cerca sul web i dati aggiornati e produce un'analisi completa per l'investimento a lungo termine (5–10 anni): voto pesato su 100, bull/bear case, peso consigliato in portafoglio, 3 alternative dello stesso settore (con pulsanti per approfondirle al volo), fonti e sintesi.
 
-## Come usarlo
+## Come metterlo online
 
-### Opzione A — Online con GitHub Pages (consigliata)
+### Opzione A — GitHub Pages (consigliata)
 
 1. Vai su **Settings → Pages** di questo repository
 2. In "Build and deployment" scegli **Deploy from a branch**
@@ -15,23 +15,34 @@ Un sito a pagina singola (`index.html`) dove scrivi il nome di un'**azienda o di
 
 Scarica `index.html` e aprilo con un doppio clic in qualsiasi browser. Funziona tutto anche da file locale.
 
-## Le due modalità
+## Le due modalità (e quanto costano)
 
-| Modalità | Cosa serve | Come funziona |
+| Modalità | Costo | Cosa serve | Come funziona |
+|---|---|---|---|
+| 🆓 **Analizza gratis su Claude** | **Zero crediti API** | Un account [claude.ai](https://claude.ai) (va bene il piano gratuito) | Un clic apre claude.ai con il prompt già precompilato (azienda, budget, data) e lo copia anche negli appunti: attivi la ricerca web e invii |
+| 🔍 **Analizza qui con API** | ~$0,05–0,55 per analisi (vedi sotto) | Una API key di Anthropic | Il sito chiama direttamente Claude con la ricerca web e mostra l'analisi in streaming nella pagina |
+
+> 💡 **Se vuoi spendere zero, usa sempre la modalità gratis**: è la stessa identica analisi, fatta dal tuo abbonamento claude.ai invece che dai crediti API. La modalità API serve solo se preferisci tutto dentro la pagina (con storico, costi mostrati, download).
+
+### Costi della modalità API per modello (stima per analisi)
+
+| Modello | Stima con 4 ricerche web | Note |
 |---|---|---|
-| **🔍 Analizza ora** | Una API key di Anthropic | Il sito chiama direttamente Claude con la ricerca web attiva e mostra l'analisi in tempo reale nella pagina |
-| **📋 Copia prompt per Claude** | Niente (gratis con un account claude.ai) | Il sito genera il prompt già compilato con azienda, budget e data: lo incolli su [claude.ai](https://claude.ai) con la ricerca web attiva |
+| **Claude Haiku 4.5** (default) | **~$0,10** | Il più economico, qualità buona |
+| Claude Sonnet 5 | ~$0,25 | Bilanciato |
+| Claude Opus 4.8 | ~$0,45 | Qualità massima |
 
-### Ottenere la API key (per la modalità automatica)
+Il sito mostra la stima **prima** di lanciare l'analisi, chiede conferma al primo utilizzo e a fine analisi mostra il costo effettivo calcolato sui token reali. Puoi ridurre ulteriormente il costo abbassando le ricerche web a 3 nelle impostazioni.
+
+### Ottenere la API key (solo per la modalità API)
 
 1. Crea un account su [console.anthropic.com](https://console.anthropic.com) e carica un po' di credito
 2. Genera una chiave in [Settings → API keys](https://console.anthropic.com/settings/keys)
 3. Incollala nelle **⚙️ Impostazioni** del sito (resta salvata solo nel tuo browser)
 
-**Costo indicativo per analisi**: circa **$0,15–0,50** con Claude Opus 4.8 (il modello di default, qualità massima), meno con Sonnet 5. Il costo effettivo, con token e numero di ricerche web, viene mostrato in fondo a ogni analisi.
-
 ## Funzionalità
 
+- **Follow-up con un clic**: dalle 3 alternative proposte nell'analisi vengono generati pulsanti "approfondisci" che precompilano una nuova analisi
 - Analisi in streaming con stato in tempo reale (ragionamento, ricerche web eseguite, scrittura)
 - Scelta tra investimento in **unica soluzione** o **PAC mensile** (cambia l'analisi di allocazione)
 - Storico delle ultime analisi salvato nel browser, ricaricabile con un clic
@@ -40,7 +51,7 @@ Scarica `index.html` e aprilo con un doppio clic in qualsiasi browser. Funziona 
 
 ## Privacy e sicurezza
 
-- La API key è salvata **solo nel `localStorage` del tuo browser** e viene inviata **esclusivamente ad `api.anthropic.com`**
+- La API key (se usata) è salvata **solo nel `localStorage` del tuo browser** e viene inviata **esclusivamente ad `api.anthropic.com`**
 - Nessun server intermedio: la pagina è un singolo file HTML statico senza backend
 - Le analisi salvate nello storico restano nel tuo browser
 

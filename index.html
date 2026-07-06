@@ -72,6 +72,12 @@
   #output th,#output td{border:1px solid var(--border);padding:7px 10px;text-align:left}
   #output th{background:var(--code)}
   #resultActions{display:none;gap:10px;flex-wrap:wrap;margin-top:14px}
+  #altChips{display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+  #altChips .lbl{font-size:.85rem;color:var(--muted);margin:0 0 8px;font-weight:600}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:var(--accent-soft);color:var(--accent);border:1px solid var(--border);
+    border-radius:20px;padding:7px 14px;font-size:.88rem;font-weight:600;cursor:pointer}
+  .chip:hover{border-color:var(--accent)}
   /* storico */
   #history{list-style:none;margin:0;padding:0}
   #history li{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border);font-size:.92rem}
@@ -118,32 +124,36 @@
     </div>
 
     <div class="btns">
-      <button class="primary" id="analyzeBtn">🔍 Analizza ora</button>
-      <button class="secondary" id="copyPromptBtn" title="Genera il prompt da incollare su claude.ai">📋 Copia prompt per Claude</button>
+      <button class="primary" id="freeBtn" title="Apre claude.ai con il prompt già pronto: non consuma crediti API">🆓 Analizza gratis su Claude</button>
+      <button class="secondary" id="analyzeBtn">🔍 Analizza qui con API</button>
       <button class="danger" id="cancelBtn" style="display:none">✋ Annulla</button>
     </div>
+    <p class="hint" id="modeHint">La modalità <strong>gratis</strong> apre <a href="https://claude.ai" target="_blank" rel="noopener">claude.ai</a> con il prompt precompilato e usa il tuo account Claude (va bene anche il piano gratuito): <strong>nessun credito API</strong>.
+       La modalità <strong>API</strong> fa tutto in questa pagina: costo stimato <span id="costHint">—</span> per analisi.</p>
 
     <details class="settings" id="settingsBox">
       <summary>⚙️ Impostazioni (API key, modello)</summary>
       <div class="settings-grid">
         <div>
-          <label for="apiKey">API key Anthropic</label>
+          <label for="apiKey">API key Anthropic (solo per la modalità API)</label>
           <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off">
-          <p class="hint">Serve per l'analisi automatica. La chiave resta <strong>solo nel tuo browser</strong> e
-             viene inviata unicamente ad Anthropic. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Crea una API key qui</a>.
-             Senza chiave puoi comunque usare «Copia prompt».</p>
+          <p class="hint">La chiave resta <strong>solo nel tuo browser</strong> e viene inviata unicamente ad Anthropic.
+             <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Crea una API key qui</a>.
+             Senza chiave usa «🆓 Analizza gratis su Claude»: non consuma crediti.</p>
         </div>
         <div>
-          <label for="model">Modello</label>
+          <label for="model">Modello (modalità API)</label>
           <select id="model">
+            <option value="claude-haiku-4-5" selected>Claude Haiku 4.5 — il più economico</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5 — bilanciato</option>
             <option value="claude-opus-4-8">Claude Opus 4.8 — qualità massima</option>
-            <option value="claude-sonnet-5">Claude Sonnet 5 — più economico</option>
           </select>
           <label for="maxSearches" style="margin-top:12px">Ricerche web max per analisi</label>
           <select id="maxSearches">
-            <option value="4">4 — veloce</option>
-            <option value="6" selected>6 — consigliato</option>
-            <option value="8">8 — approfondito</option>
+            <option value="3">3 — minimo, più economico</option>
+            <option value="4" selected>4 — consigliato</option>
+            <option value="6">6 — approfondito</option>
+            <option value="8">8 — massimo</option>
           </select>
         </div>
       </div>
@@ -164,6 +174,7 @@
       <button class="secondary" id="copyMdBtn">📋 Copia analisi</button>
       <button class="secondary" id="downloadBtn">💾 Scarica .md</button>
     </div>
+    <div id="altChips"></div>
     <div id="usageBar"></div>
   </section>
 
@@ -188,7 +199,7 @@
 const $ = id => document.getElementById(id);
 const assetEl=$("asset"), budgetEl=$("budget"), tipoEl=$("tipo"),
       apiKeyEl=$("apiKey"), modelEl=$("model"), maxSearchesEl=$("maxSearches"),
-      analyzeBtn=$("analyzeBtn"), copyPromptBtn=$("copyPromptBtn"), cancelBtn=$("cancelBtn"),
+      analyzeBtn=$("analyzeBtn"), freeBtn=$("freeBtn"), cancelBtn=$("cancelBtn"),
       resultCard=$("resultCard"), statusBar=$("statusBar"), statusText=$("statusText"),
       searchLog=$("searchLog"), errorBox=$("errorBox"), output=$("output"),
       resultActions=$("resultActions"), usageBar=$("usageBar"),
@@ -196,9 +207,21 @@ const assetEl=$("asset"), budgetEl=$("budget"), tipoEl=$("tipo"),
       promptPreview=$("promptPreview"), toastEl=$("toast");
 
 const PRICING = { // USD per milione di token + ricerche web $10/1000
-  "claude-opus-4-8":{input:5, output:25, label:"Opus 4.8"},
-  "claude-sonnet-5":{input:3, output:15, label:"Sonnet 5"}
+  "claude-haiku-4-5":{input:1, output:5,  label:"Haiku 4.5"},
+  "claude-sonnet-5":{input:3, output:15, label:"Sonnet 5"},
+  "claude-opus-4-8":{input:5, output:25, label:"Opus 4.8"}
 };
+const MODEL_CONF = { // versione dello strumento di ricerca e thinking per modello
+  "claude-haiku-4-5":{searchTool:"web_search_20250305", adaptive:false, maxTokens:6000},
+  "claude-sonnet-5":{searchTool:"web_search_20260209", adaptive:true,  maxTokens:16000},
+  "claude-opus-4-8":{searchTool:"web_search_20260209", adaptive:true,  maxTokens:16000}
+};
+function stimaCosto(model,searches){
+  const p=PRICING[model]||PRICING["claude-haiku-4-5"];
+  const conf=MODEL_CONF[model]||MODEL_CONF["claude-haiku-4-5"];
+  const inTok=3000+searches*12000, outTok=conf.adaptive?4000:2800;
+  return inTok/1e6*p.input+outTok/1e6*p.output+searches*0.01;
+}
 const HISTORY_KEY="analisi_history_v1", MAX_HISTORY=12;
 
 /* ---------- utilità ---------- */
@@ -427,9 +450,16 @@ async function analizza(){
   const key=apiKeyEl.value.trim();
   if(!key){
     $("settingsBox").open=true;apiKeyEl.focus();
-    showError("Per l'analisi automatica serve una API key di Anthropic (impostazioni qui sopra). "+
-      "In alternativa usa «Copia prompt per Claude» e incollalo su claude.ai con la ricerca web attiva.");
+    showError("Per l'analisi in pagina serve una API key di Anthropic (impostazioni qui sopra). "+
+      "In alternativa usa «🆓 Analizza gratis su Claude»: apre claude.ai con il prompt già pronto e non consuma crediti.");
     resultCard.style.display="block";return;
+  }
+  if(!localStorage.getItem("cost_ack")){
+    const est=stimaCosto(modelEl.value,parseInt(maxSearchesEl.value,10)||4);
+    if(!window.confirm("Questa analisi userà crediti API del tuo account Anthropic (stima ~$"+est.toFixed(2)+").\n\n"+
+      "Suggerimento: il pulsante «Analizza gratis su Claude» non consuma crediti.\n\n"+
+      "Continuare? (questo avviso non verrà più mostrato)"))return;
+    try{localStorage.setItem("cost_ack","1");}catch(_){}
   }
   saveSettings();
 
@@ -439,21 +469,26 @@ async function analizza(){
   errorBox.style.display="none";errorBox.textContent="";
   output.innerHTML="";searchLog.innerHTML="";
   resultActions.style.display="none";usageBar.style.display="none";
+  $("altChips").style.display="none";
   statusBar.classList.add("on");setStatus("Invio la richiesta…");
-  analyzeBtn.disabled=true;copyPromptBtn.disabled=true;cancelBtn.style.display="inline-block";
+  analyzeBtn.disabled=true;freeBtn.disabled=true;cancelBtn.style.display="inline-block";
   resultCard.scrollIntoView({behavior:"smooth",block:"start"});
 
   const model=modelEl.value;
+  const conf=MODEL_CONF[model]||MODEL_CONF["claude-haiku-4-5"];
   const messages=[{role:"user",content:buildPrompt()}];
-  const basePayload=()=>({
-    model,
-    max_tokens:16000,
-    stream:true,
-    system:SYSTEM_PROMPT,
-    thinking:{type:"adaptive"},
-    tools:[{type:"web_search_20260209",name:"web_search",max_uses:parseInt(maxSearchesEl.value,10)||6}],
-    messages
-  });
+  const basePayload=()=>{
+    const p={
+      model,
+      max_tokens:conf.maxTokens,
+      stream:true,
+      system:SYSTEM_PROMPT,
+      tools:[{type:conf.searchTool,name:"web_search",max_uses:parseInt(maxSearchesEl.value,10)||4}],
+      messages
+    };
+    if(conf.adaptive)p.thinking={type:"adaptive"};
+    return p;
+  };
 
   let fullText="", renderQueued=false;
   const renderNow=()=>{output.innerHTML=mdToHtml(fullText);fullTextRef.value=fullText;};
@@ -479,6 +514,7 @@ async function analizza(){
     else{
       resultActions.style.display="flex";
       showUsage(model,totalUsage);
+      renderAltChips(fullText);
       saveHistory({date:new Date().toISOString(),asset,budget,tipo:tipoEl.value,model,markdown:fullText,usage:totalUsage});
     }
   }catch(e){
@@ -487,7 +523,7 @@ async function analizza(){
     else showError(friendlyError(e));
     if(fullText.trim())resultActions.style.display="flex";
   }finally{
-    analyzeBtn.disabled=false;copyPromptBtn.disabled=false;cancelBtn.style.display="none";controller=null;
+    analyzeBtn.disabled=false;freeBtn.disabled=false;cancelBtn.style.display="none";controller=null;
   }
 }
 
@@ -535,6 +571,7 @@ function renderHistory(){
       resultActions.style.display="flex";
       if(it.usage)showUsage(it.model,it.usage);
       fullTextRef.value=it.markdown;
+      renderAltChips(it.markdown);
       resultCard.scrollIntoView({behavior:"smooth"});
     });
     const meta=document.createElement("span");meta.className="meta";
@@ -548,16 +585,66 @@ function renderHistory(){
 }
 const fullTextRef={value:""}; // testo correntemente mostrato, per copia/download
 
+/* ---------- alternative "approfondisci" ---------- */
+function extractAlternatives(md){
+  const m=md.match(/#{2,4}\s*5[.)][\s\S]*?(?=\n#{2,4}\s*6[.)]|$)/);
+  if(!m)return [];
+  const sec=m[0], names=[], seen=new Set();
+  const push=n=>{
+    n=(n||"").trim().replace(/[*_`]/g,"").replace(/\s+/g," ");
+    if(n.length<2||n.length>60)return;
+    if(/voto|nome|motivazion|alternativ|\/100|confronto/i.test(n))return;
+    const k=n.toLowerCase();if(seen.has(k))return;seen.add(k);names.push(n);
+  };
+  let mm;const bold=/\*\*([^*\n]+)\*\*/g;
+  while((mm=bold.exec(sec))&&names.length<3)push(mm[1]);
+  if(names.length<3)
+    for(const line of sec.split("\n")){
+      const lm=line.match(/^\s*(?:[-*]|\d+[.)])\s+([^—:(\n]+)/);
+      if(lm)push(lm[1]);
+      if(names.length>=3)break;
+    }
+  if(names.length<3){
+    const rows=sec.split("\n").filter(l=>/^\s*\|/.test(l));
+    for(let i=2;i<rows.length&&names.length<3;i++){
+      const c=rows[i].split("|").map(s=>s.trim()).filter(Boolean);
+      if(c[0])push(c[0]);
+    }
+  }
+  return names.slice(0,3);
+}
+function renderAltChips(md){
+  const box=$("altChips"), names=extractAlternatives(md||"");
+  if(!names.length){box.style.display="none";box.innerHTML="";return;}
+  box.innerHTML='<p class="lbl">🔁 Approfondisci un’alternativa con la stessa analisi completa:</p>';
+  const wrap=document.createElement("div");wrap.className="chips";
+  for(const n of names){
+    const b=document.createElement("button");b.className="chip";b.textContent="🔍 "+n;
+    b.addEventListener("click",()=>{
+      assetEl.value=n;refreshPreview();
+      document.querySelector(".card").scrollIntoView({behavior:"smooth"});
+      toast("«"+n+"» inserita — premi «Analizza gratis» o «Analizza qui»");
+    });
+    wrap.appendChild(b);
+  }
+  box.appendChild(wrap);box.style.display="block";
+}
+
 /* ---------- azioni ---------- */
 analyzeBtn.addEventListener("click",analizza);
 cancelBtn.addEventListener("click",()=>{if(controller)controller.abort();});
-copyPromptBtn.addEventListener("click",async()=>{
+freeBtn.addEventListener("click",async()=>{
   const asset=assetEl.value.trim();
   if(!asset){toast("Inserisci prima il nome dell'azienda o dell'ETF");assetEl.focus();return;}
   if(!(parseFloat(budgetEl.value)>0)){toast("Inserisci prima il budget");budgetEl.focus();return;}
   const p=buildPrompt();promptPreview.textContent=p;
-  const ok=await copyText(p);
-  toast(ok?"Prompt copiato! Incollalo su claude.ai con la ricerca web attiva.":"Copia non riuscita: usa l'anteprima qui sotto.");
+  const copied=await copyText(p);
+  const w=window.open("https://claude.ai/new?q="+encodeURIComponent(p),"_blank");
+  if(w){try{w.opener=null;}catch(_){}
+    toast(copied?"Claude aperto con il prompt (è anche negli appunti): attiva la ricerca web e invia"
+               :"Claude aperto con il prompt: attiva la ricerca web e invia");}
+  else toast(copied?"Popup bloccato — prompt copiato: incollalo su claude.ai"
+                   :"Popup bloccato: copia il prompt dall'anteprima qui sotto");
 });
 function refreshPreview(){
   const box=$("previewToggle").parentElement;
@@ -596,13 +683,25 @@ function loadSettings(){
     const s=localStorage.getItem("analisi_max_searches");if(s)maxSearchesEl.value=s;
   }catch(_){}
 }
+function updateCostHint(){
+  const est=stimaCosto(modelEl.value,parseInt(maxSearchesEl.value,10)||4);
+  $("costHint").textContent="~$"+est.toFixed(2);
+}
+function updateEmphasis(){ // il pulsante consigliato dipende dalla presenza della chiave
+  const hasKey=!!apiKeyEl.value.trim();
+  analyzeBtn.className=hasKey?"primary":"secondary";
+  freeBtn.className=hasKey?"secondary":"primary";
+}
 apiKeyEl.addEventListener("change",saveSettings);
-modelEl.addEventListener("change",saveSettings);
-maxSearchesEl.addEventListener("change",saveSettings);
+apiKeyEl.addEventListener("input",updateEmphasis);
+modelEl.addEventListener("change",()=>{saveSettings();updateCostHint();});
+maxSearchesEl.addEventListener("change",()=>{saveSettings();updateCostHint();});
 
 /* ---------- init ---------- */
 loadSettings();
 renderHistory();
+updateCostHint();
+updateEmphasis();
 document.body.dataset.jsReady="1";
 </script>
 </body>
