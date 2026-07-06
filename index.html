@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisi Investimenti AI — Azienda / ETF</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --fg:#1a2332; --muted:#5b6676;
+    --border:#dde2e9; --accent:#0f6b4f; --accent-fg:#ffffff; --accent-soft:#e7f3ee;
+    --danger:#b3372f; --danger-soft:#fbeae8; --code:#eef1f5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#12161d; --card:#1a2029; --fg:#e6eaf0; --muted:#98a3b3;
+      --border:#2c3542; --accent:#3ecf9a; --accent-fg:#0c1a14; --accent-soft:#1b2f27;
+      --danger:#f28b82; --danger-soft:#3a2321; --code:#232b36;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 16px 64px}
+  header h1{font-size:1.55rem;margin:8px 0 4px}
+  header p{color:var(--muted);margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px}
+  label{display:block;font-weight:600;font-size:.88rem;margin-bottom:6px}
+  input[type=text],input[type=number],input[type=password],select{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;
+    background:var(--bg);color:var(--fg);font-size:1rem}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .grid{display:grid;grid-template-columns:2fr 1fr 1.4fr;gap:14px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  button{border:0;border-radius:9px;padding:11px 18px;font-size:.98rem;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .primary{background:var(--accent);color:var(--accent-fg)}
+  .secondary{background:transparent;color:var(--fg);border:1px solid var(--border)}
+  .danger{background:var(--danger-soft);color:var(--danger)}
+  details.settings{margin-top:16px;border-top:1px solid var(--border);padding-top:12px}
+  details summary{cursor:pointer;font-weight:600;color:var(--muted);font-size:.9rem}
+  details[open] summary{margin-bottom:12px}
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.settings-grid{grid-template-columns:1fr}}
+  .hint{font-size:.8rem;color:var(--muted);margin-top:5px}
+  .hint a{color:var(--accent)}
+  #statusBar{display:none;align-items:center;gap:10px;font-size:.92rem;color:var(--muted);margin-bottom:10px}
+  #statusBar.on{display:flex}
+  .spinner{width:15px;height:15px;border:2.5px solid var(--border);border-top-color:var(--accent);
+    border-radius:50%;animation:spin .8s linear infinite;flex:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #searchLog{list-style:none;padding:0;margin:0 0 12px;font-size:.85rem;color:var(--muted)}
+  #searchLog li{padding:2px 0}
+  #errorBox{display:none;background:var(--danger-soft);color:var(--danger);
+    border-radius:9px;padding:12px 14px;font-size:.92rem;margin-bottom:12px}
+  #usageBar{display:none;font-size:.83rem;color:var(--muted);border-top:1px solid var(--border);
+    margin-top:16px;padding-top:12px}
+  /* output markdown */
+  #output{overflow-wrap:break-word}
+  #output h1,#output h2{font-size:1.2rem;border-bottom:1px solid var(--border);padding-bottom:6px;margin:26px 0 10px}
+  #output h3,#output h4{font-size:1.03rem;margin:20px 0 8px}
+  #output p{margin:9px 0}
+  #output ul,#output ol{margin:8px 0;padding-left:24px}
+  #output li{margin:4px 0}
+  #output code{background:var(--code);border-radius:5px;padding:1px 5px;font-size:.88em}
+  #output pre{background:var(--code);border-radius:9px;padding:12px;overflow-x:auto}
+  #output pre code{background:none;padding:0}
+  #output blockquote{border-left:3px solid var(--accent);margin:10px 0;padding:2px 14px;color:var(--muted)}
+  #output hr{border:0;border-top:1px solid var(--border);margin:20px 0}
+  .tablewrap{overflow-x:auto}
+  #output table{border-collapse:collapse;width:100%;margin:10px 0;font-size:.93rem}
+  #output th,#output td{border:1px solid var(--border);padding:7px 10px;text-align:left}
+  #output th{background:var(--code)}
+  #resultActions{display:none;gap:10px;flex-wrap:wrap;margin-top:14px}
+  /* storico */
+  #history{list-style:none;margin:0;padding:0}
+  #history li{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border);font-size:.92rem}
+  #history li:last-child{border-bottom:0}
+  #history .load{flex:1;text-align:left;background:none;border:0;color:var(--fg);padding:0;font-weight:500;cursor:pointer}
+  #history .load:hover{color:var(--accent)}
+  #history .meta{color:var(--muted);font-size:.8rem;white-space:nowrap}
+  #history .del{background:none;border:0;color:var(--muted);font-size:1rem;padding:2px 6px;cursor:pointer}
+  #history .del:hover{color:var(--danger)}
+  #promptPreview{white-space:pre-wrap;background:var(--code);border-radius:9px;padding:12px;
+    font-size:.8rem;max-height:300px;overflow:auto}
+  footer{font-size:.78rem;color:var(--muted);margin-top:26px;line-height:1.5}
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);
+    padding:10px 18px;border-radius:9px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:9}
+  #toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>📊 Analisi Investimenti AI</h1>
+    <p>Scrivi un'azienda o un ETF: il bot cerca sul web i dati aggiornati e produce un'analisi completa
+       per l'investimento a lungo termine (5–10 anni), con voto, bull/bear case e alternative.</p>
+  </header>
+
+  <section class="card">
+    <div class="grid">
+      <div>
+        <label for="asset">Azienda o ETF</label>
+        <input type="text" id="asset" placeholder="es. NVIDIA, Vanguard FTSE All-World (VWCE)…" autocomplete="off">
+      </div>
+      <div>
+        <label for="budget">Budget (€)</label>
+        <input type="number" id="budget" min="1" step="any" placeholder="es. 5000">
+      </div>
+      <div>
+        <label for="tipo">Tipo di investimento</label>
+        <select id="tipo">
+          <option value="unica">Unica soluzione (tutto ora)</option>
+          <option value="pac">PAC — cifra mensile ricorrente</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" id="analyzeBtn">🔍 Analizza ora</button>
+      <button class="secondary" id="copyPromptBtn" title="Genera il prompt da incollare su claude.ai">📋 Copia prompt per Claude</button>
+      <button class="danger" id="cancelBtn" style="display:none">✋ Annulla</button>
+    </div>
+
+    <details class="settings" id="settingsBox">
+      <summary>⚙️ Impostazioni (API key, modello)</summary>
+      <div class="settings-grid">
+        <div>
+          <label for="apiKey">API key Anthropic</label>
+          <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off">
+          <p class="hint">Serve per l'analisi automatica. La chiave resta <strong>solo nel tuo browser</strong> e
+             viene inviata unicamente ad Anthropic. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Crea una API key qui</a>.
+             Senza chiave puoi comunque usare «Copia prompt».</p>
+        </div>
+        <div>
+          <label for="model">Modello</label>
+          <select id="model">
+            <option value="claude-opus-4-8">Claude Opus 4.8 — qualità massima</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5 — più economico</option>
+          </select>
+          <label for="maxSearches" style="margin-top:12px">Ricerche web max per analisi</label>
+          <select id="maxSearches">
+            <option value="4">4 — veloce</option>
+            <option value="6" selected>6 — consigliato</option>
+            <option value="8">8 — approfondito</option>
+          </select>
+        </div>
+      </div>
+    </details>
+
+    <details style="margin-top:12px">
+      <summary style="cursor:pointer;font-weight:600;color:var(--muted);font-size:.9rem" id="previewToggle">👁️ Anteprima del prompt generato</summary>
+      <pre id="promptPreview" style="margin-top:10px"></pre>
+    </details>
+  </section>
+
+  <section class="card" id="resultCard" style="display:none">
+    <div id="statusBar"><span class="spinner"></span><span id="statusText">Preparazione…</span></div>
+    <ul id="searchLog"></ul>
+    <div id="errorBox"></div>
+    <div id="output"></div>
+    <div id="resultActions" class="btns">
+      <button class="secondary" id="copyMdBtn">📋 Copia analisi</button>
+      <button class="secondary" id="downloadBtn">💾 Scarica .md</button>
+    </div>
+    <div id="usageBar"></div>
+  </section>
+
+  <section class="card" id="historyCard" style="display:none">
+    <label style="margin-bottom:10px">🕘 Analisi recenti (salvate in questo browser)</label>
+    <ul id="history"></ul>
+  </section>
+
+  <footer>
+    <strong>Nota importante:</strong> questa è un'analisi informativa generata da un'IA su dati pubblici,
+    <strong>non</strong> una consulenza finanziaria personalizzata. Prima di investire verifica sempre le fonti primarie
+    (bilanci ufficiali, KIID/prospetti, comunicati) e valuta la tua situazione personale: orizzonte temporale,
+    tolleranza al rischio e diversificazione complessiva del portafoglio.
+  </footer>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ---------- riferimenti DOM ---------- */
+const $ = id => document.getElementById(id);
+const assetEl=$("asset"), budgetEl=$("budget"), tipoEl=$("tipo"),
+      apiKeyEl=$("apiKey"), modelEl=$("model"), maxSearchesEl=$("maxSearches"),
+      analyzeBtn=$("analyzeBtn"), copyPromptBtn=$("copyPromptBtn"), cancelBtn=$("cancelBtn"),
+      resultCard=$("resultCard"), statusBar=$("statusBar"), statusText=$("statusText"),
+      searchLog=$("searchLog"), errorBox=$("errorBox"), output=$("output"),
+      resultActions=$("resultActions"), usageBar=$("usageBar"),
+      historyCard=$("historyCard"), historyEl=$("history"),
+      promptPreview=$("promptPreview"), toastEl=$("toast");
+
+const PRICING = { // USD per milione di token + ricerche web $10/1000
+  "claude-opus-4-8":{input:5, output:25, label:"Opus 4.8"},
+  "claude-sonnet-5":{input:3, output:15, label:"Sonnet 5"}
+};
+const HISTORY_KEY="analisi_history_v1", MAX_HISTORY=12;
+
+/* ---------- utilità ---------- */
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function toast(msg){toastEl.textContent=msg;toastEl.classList.add("show");
+  clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.classList.remove("show"),2600);}
+function fmtNum(n){return new Intl.NumberFormat("it-IT").format(n);}
+function todayIt(){return new Date().toLocaleDateString("it-IT",{day:"numeric",month:"long",year:"numeric"});}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true;}
+  catch(e){
+    const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    let ok=false;try{ok=document.execCommand("copy");}catch(_){}
+    ta.remove();return ok;
+  }
+}
+
+/* ---------- costruzione del prompt ---------- */
+function buildPrompt(){
+  const asset=assetEl.value.trim();
+  const budgetRaw=parseFloat(budgetEl.value);
+  const budget=isFinite(budgetRaw)&&budgetRaw>0?fmtNum(budgetRaw):"";
+  const pac=tipoEl.value==="pac";
+  const budgetLine=pac
+    ? budget+"€ al mese (cifra ricorrente, piano di accumulo PAC)"
+    : budget+"€ (intero capitale disponibile da investire ora, in un'unica soluzione o gradualmente)";
+  return `Sei un analista finanziario indipendente. Devo valutare se investire A LUNGO TERMINE (orizzonte 5-10 anni) in: **${asset}**.
+
+Il mio budget disponibile per questo investimento è: **${budgetLine}**.
+
+Prima di rispondere, cerca sul web informazioni AGGIORNATE A OGGI (${todayIt()}) su:
+1. Dati fondamentali dell'azienda/ETF (ricavi, utili, crescita, debito, margini, valutazione P/E o P/S rispetto ai competitor e alla media storica)
+2. Notizie macroeconomiche recenti rilevanti (tassi d'interesse, inflazione, politiche monetarie, geopolitica) che possono impattare il settore
+3. Trend specifici del settore in cui opera (domanda, regolamentazione, tecnologia, competizione)
+4. Notizie recenti specifiche sull'azienda/ETF (ultimi risultati trimestrali, guidance, eventi rilevanti)
+5. Se è un ETF: TER (costo annuo), tipo di replica (fisica/sintetica), paese di domiciliazione (rilevante per fiscalità italiana), concentrazione nelle prime 10 holding, AUM (patrimonio gestito — sotto certe soglie c'è rischio chiusura del fondo)
+
+Poi fornisci l'analisi in questo formato esatto, iniziando con la riga "Analisi basata su dati disponibili fino al ${todayIt()}":
+
+## 1. Punteggio finale
+**Voto: X/100** (dove 100 = investimento a lungo termine ottimo, 1 = da evitare)
+
+Mostra anche il dettaglio dei pesi usati per calcolarlo:
+- Fondamentali (30%): X/100
+- Valutazione attuale (25%): X/100
+- Rischio macro/settoriale (25%): X/100
+- Momentum e vantaggio competitivo (20%): X/100
+
+**Livello di confidenza del voto**: Alto / Medio / Basso (in base a quanti dati affidabili hai trovato)
+
+## 2. Bull case (perché potrebbe andare bene)
+3-4 punti diretti sui motivi per cui questo investimento potrebbe performare bene nel lungo periodo.
+
+## 3. Bear case (perché potrebbe andare male)
+3-4 punti diretti su rischi concreti, red flag, o motivi di cautela.
+
+## 4. Peso consigliato nel portafoglio
+In base al voto, al livello di rischio implicito e al budget indicato, suggerisci:
+- Che percentuale del budget indicato avrebbe senso allocare a questo singolo asset (in un portafoglio diversificato, non "tutto qui")
+- L'importo indicativo in euro corrispondente
+- Se ha senso investire in un'unica soluzione o gradualmente (PAC/DCA) vista la situazione attuale di mercato
+- Un'avvertenza chiara se il budget indicato è troppo concentrato su un singolo titolo/settore rispetto a una diversificazione sana
+
+## 5. Confronto rapido con 3 alternative dello stesso settore
+Identifica le 3 aziende/ETF più simili o comparabili a ${asset} nello stesso settore/tema, e per ciascuna dai SOLO:
+- Nome
+- Voto/100
+- Una riga di motivazione (max 20 parole)
+
+## 6. Fonti principali usate
+Elenca 2-4 fonti concrete su cui ti sei basato (es. ultimo bilancio/10-Q, articolo di settore, dato macro specifico), con data.
+
+## 7. Sintesi finale
+2-3 righe con la tua raccomandazione netta: che senso ha investirci oggi, con quel budget, rispetto alle alternative individuate.
+
+**Nota importante**: chiudi ricordando che questa è un'analisi informativa basata su dati pubblici, non una consulenza finanziaria personalizzata.`;
+}
+
+const SYSTEM_PROMPT = "Sei un analista finanziario indipendente, rigoroso e diretto. Rispondi sempre in italiano. "+
+  "Usa lo strumento di ricerca web per raccogliere dati aggiornati PRIMA di formulare l'analisi. "+
+  "Formatta la risposta in Markdown seguendo esattamente la struttura numerata richiesta dall'utente, senza aggiungere sezioni. "+
+  "Sii concreto: numeri, date e fonti al posto di frasi generiche.";
+
+/* ---------- mini renderer Markdown ---------- */
+function renderInline(s){
+  return s
+    .replace(/`([^`]+)`/g,"<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>")
+    .replace(/\*([^*\n]+)\*/g,"<em>$1</em>")
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+function mdToHtml(src){
+  const lines=src.split(/\r?\n/); const out=[];
+  let i=0, list=null, para=[], inCode=false, code=[];
+  const flushPara=()=>{if(para.length){out.push("<p>"+para.map(renderInline).join("<br>")+"</p>");para=[];}};
+  const flushList=()=>{if(list){out.push("</"+list+">");list=null;}};
+  while(i<lines.length){
+    const raw=lines[i], line=esc(raw);
+    if(/^```/.test(raw)){ flushPara();flushList();
+      if(inCode){out.push("<pre><code>"+code.join("\n")+"</code></pre>");code=[];inCode=false;}
+      else inCode=true; i++; continue;}
+    if(inCode){code.push(line);i++;continue;}
+    // tabella
+    if(/^\s*\|.*\|/.test(raw) && i+1<lines.length && /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[i+1]) && lines[i+1].includes("-")){
+      flushPara();flushList();
+      const rows=[]; let j=i;
+      while(j<lines.length && /^\s*\|.*\|/.test(lines[j])){rows.push(lines[j]);j++;}
+      const cells=r=>r.trim().replace(/^\|/,"").replace(/\|$/,"").split("|").map(c=>renderInline(esc(c.trim())));
+      let html='<div class="tablewrap"><table><thead><tr>';
+      html+=cells(rows[0]).map(c=>"<th>"+c+"</th>").join("")+"</tr></thead><tbody>";
+      for(let k=2;k<rows.length;k++) html+="<tr>"+cells(rows[k]).map(c=>"<td>"+c+"</td>").join("")+"</tr>";
+      html+="</tbody></table></div>"; out.push(html); i=j; continue;}
+    let m;
+    if((m=raw.match(/^(#{1,4})\s+(.*)$/))){flushPara();flushList();
+      const lvl=Math.min(m[1].length+1,4); // # -> h2 per gerarchia visiva
+      out.push("<h"+lvl+">"+renderInline(esc(m[2]))+"</h"+lvl+">");i++;continue;}
+    if(/^\s*(-{3,}|\*{3,})\s*$/.test(raw)){flushPara();flushList();out.push("<hr>");i++;continue;}
+    if((m=raw.match(/^\s*[-*]\s+(.*)$/))){flushPara();
+      if(list!=="ul"){flushList();out.push("<ul>");list="ul";}
+      out.push("<li>"+renderInline(esc(m[1]))+"</li>");i++;continue;}
+    if((m=raw.match(/^\s*\d+[.)]\s+(.*)$/))){flushPara();
+      if(list!=="ol"){flushList();out.push("<ol>");list="ol";}
+      out.push("<li>"+renderInline(esc(m[1]))+"</li>");i++;continue;}
+    if((m=raw.match(/^>\s?(.*)$/))){flushPara();flushList();
+      out.push("<blockquote><p>"+renderInline(esc(m[1]))+"</p></blockquote>");i++;continue;}
+    if(raw.trim()===""){flushPara();flushList();i++;continue;}
+    para.push(line);i++;
+  }
+  if(inCode&&code.length)out.push("<pre><code>"+code.join("\n")+"</code></pre>");
+  flushPara();flushList();
+  return out.join("\n");
+}
+
+/* ---------- chiamata API con streaming ---------- */
+let controller=null;
+
+function setStatus(txt){statusText.textContent=txt;}
+function logSearch(q){const li=document.createElement("li");li.textContent="🔎 "+q;searchLog.appendChild(li);}
+
+async function streamOnce(payload, key, onText, onSearchQuery, onThinking){
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    signal:controller.signal,
+    headers:{
+      "content-type":"application/json",
+      "x-api-key":key,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body:JSON.stringify(payload)
+  });
+  if(!res.ok){
+    let msg="Errore HTTP "+res.status;
+    try{const j=await res.json();if(j.error&&j.error.message)msg=j.error.message;
+        if(j.error&&j.error.type)msg="["+j.error.type+"] "+msg;}catch(_){}
+    const err=new Error(msg);err.status=res.status;throw err;
+  }
+  const reader=res.body.getReader(), dec=new TextDecoder();
+  let buf="", blocks=[], stopReason=null, usage={input:0,output:0,searches:0};
+  const handleEvent=(data)=>{
+    let ev;try{ev=JSON.parse(data);}catch(_){return;}
+    switch(ev.type){
+      case "message_start":
+        if(ev.message&&ev.message.usage){
+          usage.input+=ev.message.usage.input_tokens||0;
+          const st=ev.message.usage.server_tool_use;
+          if(st&&st.web_search_requests)usage.searches=Math.max(usage.searches,st.web_search_requests);
+        }
+        break;
+      case "content_block_start":{
+        const b=JSON.parse(JSON.stringify(ev.content_block));
+        blocks[ev.index]=b;
+        if(b.type==="thinking")onThinking();
+        if(b.type==="server_tool_use")setStatus("Cerco sul web…");
+        if(b.type==="web_search_tool_result")setStatus("Leggo i risultati…");
+        if(b.type==="text")setStatus("Scrivo l'analisi…");
+        break;}
+      case "content_block_delta":{
+        const b=blocks[ev.index];if(!b)break;const d=ev.delta;
+        if(d.type==="text_delta"){b.text=(b.text||"")+d.text;onText(d.text);}
+        else if(d.type==="thinking_delta"){b.thinking=(b.thinking||"")+d.thinking;}
+        else if(d.type==="input_json_delta"){b._partial=(b._partial||"")+d.partial_json;}
+        else if(d.type==="signature_delta"){b.signature=(b.signature||"")+d.signature;}
+        else if(d.type==="citations_delta"){(b.citations=b.citations||[]).push(d.citation);}
+        break;}
+      case "content_block_stop":{
+        const b=blocks[ev.index];if(!b)break;
+        if(b._partial!==undefined){try{b.input=JSON.parse(b._partial||"{}");}catch(_){ }delete b._partial;}
+        if(b.type==="server_tool_use"&&b.name==="web_search"&&b.input&&b.input.query)onSearchQuery(b.input.query);
+        break;}
+      case "message_delta":
+        if(ev.delta&&ev.delta.stop_reason)stopReason=ev.delta.stop_reason;
+        if(ev.usage){
+          if(ev.usage.output_tokens)usage.output=ev.usage.output_tokens;
+          const st=ev.usage.server_tool_use;
+          if(st&&st.web_search_requests)usage.searches=Math.max(usage.searches,st.web_search_requests);
+        }
+        break;
+      case "error":{
+        const e=ev.error||{};const err=new Error("["+(e.type||"errore")+"] "+(e.message||"errore dal server"));
+        throw err;}
+    }
+  };
+  while(true){
+    const {done,value}=await reader.read();
+    if(done)break;
+    buf+=dec.decode(value,{stream:true});
+    let idx;
+    while((idx=buf.indexOf("\n\n"))>=0){
+      const chunk=buf.slice(0,idx);buf=buf.slice(idx+2);
+      for(const l of chunk.split("\n"))
+        if(l.startsWith("data:"))handleEvent(l.slice(5).trim());
+    }
+  }
+  // se il conteggio ricerche non è arrivato in usage, contiamo i blocchi
+  if(!usage.searches)usage.searches=blocks.filter(b=>b&&b.type==="server_tool_use"&&b.name==="web_search").length;
+  return {blocks:blocks.filter(Boolean),stopReason,usage};
+}
+
+async function analizza(){
+  const asset=assetEl.value.trim();
+  const budget=parseFloat(budgetEl.value);
+  if(!asset){toast("Inserisci il nome dell'azienda o dell'ETF");assetEl.focus();return;}
+  if(!isFinite(budget)||budget<=0){toast("Inserisci il budget in euro");budgetEl.focus();return;}
+  const key=apiKeyEl.value.trim();
+  if(!key){
+    $("settingsBox").open=true;apiKeyEl.focus();
+    showError("Per l'analisi automatica serve una API key di Anthropic (impostazioni qui sopra). "+
+      "In alternativa usa «Copia prompt per Claude» e incollalo su claude.ai con la ricerca web attiva.");
+    resultCard.style.display="block";return;
+  }
+  saveSettings();
+
+  // reset UI
+  controller=new AbortController();
+  resultCard.style.display="block";
+  errorBox.style.display="none";errorBox.textContent="";
+  output.innerHTML="";searchLog.innerHTML="";
+  resultActions.style.display="none";usageBar.style.display="none";
+  statusBar.classList.add("on");setStatus("Invio la richiesta…");
+  analyzeBtn.disabled=true;copyPromptBtn.disabled=true;cancelBtn.style.display="inline-block";
+  resultCard.scrollIntoView({behavior:"smooth",block:"start"});
+
+  const model=modelEl.value;
+  const messages=[{role:"user",content:buildPrompt()}];
+  const basePayload=()=>({
+    model,
+    max_tokens:16000,
+    stream:true,
+    system:SYSTEM_PROMPT,
+    thinking:{type:"adaptive"},
+    tools:[{type:"web_search_20260209",name:"web_search",max_uses:parseInt(maxSearchesEl.value,10)||6}],
+    messages
+  });
+
+  let fullText="", renderQueued=false;
+  const renderNow=()=>{output.innerHTML=mdToHtml(fullText);fullTextRef.value=fullText;};
+  const onText=t=>{fullText+=t;
+    if(!renderQueued){renderQueued=true;setTimeout(()=>{renderQueued=false;renderNow();},180);}};
+  const totalUsage={input:0,output:0,searches:0};
+
+  try{
+    let rounds=0;
+    while(true){
+      const r=await streamOnce(basePayload(),key,onText,logSearch,()=>setStatus("Sto ragionando…"));
+      totalUsage.input+=r.usage.input;totalUsage.output+=r.usage.output;totalUsage.searches+=r.usage.searches;
+      if(r.stopReason==="pause_turn"&&rounds<3){
+        rounds++;messages.push({role:"assistant",content:r.blocks});
+        setStatus("Continuo l'analisi…");continue;
+      }
+      if(r.stopReason==="max_tokens")toast("Nota: risposta troncata per limite di lunghezza");
+      break;
+    }
+    renderNow();
+    statusBar.classList.remove("on");
+    if(!fullText.trim()){showError("Il modello non ha prodotto testo (possibile rifiuto della richiesta). Riprova.");}
+    else{
+      resultActions.style.display="flex";
+      showUsage(model,totalUsage);
+      saveHistory({date:new Date().toISOString(),asset,budget,tipo:tipoEl.value,model,markdown:fullText,usage:totalUsage});
+    }
+  }catch(e){
+    renderNow();statusBar.classList.remove("on");
+    if(e.name==="AbortError"){showError("Analisi annullata."+(fullText?" Qui sotto la parte generata finora.":""));}
+    else showError(friendlyError(e));
+    if(fullText.trim())resultActions.style.display="flex";
+  }finally{
+    analyzeBtn.disabled=false;copyPromptBtn.disabled=false;cancelBtn.style.display="none";controller=null;
+  }
+}
+
+function friendlyError(e){
+  const s=e.status, m=e.message||"";
+  if(s===401)return "API key non valida o revocata. Controlla la chiave nelle impostazioni.";
+  if(s===403)return "La API key non ha i permessi necessari. "+m;
+  if(s===429)return "Troppe richieste (rate limit). Aspetta qualche minuto e riprova.";
+  if(s===529||/overloaded/i.test(m))return "I server di Anthropic sono momentaneamente sovraccarichi. Riprova tra poco.";
+  if(/credit/i.test(m))return "Credito esaurito sull'account Anthropic: ricarica su console.anthropic.com. — "+m;
+  if(s>=500)return "Errore temporaneo del server ("+s+"). Riprova tra poco.";
+  if(e instanceof TypeError&&/fetch|network/i.test(m))return "Errore di rete: controlla la connessione (o eventuali estensioni/adblock che bloccano api.anthropic.com).";
+  return m||"Errore imprevisto.";
+}
+function showError(msg){errorBox.textContent="⚠️ "+msg;errorBox.style.display="block";}
+function showUsage(model,u){
+  const p=PRICING[model]||PRICING["claude-opus-4-8"];
+  const cost=u.input/1e6*p.input+u.output/1e6*p.output+u.searches*0.01;
+  usageBar.innerHTML="✅ Analisi completata · Modello: "+p.label+
+    " · Token: "+fmtNum(u.input)+" in / "+fmtNum(u.output)+" out · Ricerche web: "+u.searches+
+    " · Costo stimato: ~$"+cost.toFixed(2);
+  usageBar.style.display="block";
+}
+
+/* ---------- storico ---------- */
+function loadHistoryArr(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY))||[];}catch(_){return [];}}
+function saveHistory(item){
+  const arr=loadHistoryArr();arr.unshift(item);
+  while(arr.length>MAX_HISTORY)arr.pop();
+  try{localStorage.setItem(HISTORY_KEY,JSON.stringify(arr));}catch(_){/* quota piena: ignora */}
+  renderHistory();
+}
+function renderHistory(){
+  const arr=loadHistoryArr();
+  historyCard.style.display=arr.length?"block":"none";
+  historyEl.innerHTML="";
+  arr.forEach((it,i)=>{
+    const li=document.createElement("li");
+    const load=document.createElement("button");load.className="load";
+    load.textContent=it.asset+" — "+fmtNum(it.budget)+"€"+(it.tipo==="pac"?"/mese":"");
+    load.addEventListener("click",()=>{
+      resultCard.style.display="block";errorBox.style.display="none";
+      statusBar.classList.remove("on");searchLog.innerHTML="";
+      output.innerHTML=mdToHtml(it.markdown);
+      resultActions.style.display="flex";
+      if(it.usage)showUsage(it.model,it.usage);
+      fullTextRef.value=it.markdown;
+      resultCard.scrollIntoView({behavior:"smooth"});
+    });
+    const meta=document.createElement("span");meta.className="meta";
+    meta.textContent=new Date(it.date).toLocaleDateString("it-IT");
+    const del=document.createElement("button");del.className="del";del.textContent="✕";
+    del.title="Elimina";del.addEventListener("click",()=>{
+      const arr2=loadHistoryArr();arr2.splice(i,1);
+      localStorage.setItem(HISTORY_KEY,JSON.stringify(arr2));renderHistory();});
+    li.append(load,meta,del);historyEl.appendChild(li);
+  });
+}
+const fullTextRef={value:""}; // testo correntemente mostrato, per copia/download
+
+/* ---------- azioni ---------- */
+analyzeBtn.addEventListener("click",analizza);
+cancelBtn.addEventListener("click",()=>{if(controller)controller.abort();});
+copyPromptBtn.addEventListener("click",async()=>{
+  const asset=assetEl.value.trim();
+  if(!asset){toast("Inserisci prima il nome dell'azienda o dell'ETF");assetEl.focus();return;}
+  if(!(parseFloat(budgetEl.value)>0)){toast("Inserisci prima il budget");budgetEl.focus();return;}
+  const p=buildPrompt();promptPreview.textContent=p;
+  const ok=await copyText(p);
+  toast(ok?"Prompt copiato! Incollalo su claude.ai con la ricerca web attiva.":"Copia non riuscita: usa l'anteprima qui sotto.");
+});
+function refreshPreview(){
+  const box=$("previewToggle").parentElement;
+  if(!box.open)return;
+  promptPreview.textContent=assetEl.value.trim()?buildPrompt():"Compila i campi qui sopra per vedere il prompt.";
+}
+$("previewToggle").parentElement.addEventListener("toggle",refreshPreview);
+for(const el of [assetEl,budgetEl,tipoEl]){
+  el.addEventListener("input",refreshPreview);
+  el.addEventListener("change",refreshPreview);
+}
+$("copyMdBtn").addEventListener("click",async()=>{
+  const t=fullTextRef.value||output.innerText;
+  toast(await copyText(t)?"Analisi copiata negli appunti":"Copia non riuscita");
+});
+$("downloadBtn").addEventListener("click",()=>{
+  const t=fullTextRef.value||output.innerText;
+  const name="analisi-"+(assetEl.value.trim()||"asset").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+".md";
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([t],{type:"text/markdown"}));
+  a.download=name;a.click();URL.revokeObjectURL(a.href);
+});
+
+/* ---------- impostazioni persistenti ---------- */
+function saveSettings(){
+  try{
+    localStorage.setItem("anthropic_api_key",apiKeyEl.value.trim());
+    localStorage.setItem("analisi_model",modelEl.value);
+    localStorage.setItem("analisi_max_searches",maxSearchesEl.value);
+  }catch(_){}
+}
+function loadSettings(){
+  try{
+    apiKeyEl.value=localStorage.getItem("anthropic_api_key")||"";
+    const m=localStorage.getItem("analisi_model");if(m&&PRICING[m])modelEl.value=m;
+    const s=localStorage.getItem("analisi_max_searches");if(s)maxSearchesEl.value=s;
+  }catch(_){}
+}
+apiKeyEl.addEventListener("change",saveSettings);
+modelEl.addEventListener("change",saveSettings);
+maxSearchesEl.addEventListener("change",saveSettings);
+
+/* ---------- init ---------- */
+loadSettings();
+renderHistory();
+document.body.dataset.jsReady="1";
+</script>
+</body>
+</html>
