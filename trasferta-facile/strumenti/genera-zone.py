@@ -5,7 +5,7 @@ Per aggiungere una zona basta aggiungere una voce a ZONE.
 """
 from pathlib import Path
 
-DOMINIO = "https://www.trasfertafacile.it"
+DOMINIO = "https://www.trasfertafacile.com"
 RADICE = Path(__file__).resolve().parent.parent
 
 ZONE = [
