@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trasferta Facile · Alloggi per squadre in trasferta a Milano</title>
+<meta name="description" content="Appartamenti per operai e tecnici in trasferta a Milano Nord, Sesto, Rho Fiera e hinterland. Letti singoli, cucina, lavatrice, parcheggio per il furgone. Da €30 a persona a notte, tutto incluso. Proposta in 24 ore.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ffcf00'/%3E%3Ctext x='16' y='23' font-family='Arial' font-weight='900' font-size='17' text-anchor='middle' fill='%23141414'%3ETF%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #efefec;
+  --surface: #e3e3df;
+  --ink: #141414;
+  --muted: #4a4a47;
+  --accent: #ffcf00;
+  --accent-ink: #141414;
+  --field-dark: #1d1f21;
+  --field-dark-ink: #f4f4f1;
+  --field-dark-muted: #b9b9b4;
+  --paper: #ffffff;
+
+  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --step-head: clamp(2.25rem, 1.3rem + 3.6vw, 4.75rem);
+  --step-display: clamp(2.6rem, 0.8rem + 6vw, 6.75rem);
+
+  --margin: clamp(16px, 3vw, 40px);
+  --gap-section: clamp(96px, 12vw, 200px);
+  --ease: cubic-bezier(.2,.7,.2,1);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: "Archivo", system-ui, sans-serif; font-size: var(--step-body); line-height: 1.55;
+  font-variation-settings: "wdth" 100;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+h1, h2, h3 { margin: 0; font-weight: 800; line-height: 0.98; letter-spacing: -0.03em; font-stretch: 78%; font-variation-settings: "wdth" 78; }
+p { margin: 0; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+::selection { background: var(--accent); color: var(--accent-ink); }
+.wrap { padding-inline: var(--margin); max-width: 1520px; margin-inline: auto; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Buttons: flat, square */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+  min-height: 56px; padding: 0 28px; border: 0; border-radius: 0; cursor: pointer;
+  background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 800;
+  text-decoration: none; transition: transform .18s var(--ease), background-color .18s;
+}
+.btn:hover { transform: translateY(-2px); background: #ffd833; }
+.btn:active { transform: translateY(1px); }
+.btn-ink { background: var(--ink); color: var(--bg); }
+.btn-ink:hover { background: #2c2c2c; }
+.link { font-weight: 700; text-underline-offset: 4px; text-decoration-thickness: 2px; }
+.link:hover { text-decoration-color: var(--accent); }
+
+/* Nav */
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 20px; }
+.wordmark { font-weight: 900; font-size: 1.25rem; letter-spacing: -0.02em; text-decoration: none; font-variation-settings: "wdth" 85; }
+.nav ul { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; }
+.nav ul a { text-decoration: none; font-weight: 600; }
+.nav ul a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.nav .btn { min-height: 44px; padding: 0 18px; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(32px, 5vw, 88px); align-items: start; padding-top: clamp(40px, 7vw, 110px); }
+.hero h1 { font-size: var(--step-display); font-stretch: 70%; font-variation-settings: "wdth" 70; max-width: none; }
+.hero .lead { margin-top: 36px; font-size: var(--step-lead); line-height: 1.4; max-width: 30ch; }
+.hero .price { margin-top: 36px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.hero .price strong { font-size: clamp(3rem, 2rem + 4vw, 6rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1; font-variation-settings: "wdth" 75; }
+.hero .price span { font-weight: 600; max-width: 16ch; line-height: 1.3; }
+.hero .actions { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+
+/* The site sign (cartello) */
+.sign {
+  background: var(--paper); border: 6px solid var(--ink); padding: 0;
+  transform: rotate(0.6deg); transform-origin: top left;
+}
+.sign-head { background: var(--ink); color: var(--paper); padding: 18px 22px 16px; }
+.sign-head p { font-weight: 900; font-size: clamp(1.4rem, 1rem + 1.4vw, 2.1rem); line-height: 1; letter-spacing: -0.02em; font-variation-settings: "wdth" 72; }
+.sign-head small { display: block; margin-top: 6px; font-size: var(--step-small); color: #cfcfca; }
+.sign table { width: 100%; border-collapse: collapse; }
+.sign th, .sign td { text-align: left; vertical-align: middle; padding: 12px 22px; border-bottom: 2px solid var(--ink); }
+.sign tr:last-child th, .sign tr:last-child td { border-bottom: 0; }
+.sign th { width: 34%; font-weight: 600; font-size: var(--step-small); color: var(--muted); }
+.sign td { font-weight: 800; font-size: 1.125rem; }
+.sign select, .sign input {
+  font: inherit; font-weight: 800; color: var(--ink); background: var(--surface);
+  border: 0; border-radius: 0; padding: 8px 10px; min-height: 44px; width: 100%;
+}
+.sign .stepper { display: flex; align-items: center; gap: 8px; }
+.sign .stepper button {
+  width: 44px; height: 44px; border: 0; background: var(--ink); color: var(--paper);
+  font: inherit; font-weight: 900; font-size: 1.25rem; cursor: pointer; transition: transform .15s var(--ease);
+}
+.sign .stepper button:hover { transform: translateY(-1px); }
+.sign .stepper button:active { transform: scale(.94); }
+.sign .stepper output { min-width: 2.5ch; text-align: center; font-size: 1.5rem; font-weight: 900; }
+.sign .total td { font-size: 1.5rem; font-weight: 900; }
+.sign .total small { display: block; font-size: var(--step-small); font-weight: 600; color: var(--muted); }
+.sign-foot { background: var(--accent); padding: 16px 22px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; border-top: 6px solid var(--ink); }
+.sign-foot p { font-weight: 700; font-size: var(--step-small); max-width: 32ch; }
+.sign-foot .btn { background: var(--ink); color: var(--paper); }
+
+/* Sections */
+section { padding-top: var(--gap-section); }
+.sec-head h2 { font-size: var(--step-head); max-width: 18ch; }
+.sec-head + .compare, .sec-head + .faq-body, .sec-head + .owners-body { margin-top: 56px; }
+.sec-intro { margin-top: 28px; max-width: 54ch; font-size: var(--step-lead); line-height: 1.4; }
+
+/* Compare */
+.compare { display: grid; grid-template-columns: 1fr 1.2fr; gap: clamp(32px, 5vw, 96px); align-items: start; }
+.compare .sec-intro { margin-top: 0; }
+.bill { background: var(--surface); padding: clamp(24px, 3vw, 44px); }
+.bill table { width: 100%; border-collapse: collapse; }
+.bill caption { text-align: left; font-weight: 700; padding-bottom: 18px; }
+.bill th, .bill td { padding: 14px 0; border-bottom: 2px solid var(--ink); text-align: left; }
+.bill td:last-child, .bill th:last-child { text-align: right; }
+.bill thead th { font-size: var(--step-small); color: var(--muted); font-weight: 600; }
+.bill tbody td { font-weight: 700; }
+.bill tfoot td { border-bottom: 0; padding-top: 22px; font-size: clamp(1.75rem, 1.2rem + 2vw, 3rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+.bill tfoot td:first-child { font-size: var(--step-body); letter-spacing: 0; font-weight: 800; }
+.bill .note { margin-top: 18px; font-size: var(--step-small); color: var(--muted); }
+.saving { background: var(--accent); padding: 2px 8px; }
+
+/* Plan */
+.inside { display: grid; grid-template-columns: 1.25fr 1fr; gap: clamp(32px, 5vw, 96px); align-items: start; margin-top: 56px; }
+.plan { background: var(--paper); padding: clamp(16px, 2vw, 28px); }
+.plan figcaption { margin-top: 14px; font-size: var(--step-small); color: var(--muted); }
+.included { list-style: none; margin: 0; padding: 0; columns: 1; }
+.included li { padding: 14px 0; font-weight: 700; font-size: 1.125rem; break-inside: avoid; }
+.included li span { display: block; font-weight: 400; font-size: var(--step-body); color: var(--muted); }
+
+/* Timeline */
+.dark { background: var(--field-dark); color: var(--field-dark-ink); margin-top: var(--gap-section); padding-block: var(--gap-section); }
+.dark section { padding-top: 0; }
+.dark .muted { color: var(--field-dark-muted); }
+.clock { list-style: none; margin: 64px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(24px, 4vw, 64px); }
+.clock li time { display: block; font-size: clamp(2.5rem, 1.5rem + 4vw, 5.5rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1; color: var(--accent); font-variation-settings: "wdth" 72; }
+.clock li h3 { margin-top: 20px; font-size: 1.5rem; line-height: 1.1; letter-spacing: -0.01em; font-variation-settings: "wdth" 90; }
+.clock li p { margin-top: 12px; color: var(--field-dark-muted); max-width: 34ch; }
+.zones { margin-top: clamp(80px, 9vw, 140px); display: grid; grid-template-columns: 1fr 1.4fr; gap: clamp(32px, 5vw, 96px); align-items: start; }
+.zones h2 { font-size: var(--step-head); }
+.zone-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 10px; }
+.zone-list li { background: #2c2f32; padding: 10px 16px; font-weight: 700; font-size: 1.125rem; }
+.zone-list li.hot { background: var(--accent); color: var(--accent-ink); }
+.zones p { margin-top: 24px; color: var(--field-dark-muted); max-width: 52ch; }
+
+/* FAQ */
+.faq-body { display: grid; grid-template-columns: 1fr 1.6fr; gap: clamp(32px, 5vw, 96px); align-items: start; }
+
+.faq-body details { background: var(--surface); margin-bottom: 8px; }
+.faq-body summary { cursor: pointer; list-style: none; padding: 20px 24px; font-weight: 800; font-size: 1.125rem; display: flex; justify-content: space-between; gap: 16px; }
+.faq-body summary::-webkit-details-marker { display: none; }
+.faq-body summary::after { content: "+"; font-weight: 900; font-size: 1.5rem; line-height: 1; transition: transform .2s var(--ease); }
+.faq-body details[open] summary::after { transform: rotate(45deg); }
+.faq-body details p { padding: 0 24px 22px; max-width: 64ch; }
+
+/* Owners */
+.owners { background: var(--accent); color: var(--accent-ink); margin-top: var(--gap-section); padding-block: clamp(80px, 9vw, 160px); }
+.owners section { padding-top: 0; }
+.owners-body { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(32px, 5vw, 96px); align-items: start; }
+.owners .sec-intro { margin-top: 0; }
+.owners h2 { font-size: var(--step-head); }
+.owners .sec-intro { max-width: 40ch; }
+.owners ul { list-style: none; margin: 0; padding: 0; }
+.owners li { padding: 16px 0; font-size: 1.125rem; font-weight: 700; }
+.owners li span { display: block; font-weight: 400; }
+.owners .btn { margin-top: 28px; }
+
+/* Footer */
+footer { padding-top: clamp(80px, 9vw, 140px); padding-bottom: 32px; }
+.foot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+.foot-grid h3 { font-size: 1.125rem; letter-spacing: 0; font-variation-settings: "wdth" 100; margin-bottom: 10px; }
+.foot-grid p { color: var(--muted); }
+.bigname { margin-top: clamp(56px, 8vw, 120px); font-weight: 900; line-height: 0.82; letter-spacing: -0.05em; font-size: clamp(3rem, 12.4vw, 13rem); font-variation-settings: "wdth" 62; white-space: nowrap; }
+.legal { margin-top: 24px; font-size: var(--step-small); color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+/* Motion: content always visible without script */
+.js .rise { opacity: 0; transform: translateY(24px); transition: opacity .7s var(--ease), transform .7s var(--ease); transition-delay: calc(var(--i, 0) * 80ms); }
+.js .rise.in { opacity: 1; transform: none; }
+.js .sign { animation: hang 1s var(--ease) both .15s; }
+@keyframes hang { from { transform: rotate(-2.5deg) translateY(-18px); opacity: 0; } to { transform: rotate(0.6deg); opacity: 1; } }
+.bump { animation: bump .35s var(--ease); }
+@keyframes bump { 40% { transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .js .rise { opacity: 1; transform: none; transition: none; }
+  .js .sign { animation: none; }
+  .bump { animation: none; }
+  .btn, .faq-body summary::after { transition: none; }
+}
+
+/* Tablet and phone */
+@media (max-width: 1000px) {
+  .hero, .compare, .inside, .zones, .faq-body, .owners-body { grid-template-columns: 1fr; }
+  .nav ul { display: none; }
+  .sign { transform: none; }
+}
+@media (max-width: 700px) {
+  .clock { grid-template-columns: 1fr; gap: 48px; }
+  .foot-grid { grid-template-columns: 1fr; }
+  .sign th, .sign td { padding: 10px 14px; }
+  .sign-head, .sign-foot { padding-inline: 14px; }
+  .sign th { width: 38%; }
+  .bigname { font-size: 15.2vw; }
+  .wordmark { white-space: nowrap; font-size: 1.125rem; }
+  .nav .btn { padding: 0 14px; white-space: nowrap; font-size: 0.9375rem; }
+  .bill th:nth-child(2), .bill td:nth-child(2) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="wrap nav">
+  <a class="wordmark" href="#top" id="top">Trasferta Facile</a>
+  <nav aria-label="Sezioni">
+    <ul>
+      <li><a href="#prezzi">Prezzi</a></li>
+      <li><a href="#casa">La casa</a></li>
+      <li><a href="#zone">Zone</a></li>
+      <li><a href="#domande">Domande</a></li>
+      <li><a href="#proprietari">Proprietari</a></li>
+    </ul>
+  </nav>
+  <a class="btn" href="#richiesta">Chiedi una proposta</a>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <h1 class="rise">Alloggi per squadre in trasferta</h1>
+      <p class="lead rise" style="--i:1">Appartamenti interi a Milano Nord e nell’hinterland, con letti singoli, cucina, lavatrice e parcheggio per il furgone. Ci dici quanti siete e quando arrivate: entro 24 ore hai 2-3 proposte con foto.</p>
+      <div class="price rise" style="--i:2"><strong class="num">€30</strong><span>a persona a notte, utenze e biancheria incluse</span></div>
+      <div class="actions rise" style="--i:3">
+        <a class="btn btn-ink" href="#richiesta">Compila il cartello</a>
+        <a class="link" href="#prezzi">Quanto risparmi rispetto all’hotel</a>
+      </div>
+    </div>
+
+    <form class="sign" id="richiesta" aria-labelledby="sign-title" onsubmit="return false">
+      <div class="sign-head">
+        <p id="sign-title">Cartello di trasferta</p>
+        <small>Compilalo: ti mandiamo le proposte entro 24 ore</small>
+      </div>
+      <table>
+        <tbody>
+          <tr>
+            <th scope="row"><label for="impresa">Impresa</label></th>
+            <td><input id="impresa" name="impresa" autocomplete="organization" placeholder="Nome della tua impresa"></td>
+          </tr>
+          <tr>
+            <th scope="row" id="lbl-persone">Squadra</th>
+            <td>
+              <div class="stepper" role="group" aria-labelledby="lbl-persone">
+                <button type="button" data-step="-1" aria-label="Una persona in meno">−</button>
+                <output id="persone" aria-live="polite">4</output>
+                <button type="button" data-step="1" aria-label="Una persona in più">+</button>
+                <span>persone</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row"><label for="zona">Cantiere a</label></th>
+            <td>
+              <select id="zona" name="zona">
+                <option>Sesto San Giovanni</option>
+                <option>Cinisello Balsamo</option>
+                <option>Bresso / Cormano / Cusano</option>
+                <option>Rho / Fiera Milano</option>
+                <option>Milano Nord</option>
+                <option>Milano città</option>
+                <option>Altra zona in Lombardia</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row"><label for="arrivo">Arrivo</label></th>
+            <td><input id="arrivo" name="arrivo" type="date"></td>
+          </tr>
+          <tr>
+            <th scope="row"><label for="durata">Durata</label></th>
+            <td>
+              <select id="durata" name="durata">
+                <option value="1">1 settimana</option>
+                <option value="2">2 settimane</option>
+                <option value="4" selected>1 mese</option>
+                <option value="8">2 mesi</option>
+                <option value="13">3 mesi</option>
+                <option value="26">6 mesi</option>
+              </select>
+            </td>
+          </tr>
+          <tr class="total">
+            <th scope="row">Costo indicativo</th>
+            <td><span id="totale" class="num" aria-live="polite">€3.360</span><small id="totale-note">4 persone × 28 notti × €30</small></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="sign-foot">
+        <p id="send-note">Il pulsante apre un messaggio già scritto. Nessun impegno.</p>
+        <a class="btn" id="invia" href="#">Invia la richiesta</a>
+      </div>
+    </form>
+  </div>
+
+  <section class="wrap" id="prezzi" aria-labelledby="prezzi-title">
+    <div class="sec-head"><h2 id="prezzi-title" class="rise">Meno della metà di un hotel</h2></div>
+    <div class="compare">
+      <div>
+        <p class="sec-intro rise" style="--i:1">Paghi un appartamento intero, non una camera a testa. I ragazzi cucinano, si lavano i vestiti e la sera hanno un posto dove stare. Tu ricevi un solo documento per tutto il soggiorno e paghi con bonifico.</p>
+      </div>
+      <div class="bill rise" style="--i:2">
+        <table>
+          <caption>Esempio: squadra di <span id="cmp-persone">4</span> persone per <span id="cmp-notti">28</span> notti</caption>
+          <thead><tr><th scope="col">Soluzione</th><th scope="col">Prezzo a persona</th><th scope="col">Totale</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Hotel</td>
+              <td class="num">€<input id="hotel" type="number" min="30" max="300" step="5" value="85" aria-label="Prezzo hotel a persona a notte in euro" style="width:5ch;font:inherit;font-weight:700;background:var(--bg);border:0;padding:4px 6px"> /notte</td>
+              <td class="num" id="tot-hotel">€9.520</td>
+            </tr>
+            <tr><td>Trasferta Facile</td><td class="num">€30 /notte</td><td class="num" id="tot-tf">€3.360</td></tr>
+          </tbody>
+          <tfoot><tr><td>Risparmi</td><td></td><td class="num"><span class="saving" id="risparmio">€6.160</span></td></tr></tfoot>
+        </table>
+        <p class="note">Il prezzo dell’hotel è modificabile: mettici quello che paghi oggi. Il nostro prezzo finale dipende da zona, date e dimensione della squadra; te lo confermiamo nella proposta.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" id="casa" aria-labelledby="casa-title">
+    <div class="sec-head"><h2 id="casa-title" class="rise">Una casa pensata per chi lavora</h2></div>
+    <p class="sec-intro rise" style="--i:1">Ogni appartamento lo vediamo di persona prima di proportelo. Questo è un esempio di trilocale per una squadra di quattro.</p>
+    <div class="inside">
+      <figure class="plan rise" style="--i:2">
+        <svg viewBox="0 0 640 430" role="img" aria-labelledby="plan-t plan-d">
+          <title id="plan-t">Pianta di esempio di un trilocale per quattro persone</title>
+          <desc id="plan-d">Due camere con due letti singoli ciascuna, cucina con tavolo, bagno con lavatrice, ingresso e posto auto per il furgone.</desc>
+          <g fill="none" stroke="#141414" stroke-width="8" stroke-linejoin="miter">
+            <rect x="8" y="8" width="452" height="414"/>
+            <line x1="236" y1="8" x2="236" y2="230"/>
+            <line x1="8" y1="230" x2="180" y2="230"/>
+            <line x1="236" y1="230" x2="460" y2="230"/>
+            <line x1="300" y1="230" x2="300" y2="422"/>
+          </g>
+          <g fill="#e3e3df">
+            <rect x="30" y="40" width="70" height="150"/><rect x="140" y="40" width="70" height="150"/>
+            <rect x="262" y="40" width="70" height="150"/><rect x="370" y="40" width="70" height="150"/>
+          </g>
+          <g fill="#141414">
+            <rect x="30" y="40" width="70" height="34"/><rect x="140" y="40" width="70" height="34"/>
+            <rect x="262" y="40" width="70" height="34"/><rect x="370" y="40" width="70" height="34"/>
+          </g>
+          <rect x="40" y="300" width="150" height="80" fill="#e3e3df"/>
+          <rect x="24" y="250" width="40" height="150" fill="#141414"/>
+          <rect x="320" y="360" width="56" height="50" fill="#ffcf00"/>
+          <circle cx="348" cy="385" r="16" fill="none" stroke="#141414" stroke-width="5"/>
+          <rect x="398" y="250" width="44" height="70" fill="#e3e3df"/>
+          <g fill="none" stroke="#141414" stroke-width="5" stroke-dasharray="14 10">
+            <rect x="490" y="130" width="140" height="292"/>
+          </g>
+          <rect x="512" y="200" width="96" height="176" fill="#ffcf00"/>
+          <rect x="512" y="200" width="96" height="44" fill="#141414"/>
+          <g font-family="Archivo, sans-serif" font-weight="800" font-size="19" fill="#141414">
+            <text x="30" y="216">Camera 1 · 2 letti</text>
+            <text x="262" y="216">Camera 2 · 2 letti</text>
+            <text x="78" y="350">Cucina</text>
+            <text x="318" y="300">Bagno</text>
+            <text x="318" y="345" font-size="15" font-weight="700">lavatrice</text>
+            <text x="500" y="112">Posto furgone</text>
+          </g>
+        </svg>
+        <figcaption>Pianta di esempio. Ogni proposta arriva con foto e indirizzo reale dell’appartamento.</figcaption>
+      </figure>
+      <ul class="included">
+        <li class="rise">Letti singoli<span>Uno per persona. Niente divani letto, niente letti matrimoniali da dividere.</span></li>
+        <li class="rise" style="--i:1">Cucina attrezzata<span>Pentole, piatti, frigo e fornelli per cucinare la sera e prepararsi il pranzo.</span></li>
+        <li class="rise" style="--i:2">Lavatrice<span>Le tute si lavano a casa, senza lavanderie a gettoni.</span></li>
+        <li class="rise" style="--i:3">Parcheggio per il furgone<span>Posto auto o strada facile, segnalato nella proposta.</span></li>
+        <li class="rise" style="--i:4">Utenze, wifi e biancheria<span>Tutto compreso nel prezzo, pulizia finale inclusa.</span></li>
+        <li class="rise" style="--i:5">Chiavi anche all’alba<span>Arrivo e consegna chiavi concordati con voi, anche alle 6 del mattino.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="dark">
+    <section class="wrap" id="come" aria-labelledby="come-title">
+      <div class="sec-head"><h2 id="come-title" class="rise">Dalla telefonata alle chiavi</h2></div>
+      <ol class="clock">
+        <li class="rise"><time>Oggi</time><h3>Ci scrivi o ci chiami</h3><p>Ci dici dove è il cantiere, quante persone, quando arrivano e per quanto restano.</p></li>
+        <li class="rise" style="--i:1"><time>24 ore</time><h3>Ricevi 2-3 proposte</h3><p class="muted">Foto vere, indirizzo, distanza dal cantiere e prezzo finale. Scegli tu.</p></li>
+        <li class="rise" style="--i:2"><time>Arrivo</time><h3>Chiavi e casa pronta</h3><p class="muted">Durante il soggiorno hai un solo numero da chiamare per qualsiasi problema.</p></li>
+      </ol>
+
+      <div class="zones" id="zone">
+        <h2 class="rise">Dove lavoriamo</h2>
+        <div>
+          <ul class="zone-list rise" style="--i:1">
+            <li class="hot">Sesto San Giovanni</li>
+            <li class="hot">Cinisello Balsamo</li>
+            <li class="hot">Bresso</li>
+            <li>Cormano</li>
+            <li>Cusano Milanino</li>
+            <li>Paderno Dugnano</li>
+            <li>Novate Milanese</li>
+            <li>Rho e Fiera Milano</li>
+            <li>Milano Nord</li>
+            <li>Milano città, su richiesta</li>
+          </ul>
+          <p class="rise" style="--i:2">Siamo a Bresso e vediamo ogni casa di persona. Cantiere in un’altra zona della Lombardia? Scrivici lo stesso: se possiamo seguirti bene, ti mandiamo la proposta.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="wrap" id="domande" aria-labelledby="faq-title">
+    <div class="sec-head"><h2 id="faq-title" class="rise">Le domande delle imprese</h2></div>
+    <div class="faq-body">
+      <p class="sec-intro rise" style="--i:1;margin-top:0">Documenti, pagamenti, durata e regole della casa. Se la tua domanda non c’è, scrivici: rispondiamo in giornata.</p>
+      <div class="rise" style="--i:2">
+        <details><summary>Che documento ricevo per la contabilità?</summary><p>Per soggiorni fino a 30 giorni ricevi la ricevuta del soggiorno intestata alla tua impresa; per periodi più lunghi un contratto di locazione ad uso foresteria intestato all’impresa. Il pagamento avviene sempre con bonifico, quindi è tracciabile.</p></details>
+        <details><summary>Come si paga?</summary><p>Con bonifico prima dell’arrivo, per settimana o per mese a seconda della durata. Nella proposta trovi l’importo esatto e le scadenze.</p></details>
+        <details><summary>Qual è il soggiorno minimo?</summary><p>Una settimana. Per periodi più brevi chiedici comunque: se c’è una casa libera, te la proponiamo.</p></details>
+        <details><summary>Si può prolungare o accorciare?</summary><p>Sì. I cantieri cambiano programma, lo sappiamo. Le condizioni per prolungare o lasciare prima sono scritte nella proposta, senza sorprese.</p></details>
+        <details><summary>E se la squadra è più grande?</summary><p>Sistemiamo squadre grandi in più appartamenti vicini tra loro, con un unico referente e un unico documento.</p></details>
+        <details><summary>Ci sono regole da rispettare in casa?</summary><p>Poche e chiare: niente ospiti esterni a dormire, rispetto dei vicini e della casa. Chiediamo una cauzione che viene restituita alla fine se è tutto in ordine.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <div class="owners" id="proprietari">
+    <section class="wrap" aria-labelledby="own-title">
+      <div class="sec-head"><h2 id="own-title" class="rise">Hai un appartamento libero in zona?</h2></div>
+      <div class="owners-body">
+      <div>
+        <p class="sec-intro rise" style="--i:1">Lo affidiamo a imprese che mandano tecnici e operai in trasferta. Paga l’impresa, in anticipo. Ospiti, chiavi, pulizie e problemi li gestiamo noi.</p>
+        <a class="btn btn-ink rise" style="--i:2" id="invia-proprietario" href="#">Proponi il tuo appartamento</a>
+      </div>
+      <ul>
+        <li class="rise">Paga un’azienda, non un privato<span>Con nome, partita IVA e pagamento anticipato con bonifico.</span></li>
+        <li class="rise" style="--i:1">Nessun contratto di anni<span>Soggiorni da settimane o mesi. La casa torna libera quando ti serve.</span></li>
+        <li class="rise" style="--i:2">Guadagniamo solo se guadagni tu<span>Teniamo una percentuale di quanto incassi. Se la casa è vuota non paghi niente.</span></li>
+        <li class="rise" style="--i:3">Controlli regolari<span>Cauzione, regolamento firmato e visite periodiche alla casa.</span></li>
+      </ul>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="wrap">
+  <div class="foot-grid">
+    <div><h3>Contatti</h3><p><span id="foot-tel">Telefono e WhatsApp: in arrivo</span><br><a class="link" id="foot-mail" href="#">info@trasfertafacile.it</a></p></div>
+    <div><h3>Dove siamo</h3><p>Bresso (MI), Milano Nord</p></div>
+    <div><h3>Orari</h3><p>Lunedì-sabato, 7:00-20:00. Per chi è già in casa, sempre.</p></div>
+  </div>
+  <p class="bigname" aria-hidden="true">Trasferta Facile</p>
+  <div class="legal"><span>© <span id="year">2026</span> Trasferta Facile</span><span>P.IVA in fase di attivazione</span></div>
+</footer>
+
+<script>
+  // Recapiti: da completare prima della pubblicazione.
+  const CONTATTI = { whatsapp: "", email: "info@trasfertafacile.it" };
+  const PREZZO_NOTTE = 30;
+
+  document.documentElement.classList.add("js");
+  const $ = (id) => document.getElementById(id);
+  const euro = (n) => "€" + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  let persone = 4;
+
+  function link(testo, oggetto) {
+    if (CONTATTI.whatsapp) return "https://wa.me/" + CONTATTI.whatsapp + "?text=" + encodeURIComponent(testo);
+    return "mailto:" + CONTATTI.email + "?subject=" + encodeURIComponent(oggetto) + "&body=" + encodeURIComponent(testo);
+  }
+
+  function aggiorna() {
+    const settimane = Number($("durata").value);
+    const notti = settimane * 7;
+    const hotel = Math.max(0, Number($("hotel").value) || 0);
+    const noi = persone * notti * PREZZO_NOTTE;
+    const loro = persone * notti * hotel;
+
+    $("persone").textContent = persone;
+    $("totale").textContent = euro(noi);
+    $("totale-note").textContent = persone + (persone === 1 ? " persona" : " persone") + " × " + notti + " notti × €" + PREZZO_NOTTE;
+    $("cmp-persone").textContent = persone;
+    $("cmp-notti").textContent = notti;
+    $("tot-hotel").textContent = euro(loro);
+    $("tot-tf").textContent = euro(noi);
+    $("risparmio").textContent = euro(Math.max(0, loro - noi));
+
+    const durataTxt = $("durata").selectedOptions[0].textContent;
+    const arrivo = $("arrivo").value ? new Date($("arrivo").value).toLocaleDateString("it-IT") : "da definire";
+    const impresa = $("impresa").value.trim() || "(nome impresa)";
+    const testo = "Buongiorno, vorrei una proposta di alloggio.\n\nImpresa: " + impresa +
+      "\nPersone: " + persone + "\nCantiere a: " + $("zona").value + "\nArrivo: " + arrivo +
+      "\nDurata: " + durataTxt + "\n\nGrazie.";
+    $("invia").href = link(testo, "Richiesta alloggio squadra - " + impresa);
+  }
+
+  document.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => {
+    persone = Math.min(20, Math.max(1, persone + Number(b.dataset.step)));
+    aggiorna();
+    const t = $("totale"); t.classList.remove("bump"); void t.offsetWidth; t.classList.add("bump");
+  }));
+  ["durata", "zona", "arrivo", "impresa", "hotel"].forEach((id) => $(id).addEventListener("input", aggiorna));
+
+  $("invia-proprietario").href = link(
+    "Buongiorno, ho un appartamento che potrebbe interessarvi.\n\nZona/indirizzo: \nPosti letto: \nArredato: sì/no\nParcheggio: sì/no\nDisponibile da: \n\nGrazie.",
+    "Appartamento disponibile per Trasferta Facile");
+  $("foot-mail").href = "mailto:" + CONTATTI.email;
+  if (CONTATTI.whatsapp) $("foot-tel").textContent = "Telefono e WhatsApp: +" + CONTATTI.whatsapp;
+  $("year").textContent = new Date().getFullYear();
+  aggiorna();
+
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+  }), { threshold: 0.15 });
+  document.querySelectorAll(".rise").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>
