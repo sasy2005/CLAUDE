@@ -21,7 +21,7 @@ Proprietari: gestori di affitti brevi (molte case con un accordo), annunci di af
 - `kit/*.csv`: fogli contatti (esistono anche come Google Sheet nella cartella Drive "Trasferta Facile").
 
 ## Da completare
-- Dominio: da comprare (verificare quale: trasfertafacile.it / .com). Aggiornare `DOMINIO` in `strumenti/genera-zone.py`, `canonical` e JSON-LD in `index.html`, poi rigenerare.
+- Dominio: trasfertafacile.it (Aruba, con casella email; il sito va su Netlify puntando i DNS da Aruba senza cambiare i nameserver). Se cambia, aggiornare `DOMINIO` in `strumenti/genera-zone.py`, `canonical` e JSON-LD in `index.html`, poi rigenerare.
 - Numero WhatsApp Business (SIM Iliad) ed email: costante `CONTATTI` in fondo a `index.html`.
 - Foto vere degli appartamenti, P.IVA nel footer.
 - Pubblicazione: Netlify o Cloudflare Pages (gratis) con il dominio puntato dai DNS del registrar.
