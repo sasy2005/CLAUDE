@@ -1,3 +1,5 @@
+> 🗂️ **Nuovo:** [La mia Dashboard](dashboard/) — email universitarie, calendario e cose da fare in un'unica pagina, con comandi vocali e bozze di risposta automatiche. Guida: [`dashboard/README.md`](dashboard/README.md)
+
 # 📊 Analisi Investimenti AI
 
 Un sito a pagina singola (`index.html`) dove scrivi il nome di un'**azienda o di un ETF** e il tuo **budget**, e un bot basato su Claude cerca sul web i dati aggiornati e produce un'analisi completa per l'investimento a lungo termine (5–10 anni): voto pesato su 100, bull/bear case, peso consigliato in portafoglio, 3 alternative dello stesso settore (con pulsanti per approfondirle al volo), fonti e sintesi.

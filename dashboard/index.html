@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La mia Dashboard</title>
+<meta name="description" content="Email, calendario e cose da fare in un'unica dashboard, con comandi vocali.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f4fa; --surface:#ffffff; --surface-2:#f7f8fc; --fg:#161a2c; --muted:#646b85; --faint:#9aa0b6;
+    --border:#e3e6f0; --accent:#5a56e0; --accent-2:#8b5cf6; --accent-fg:#fff; --accent-soft:#ecebfd;
+    --red:#e5484d; --red-soft:#fdecec; --amber:#c27803; --amber-soft:#fdf3df; --green:#15975a; --green-soft:#e5f6ec;
+    --blue:#2a6fdb; --blue-soft:#e7effc; --shadow:0 1px 2px rgba(20,24,50,.04),0 6px 24px rgba(20,24,50,.06);
+    --radius:18px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0d0f17; --surface:#151824; --surface-2:#1b1f2e; --fg:#eceef7; --muted:#9ba2bb; --faint:#6b7290;
+      --border:#262b3e; --accent:#8b88ff; --accent-2:#b18cff; --accent-fg:#0d0f17; --accent-soft:#25244a;
+      --red:#ff7b7f; --red-soft:#3a1f24; --amber:#f5b54a; --amber-soft:#3a2d17; --green:#4fd18b; --green-soft:#183326;
+      --blue:#79a8ff; --blue-soft:#1b2842; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d0f17; --surface:#151824; --surface-2:#1b1f2e; --fg:#eceef7; --muted:#9ba2bb; --faint:#6b7290;
+    --border:#262b3e; --accent:#8b88ff; --accent-2:#b18cff; --accent-fg:#0d0f17; --accent-soft:#25244a;
+    --red:#ff7b7f; --red-soft:#3a1f24; --amber:#f5b54a; --amber-soft:#3a2d17; --green:#4fd18b; --green-soft:#183326;
+    --blue:#79a8ff; --blue-soft:#1b2842; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.25);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  button,input,textarea,select{font:inherit;color:inherit}
+  button{cursor:pointer}
+  a{color:var(--accent)}
+  .wrap{max-width:1440px;margin:0 auto;padding:22px 16px 110px}
+  @media(min-width:720px){.wrap{padding:28px 28px 110px}}
+
+  /* ---------- header ---------- */
+  .top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px}
+  .hello h1{font-size:1.75rem;font-weight:800;letter-spacing:-.02em;margin:0}
+  .hello p{margin:2px 0 0;color:var(--muted);text-transform:capitalize}
+  .top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;padding:6px 11px;border-radius:999px;
+    background:var(--surface);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+  .pill.ok .dot{background:var(--green)} .pill.warn .dot{background:var(--amber)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--border);background:var(--surface);
+    border-radius:12px;padding:8px 14px;font-weight:600;font-size:.88rem;transition:transform .12s,background .15s,border-color .15s}
+  .btn:hover{border-color:var(--accent)} .btn:active{transform:scale(.97)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border-color:transparent}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--muted)} .btn.ghost:hover{background:var(--surface-2);color:var(--fg)}
+  .btn.icon{padding:8px 10px}
+  .btn.sm{padding:5px 10px;font-size:.8rem;border-radius:9px}
+  .btn.danger{color:var(--red)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .banner{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding:12px 16px;border-radius:14px;background:var(--accent-soft);color:var(--fg);font-size:.9rem}
+  .banner.on{display:flex}
+
+  /* ---------- stats ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  @media(max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);
+    display:flex;align-items:center;gap:12px;min-width:0}
+  .stat .ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:1.15rem;flex:none}
+  .stat b{display:block;font-size:1.45rem;font-weight:800;line-height:1.1;letter-spacing:-.02em}
+  .stat span{font-size:.8rem;color:var(--muted)}
+
+  /* ---------- command bar ---------- */
+  .cmd{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:10px 10px 10px 18px;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .cmd input{flex:1;min-width:0;border:0;background:transparent;font-size:1rem;outline:none;padding:6px 0}
+  .cmd input::placeholder{color:var(--faint)}
+  .mic{width:46px;height:46px;border-radius:50%;border:0;flex:none;display:grid;place-items:center;color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));position:relative;transition:transform .15s}
+  .mic:hover{transform:scale(1.05)}
+  .mic svg{width:21px;height:21px}
+  .mic.on{background:var(--red)}
+  .mic.on::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--red);animation:pulse 1.2s ease-out infinite}
+  @keyframes pulse{from{opacity:.9;transform:scale(.9)}to{opacity:0;transform:scale(1.35)}}
+  .reply{display:none;align-items:flex-start;gap:10px;margin:0 4px 14px;font-size:.92rem;color:var(--fg)}
+  .reply.on{display:flex}
+  .reply .bot{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;flex:none;font-size:.85rem;
+    background:var(--accent-soft)}
+  .reply p{margin:3px 0 0;white-space:pre-line}
+  .hints{display:flex;gap:7px;flex-wrap:wrap;margin:0 4px 20px}
+  .chip{border:1px dashed var(--border);background:transparent;border-radius:999px;padding:4px 11px;font-size:.78rem;color:var(--muted)}
+  .chip:hover{border-style:solid;border-color:var(--accent);color:var(--accent)}
+
+  /* ---------- grid / cards ---------- */
+  .grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:16px;align-items:start}
+  @media(max-width:1180px){.grid{grid-template-columns:1fr 1fr}.grid #mailCard{grid-column:1/-1}}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+    display:flex;flex-direction:column;min-width:0}
+  .card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 12px}
+  .card-h h2{font-size:1.02rem;font-weight:700;margin:0;display:flex;align-items:center;gap:8px}
+  .card-b{padding:0 10px 12px;overflow:auto;max-height:640px}
+  @media(max-width:760px){.card-b{max-height:none}}
+  .seg{display:flex;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;padding:3px;gap:2px}
+  .seg button{border:0;background:transparent;border-radius:8px;padding:5px 10px;font-size:.8rem;font-weight:600;color:var(--muted);white-space:nowrap}
+  .seg button.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .seg .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:99px;font-size:.72rem;background:var(--border);color:var(--fg)}
+  .seg button.on .n{background:var(--accent);color:#fff}
+  .sub{font-size:.8rem;color:var(--muted);padding:0 18px 10px}
+  .empty{text-align:center;color:var(--muted);padding:36px 16px;font-size:.9rem}
+  .empty .big{font-size:2rem;display:block;margin-bottom:6px}
+
+  /* ---------- email list ---------- */
+  .mail{display:flex;gap:12px;width:100%;text-align:left;border:0;background:transparent;border-radius:13px;padding:11px 10px;align-items:flex-start}
+  .mail:hover{background:var(--surface-2)}
+  .mail.sel{background:var(--accent-soft)}
+  .avatar{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;font-weight:700;font-size:.85rem;
+    color:hsl(var(--h) 55% 38%);background:hsl(var(--h) 80% 93%)}
+  :root[data-theme="dark"] .avatar{color:hsl(var(--h) 80% 78%);background:hsl(var(--h) 35% 20%)}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .avatar{color:hsl(var(--h) 80% 78%);background:hsl(var(--h) 35% 20%)}}
+  .mail-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .mail-top{display:flex;justify-content:space-between;gap:8px;font-size:.9rem}
+  .mail-top b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mail.unread .mail-top b{font-weight:800}
+  .mail-top time{color:var(--faint);font-size:.76rem;flex:none}
+  .mail-subj{font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mail.unread .mail-subj{font-weight:600}
+  .mail-snip{font-size:.8rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+  .tag{font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--surface-2);color:var(--muted);border:1px solid var(--border)}
+  .tag.green{background:var(--green-soft);color:var(--green);border-color:transparent}
+  .tag.red{background:var(--red-soft);color:var(--red);border-color:transparent}
+  .tag.amber{background:var(--amber-soft);color:var(--amber);border-color:transparent}
+  .tag.blue{background:var(--blue-soft);color:var(--blue);border-color:transparent}
+  .tag.violet{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+  .unread-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;margin-top:6px}
+
+  /* ---------- calendar ---------- */
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:0 14px 12px}
+  .wd{border:1px solid transparent;background:var(--surface-2);border-radius:12px;padding:7px 0 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px}
+  .wd small{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+  .wd b{font-size:1rem}
+  .wd .dots{display:flex;gap:2px;height:5px}
+  .wd .dots i{width:5px;height:5px;border-radius:50%;background:var(--accent)}
+  .wd .dots i.dl{background:var(--amber)}
+  .wd.today{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
+  .wd.today small{color:rgba(255,255,255,.85)} .wd.today .dots i{background:#fff}
+  .wd.sel{border-color:var(--accent)}
+  .day-h{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:12px 8px 6px}
+  .ev{display:flex;gap:11px;padding:9px 8px;border-radius:12px;align-items:stretch}
+  .ev:hover{background:var(--surface-2)}
+  .ev .bar{width:4px;border-radius:4px;background:var(--accent);flex:none}
+  .ev.dl .bar{background:var(--amber)}
+  .ev .when{width:62px;flex:none;font-size:.8rem;font-weight:600;color:var(--muted);padding-top:1px}
+  .ev .what{min-width:0;flex:1}
+  .ev .what b{font-weight:600;font-size:.9rem;display:block}
+  .ev .what span{font-size:.78rem;color:var(--muted)}
+
+  /* ---------- todo ---------- */
+  .add{display:flex;gap:8px;padding:0 14px 6px}
+  .add input{flex:1;min-width:0;border:1px solid var(--border);background:var(--surface-2);border-radius:11px;padding:9px 12px;outline:none}
+  .add input:focus{border-color:var(--accent)}
+  .group-h{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;padding:14px 8px 6px;color:var(--muted)}
+  .group-h .n{font-weight:600;color:var(--faint)}
+  .task{display:flex;align-items:flex-start;gap:11px;padding:9px 8px;border-radius:12px}
+  .task:hover{background:var(--surface-2)}
+  .check{width:21px;height:21px;border-radius:50%;border:2px solid var(--border);background:transparent;flex:none;margin-top:1px;
+    display:grid;place-items:center;transition:all .15s;padding:0}
+  .check:hover{border-color:var(--green)}
+  .task.done .check{background:var(--green);border-color:var(--green)}
+  .check svg{width:12px;height:12px;color:#fff;opacity:0}
+  .task.done .check svg{opacity:1}
+  .task .t{flex:1;min-width:0}
+  .task .t b{font-weight:500;font-size:.92rem;display:block;overflow-wrap:anywhere}
+  .task.done .t b{text-decoration:line-through;color:var(--faint)}
+  .task .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+  .task .acts{display:flex;gap:2px;opacity:0;transition:opacity .15s}
+  .task:hover .acts,.task:focus-within .acts{opacity:1}
+  @media(hover:none){.task .acts{opacity:1}}
+  .ibtn{border:0;background:transparent;border-radius:8px;width:28px;height:28px;display:grid;place-items:center;color:var(--faint);font-size:.85rem}
+  .ibtn:hover{background:var(--border);color:var(--fg)}
+  details.donebox summary{list-style:none;cursor:pointer}
+  details.donebox summary::-webkit-details-marker{display:none}
+
+  /* ---------- drawer ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(10,12,25,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(620px,100%);background:var(--surface);z-index:41;
+    transform:translateX(105%);transition:transform .25s ease;display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(0,0,0,.15)}
+  .drawer.on{transform:none}
+  .drawer-h{display:flex;align-items:flex-start;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border)}
+  .drawer-h h3{margin:0;font-size:1.1rem;line-height:1.35;flex:1}
+  .drawer-b{overflow:auto;padding:16px 20px 30px;flex:1}
+  .meta-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+  .meta-row .who{font-size:.88rem;min-width:0}
+  .meta-row .who b{display:block}
+  .meta-row .who span{color:var(--muted);font-size:.8rem;overflow-wrap:anywhere}
+  .box{border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin:12px 0;background:var(--surface-2)}
+  .box h4{margin:0 0 6px;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .box.ai{background:var(--accent-soft);border-color:transparent}
+  .body{white-space:pre-wrap;font-size:.9rem;overflow-wrap:anywhere;line-height:1.6}
+  textarea{width:100%;border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:11px 12px;min-height:180px;resize:vertical;line-height:1.55;outline:none}
+  textarea:focus{border-color:var(--accent)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .note{font-size:.76rem;color:var(--muted);margin-top:8px}
+  .sugg{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;font-size:.88rem}
+
+  /* ---------- dialogs ---------- */
+  dialog{border:0;border-radius:20px;padding:0;background:var(--surface);color:var(--fg);width:min(560px,calc(100% - 24px));box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  dialog::backdrop{background:rgba(10,12,25,.45)}
+  .dlg-h{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 6px}
+  .dlg-h h3{margin:0;font-size:1.1rem}
+  .dlg-b{padding:8px 20px 20px;max-height:72vh;overflow:auto}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:.8rem;font-weight:600;margin-bottom:5px}
+  .field input[type=text],.field input[type=email],.field input[type=password],.field input[type=date],.field input[type=time],.field input[type=number],.field select{
+    width:100%;border:1px solid var(--border);background:var(--surface-2);border-radius:11px;padding:9px 12px;outline:none}
+  .field input:focus,.field select:focus{border-color:var(--accent)}
+  .field .hint{font-size:.75rem;color:var(--muted);margin-top:4px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .three{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px}
+  @media(max-width:520px){.two,.three{grid-template-columns:1fr}}
+  .sec{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin:18px 0 10px}
+  .sec:first-child{margin-top:4px}
+  .switch{display:flex;align-items:center;gap:10px;font-size:.88rem;margin-bottom:10px;cursor:pointer}
+  .switch input{width:18px;height:18px;accent-color:var(--accent)}
+  .dlg-f{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 18px}
+
+  /* ---------- toast ---------- */
+  .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);opacity:0;background:var(--fg);color:var(--bg);
+    padding:11px 16px;border-radius:13px;font-size:.88rem;font-weight:500;z-index:60;transition:all .25s;display:flex;gap:12px;align-items:center;
+    max-width:calc(100% - 32px);pointer-events:none}
+  .toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+  .toast button{border:0;background:transparent;color:var(--accent-2);font-weight:700;padding:0}
+  .spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;display:inline-block}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="hello">
+      <h1 id="greet">Ciao 👋</h1>
+      <p id="todayLbl"></p>
+    </div>
+    <div class="top-actions">
+      <span class="pill" id="aiPill" title="Motore usato per bozze e comandi"><span class="dot"></span><span>Regole base</span></span>
+      <span class="pill" id="modePill"><span class="dot"></span><span>Demo</span></span>
+      <button class="btn icon ghost" id="refreshBtn" title="Aggiorna">⟳</button>
+      <button class="btn icon ghost" id="themeBtn" title="Tema chiaro/scuro">🌓</button>
+      <button class="btn" id="settingsBtn">⚙️ Impostazioni</button>
+      <button class="btn primary" id="connectBtn">Collega account</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner"><span id="bannerTxt"></span><button class="btn sm" id="bannerBtn"></button></div>
+
+  <section class="stats" aria-label="Riepilogo">
+    <div class="stat"><div class="ico" style="background:var(--blue-soft)">✉️</div><div><b id="stDirect">0</b><span>email per te</span></div></div>
+    <div class="stat"><div class="ico" style="background:var(--accent-soft)">✍️</div><div><b id="stDrafts">0</b><span>bozze pronte</span></div></div>
+    <div class="stat"><div class="ico" style="background:var(--green-soft)">📅</div><div><b id="stEvents">0</b><span>impegni oggi</span></div></div>
+    <div class="stat"><div class="ico" style="background:var(--red-soft)">🔥</div><div><b id="stUrgent">0</b><span>cose urgenti</span></div></div>
+  </section>
+
+  <form class="cmd" id="cmdForm" autocomplete="off">
+    <span aria-hidden="true">✨</span>
+    <label class="sr" for="cmdInput">Comando</label>
+    <input id="cmdInput" placeholder="Parla o scrivi: «ho finito la relazione», «aggiungi esame di analisi il 12 dicembre alle 9»…">
+    <button type="button" class="mic" id="micBtn" title="Parla (oppure premi Ctrl+M)" aria-label="Parla">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>
+    </button>
+  </form>
+  <div class="reply" id="reply"><div class="bot">✨</div><div><p id="replyTxt"></p></div></div>
+  <div class="hints" id="hints"></div>
+
+  <main class="grid">
+    <!-- EMAIL -->
+    <section class="card" id="mailCard">
+      <div class="card-h">
+        <h2>📬 Email</h2>
+        <div class="seg" id="mailTabs">
+          <button data-tab="direct" class="on">Per te<span class="n" id="nDirect">0</span></button>
+          <button data-tab="broadcast">Broadcast<span class="n" id="nBroad">0</span></button>
+          <button data-tab="drafts">Bozze<span class="n" id="nDrafts">0</span></button>
+        </div>
+      </div>
+      <div class="sub" id="mailSub"></div>
+      <div class="card-b" id="mailList"></div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="card" id="calCard">
+      <div class="card-h">
+        <h2>📅 Calendario</h2>
+        <button class="btn sm" id="addEventBtn">+ Evento</button>
+      </div>
+      <div class="week" id="week"></div>
+      <div class="card-b" id="agenda"></div>
+    </section>
+
+    <!-- TODO -->
+    <section class="card" id="todoCard">
+      <div class="card-h">
+        <h2>✅ Cose da fare</h2>
+        <span class="pill" id="todoCount">0</span>
+      </div>
+      <form class="add" id="addTaskForm" autocomplete="off">
+        <label class="sr" for="taskInput">Nuova attività</label>
+        <input id="taskInput" placeholder="Es. consegnare relazione entro venerdì urgente">
+        <button class="btn primary sm" type="submit">Aggiungi</button>
+      </form>
+      <div class="card-b" id="todoList"></div>
+    </section>
+  </main>
+</div>
+
+<!-- email drawer -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Dettaglio email">
+  <div class="drawer-h">
+    <h3 id="dTitle"></h3>
+    <button class="btn icon ghost" id="dClose" aria-label="Chiudi">✕</button>
+  </div>
+  <div class="drawer-b" id="dBody"></div>
+</aside>
+
+<!-- settings -->
+<dialog id="settingsDlg">
+  <div class="dlg-h"><h3>⚙️ Impostazioni</h3><button class="btn icon ghost" data-close>✕</button></div>
+  <div class="dlg-b">
+    <div class="sec">Profilo</div>
+    <div class="two">
+      <div class="field"><label for="sName">Il tuo nome</label><input type="text" id="sName" placeholder="Mario"></div>
+      <div class="field"><label for="sUni">Email universitaria</label><input type="email" id="sUni" placeholder="nome.cognome@studenti.uni.it"></div>
+    </div>
+    <div class="field"><label for="sAliases">Altri tuoi indirizzi (opzionale)</label><input type="text" id="sAliases" placeholder="matricola@uni.it, alias@uni.it">
+      <div class="hint">Servono a capire se un'email è indirizzata proprio a te o è un broadcast al corso.</div></div>
+
+    <div class="sec">Account Google (email + calendario)</div>
+    <div class="field"><label for="sClient">OAuth Client ID</label><input type="text" id="sClient" placeholder="1234-abc.apps.googleusercontent.com">
+      <div class="hint">Gratuito. Si crea una volta sola in 5 minuti: guida nel file <a href="https://github.com/sasy2005/CLAUDE/blob/main/dashboard/README.md" target="_blank" rel="noopener">README</a>.</div></div>
+    <div class="field"><label for="sQuery">Quali email leggere</label><input type="text" id="sQuery">
+      <div class="hint">Sintassi di ricerca Gmail. Max <input type="number" id="sMax" min="5" max="100" style="width:70px;padding:3px 6px;display:inline-block"> email per aggiornamento.</div></div>
+
+    <div class="sec">Intelligenza artificiale (gratis, opzionale)</div>
+    <div class="field"><label for="sGemini">Chiave API Google Gemini</label><input type="password" id="sGemini" placeholder="AIza…">
+      <div class="hint">Gratuita su <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Senza chiave la dashboard funziona lo stesso con regole automatiche (bozze più semplici).</div></div>
+    <div class="two">
+      <div class="field"><label for="sModel">Modello</label><input type="text" id="sModel"></div>
+      <div class="field"><label>&nbsp;</label><button class="btn" id="testAiBtn" type="button" style="width:100%">Prova la chiave</button></div>
+    </div>
+
+    <div class="sec">Bozze di risposta</div>
+    <label class="switch"><input type="checkbox" id="sAuto"> Crea automaticamente le bozze in Gmail per le email dirette a me (non invia mai nulla)</label>
+    <div class="field"><label for="sSign">Firma</label><input type="text" id="sSign" placeholder="Mario Rossi — matricola 123456"></div>
+
+    <div class="sec">Voce e aspetto</div>
+    <label class="switch"><input type="checkbox" id="sVoice"> Rispondimi anche a voce</label>
+    <div class="field"><label for="sTheme">Tema</label><select id="sTheme"><option value="auto">Automatico</option><option value="light">Chiaro</option><option value="dark">Scuro</option></select></div>
+
+    <div class="sec">Dati</div>
+    <div class="row" style="margin-top:0">
+      <button class="btn sm" type="button" id="exportBtn">⬇ Esporta cose da fare</button>
+      <label class="btn sm" style="cursor:pointer">⬆ Importa<input type="file" id="importInp" accept="application/json" hidden></label>
+      <button class="btn sm danger" type="button" id="disconnectBtn">Scollega Google</button>
+    </div>
+    <div class="note">Tutto resta nel tuo browser: niente server, niente abbonamenti.</div>
+  </div>
+  <div class="dlg-f"><button class="btn" data-close>Annulla</button><button class="btn primary" id="saveSettings">Salva</button></div>
+</dialog>
+
+<!-- compose -->
+<dialog id="composeDlg">
+  <div class="dlg-h"><h3>✉️ Nuova email</h3><button class="btn icon ghost" data-close>✕</button></div>
+  <div class="dlg-b">
+    <div class="field"><label for="cTo">A</label><input type="email" id="cTo" placeholder="destinatario@uni.it"></div>
+    <div class="field"><label for="cSubj">Oggetto</label><input type="text" id="cSubj"></div>
+    <div class="field"><label for="cBody">Testo</label><textarea id="cBody"></textarea></div>
+    <div class="note">Controlla il testo: l'email parte solo quando premi «Invia» o dici «conferma».</div>
+  </div>
+  <div class="dlg-f"><button class="btn icon" id="cMic" title="Rispondi a voce: «conferma», «salva» o «annulla»">🎙️</button><span style="flex:1"></span><button class="btn" data-close>Annulla</button><button class="btn" id="cDraft">Salva bozza</button><button class="btn primary" id="cSend">Invia</button></div>
+</dialog>
+
+<!-- event -->
+<dialog id="eventDlg">
+  <div class="dlg-h"><h3>📅 Nuovo evento</h3><button class="btn icon ghost" data-close>✕</button></div>
+  <div class="dlg-b">
+    <div class="field"><label for="eTitle">Titolo</label><input type="text" id="eTitle" placeholder="Ricevimento prof. Bianchi"></div>
+    <div class="three">
+      <div class="field"><label for="eDate">Giorno</label><input type="date" id="eDate"></div>
+      <div class="field"><label for="eTime">Ora</label><input type="time" id="eTime"></div>
+      <div class="field"><label for="eDur">Durata (ore)</label><input type="number" id="eDur" min="0.25" step="0.25" value="1"></div>
+    </div>
+    <div class="note">Lascia vuota l'ora per un evento di tutto il giorno.</div>
+  </div>
+  <div class="dlg-f"><button class="btn" data-close>Annulla</button><button class="btn primary" id="eSave">Aggiungi</button></div>
+</dialog>
+
+<div class="toast" id="toast" role="status"><span id="toastTxt"></span><button id="toastAct" hidden></button></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Utility
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('ld_'+k); return v == null ? d : JSON.parse(v); }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem('ld_'+k, JSON.stringify(v)); }catch{} },
+  del(k){ try{ localStorage.removeItem('ld_'+k); }catch{} }
+};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const hueOf = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const initials = n => (String(n).replace(/[^\p{L} ]/gu, ' ').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('') || '?').toUpperCase();
+
+const DAY = 864e5;
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const fromYmd = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const sod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const addDays = (d, n) => { const x = sod(d); x.setDate(x.getDate() + n); return x; };
+const dayDiff = (a, b) => Math.round((sod(b) - sod(a)) / DAY);
+const fmtTime = d => d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+function relDay(s){
+  const d = typeof s === 'string' ? fromYmd(s) : s, n = dayDiff(new Date(), d);
+  if (n === 0) return 'oggi'; if (n === 1) return 'domani'; if (n === -1) return 'ieri';
+  if (n < 0) return `scaduta da ${-n} gg`;
+  if (n < 7) return d.toLocaleDateString('it-IT', {weekday:'long'});
+  return d.toLocaleDateString('it-IT', {day:'numeric', month:'short'});
+}
+function fmtMailDate(d){
+  const n = dayDiff(d, new Date());
+  if (n === 0) return fmtTime(d);
+  if (n === 1) return 'ieri';
+  if (n < 7) return d.toLocaleDateString('it-IT', {weekday:'short'});
+  return d.toLocaleDateString('it-IT', {day:'numeric', month:'short'});
+}
+
+/* =====================================================================
+   Stato e impostazioni
+   ===================================================================== */
+const DEF = {
+  name:'', uniEmail:'', aliases:'', clientId:'',
+  mailQuery:'in:inbox newer_than:14d -category:promotions -category:social -from:me', maxMails:40,
+  geminiKey:'', geminiModel:'gemini-flash-latest',
+  autoDrafts:true, signature:'', voiceReplies:true, theme:'auto'
+};
+let S = {...DEF, ...store.get('settings', {})};
+let mode = store.get('mode', 'demo');                 // 'demo' | 'google'
+const K = k => (mode === 'demo' ? 'demo_' : '') + k;  // i dati demo non si mescolano a quelli veri
+let tasks = [], drafts = {}, analysis = store.get('analysis', {}), contacts = {};
+let emails = [], events = [], myAddrs = [];
+let mailTab = 'direct', selDay = null, openEmailId = null;
+const ruleCache = {};
+
+function loadLocal(){
+  tasks = store.get(K('tasks'), null);
+  drafts = store.get(K('drafts'), {});
+  contacts = store.get(K('contacts'), {});
+  if (mode === 'demo' && !tasks) tasks = demoTasks();
+  tasks = tasks || [];
+}
+const saveTasks = () => store.set(K('tasks'), tasks);
+const saveDrafts = () => store.set(K('drafts'), drafts);
+function saveAnalysis(){
+  const ids = Object.keys(analysis);
+  if (ids.length > 300) ids.slice(0, ids.length - 300).forEach(id => delete analysis[id]);
+  store.set('analysis', analysis);
+}
+const aiOn = () => !!S.geminiKey;
+
+function applyTheme(){
+  if (S.theme === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', S.theme);
+}
+
+/* =====================================================================
+   UI di base: toast, risposta assistente, voce
+   ===================================================================== */
+let toastTimer;
+function toast(msg, action, fn, ms = 4200){
+  $('#toastTxt').textContent = msg;
+  const b = $('#toastAct');
+  if (action){ b.hidden = false; b.textContent = action; b.onclick = () => { fn(); $('#toast').classList.remove('on'); }; }
+  else b.hidden = true;
+  $('#toast').classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('on'), ms);
+}
+function say(text, speak = true){
+  $('#replyTxt').textContent = text;
+  $('#reply').classList.add('on');
+  if (speak && S.voiceReplies && 'speechSynthesis' in window){
+    try{
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text.replace(/[•✨🔥⭐🌱📅✉️]/gu, ''));
+      u.lang = 'it-IT';
+      const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('it'));
+      if (v) u.voice = v;
+      speechSynthesis.speak(u);
+    }catch{}
+  }
+}
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false;
+function toggleMic(){
+  if (listening){ rec && rec.stop(); return; }
+  if (!SR){ say('Il riconoscimento vocale funziona su Chrome, Edge o Safari. Intanto puoi scrivere il comando qui sopra.', false); return; }
+  rec = new SR();
+  rec.lang = 'it-IT'; rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
+  let finalTxt = '';
+  rec.onresult = e => {
+    let txt = '';
+    for (const r of e.results){ txt += r[0].transcript; if (r.isFinal) finalTxt = txt; }
+    $('#cmdInput').value = txt;
+  };
+  rec.onerror = e => { if (e.error === 'not-allowed') say('Devo avere il permesso di usare il microfono: controlla le impostazioni del browser.', false); };
+  rec.onend = () => {
+    listening = false; $('#micBtn').classList.remove('on');
+    const t = (finalTxt || $('#cmdInput').value).trim();
+    if (t){ $('#cmdInput').value = ''; handleCommand(t); }
+  };
+  try{ speechSynthesis.cancel(); }catch{}
+  rec.start(); listening = true; $('#micBtn').classList.add('on');
+  $('#cmdInput').value = ''; $('#cmdInput').placeholder = 'Ti ascolto…';
+  setTimeout(() => $('#cmdInput').placeholder = 'Parla o scrivi un comando…', 4000);
+}
+
+/* =====================================================================
+   Comprensione dell'italiano: date, orari, priorità
+   ===================================================================== */
+// Lavora su una copia "normalizzata" (minuscolo, senza accenti) lunga quanto l'originale,
+// così posso togliere dal testo originale le parti riconosciute (date, comandi...).
+function cutter(text){
+  const chars = String(text).split('');
+  let n = chars.map(c => { const x = c.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); return x.length === 1 ? x : ' '; }).join('');
+  return {
+    get n(){ return n; },
+    cut(re){
+      const m = re.exec(n); if (!m) return null;
+      const s = m.index, e = s + m[0].length;
+      const snap = chars.slice();   // il testo originale dei gruppi va letto prima di cancellarlo
+      m.orig = i => (m.indices && m.indices[i]) ? snap.slice(m.indices[i][0], m.indices[i][1]).join('') : (m[i] || '');
+      n = n.slice(0, s) + ' '.repeat(e - s) + n.slice(e);
+      for (let i = s; i < e; i++) chars[i] = ' ';
+      return m;
+    },
+    test(re){ return re.test(n); },
+    rest(){ return chars.join('').replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').trim(); }
+  };
+}
+const MONTHS = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const WDAYS = ['domenica','lunedi','martedi','mercoledi','giovedi','venerdi','sabato'];
+const NUMW = {un:1,uno:1,una:1,'l\'una':1,due:2,tre:3,quattro:4,cinque:5,sei:6,sette:7,otto:8,nove:9,dieci:10,undici:11,dodici:12,tredici:13,quattordici:14,
+  quindici:15,sedici:16,diciassette:17,diciotto:18,diciannove:19,venti:20,ventuno:21,ventidue:22,ventitre:23,mezzogiorno:12,mezzanotte:0,primo:1};
+const numOf = w => /^\d+$/.test(w) ? +w : NUMW[w];
+const PREP = '(?:(?:entro|per|da|di|il|la|lo|del|dal|nel|a|ad|fino a)\\s+)*';
+
+function parseWhen(c, now = new Date()){
+  let date = null, time = null, m;
+  // orario
+  if ((m = c.cut(/\b(?:verso |per |dalle |alle |all'|alle ore |ore |a )\s*(\d{1,2}|[a-z']+)(?:\s*(?:[:.]|e)\s*(\d{2}|mezza|un quarto|trenta|quindici|quarantacinque|tre quarti))?(?:\s+(?:del |di )?(pomeriggio|sera|mattina|notte))?\b/))){
+    let h = numOf(m[1]);
+    if (h != null && h <= 24){
+      const mm = {mezza:30,trenta:30,'un quarto':15,quindici:15,quarantacinque:45,'tre quarti':45}[m[2]] ?? (m[2] ? +m[2] : 0);
+      if ((m[3] === 'pomeriggio' || m[3] === 'sera') && h < 12) h += 12;
+      else if (!m[3] && h >= 1 && h <= 7) h += 12;              // "alle 3" = 15:00
+      time = [h % 24, mm];
+      c.cut(/\b(?:fino )?alle (\d{1,2})(?:[:.](\d{2}))?\b/);    // "dalle 15 alle 17": scarto la fine
+    }
+  } else if ((m = c.cut(/\b(\d{1,2})[:](\d{2})\b/))) time = [+m[1], +m[2]];
+  else if (c.cut(/\ba mezzogiorno\b/)) time = [12, 0];
+  // giorno
+  if (c.cut(new RegExp('\\b' + PREP + 'dopodomani\\b'))) date = addDays(now, 2);
+  else if (c.cut(new RegExp('\\b' + PREP + 'domani(?: (mattina|pomeriggio|sera))?\\b'))) date = addDays(now, 1);
+  else if ((m = c.cut(new RegExp('\\b' + PREP + '(oggi|stasera|stamattina|stanotte|oggi pomeriggio)\\b')))){ date = sod(now); if (!time && m[1] === 'stasera') time = [20, 0]; }
+  else if ((m = c.cut(/\b(?:entro |per )?(?:fra|tra) (\d+|[a-z]+) (giorn|settiman|mes)[a-z]*\b/))){
+    const k = numOf(m[1]) || 1; date = m[2] === 'giorn' ? addDays(now, k) : m[2] === 'settiman' ? addDays(now, 7 * k) : (() => { const d = sod(now); d.setMonth(d.getMonth() + k); return d; })();
+  }
+  else if ((m = c.cut(new RegExp('\\b' + PREP + '(?:(prossim[oa]|quest[oa]) )?(lunedi|martedi|mercoledi|giovedi|venerdi|sabato|domenica)(?: (prossim[oa]))?\\b')))){
+    const wd = WDAYS.indexOf(m[2]); let k = (wd - now.getDay() + 7) % 7;
+    if (k === 0 && !/quest/.test(m[1] || '')) k = 7;
+    date = addDays(now, k);
+  }
+  else if ((m = c.cut(new RegExp('\\b' + PREP + "(?:l')?(\\d{1,2}|primo) (" + MONTHS.join('|') + ')(?: (\\d{4}))?\\b')))){
+    const d = new Date(m[3] ? +m[3] : now.getFullYear(), MONTHS.indexOf(m[2]), numOf(m[1]));
+    if (!m[3] && dayDiff(now, d) < -1) d.setFullYear(d.getFullYear() + 1);
+    date = d;
+  }
+  else if ((m = c.cut(new RegExp('\\b' + PREP + '(\\d{1,2})[/.-](\\d{1,2})(?:[/.-](\\d{2,4}))?\\b')))){
+    let y = m[3] ? +m[3] : now.getFullYear(); if (y < 100) y += 2000;
+    const d = new Date(y, +m[2] - 1, +m[1]);
+    if (!m[3] && dayDiff(now, d) < -1) d.setFullYear(d.getFullYear() + 1);
+    date = d;
+  }
+  else if (c.cut(new RegExp('\\b' + PREP + 'fine settimana\\b'))) date = addDays(now, (5 - now.getDay() + 7) % 7 || 7);
+  if (time && !date){ date = sod(now); if (time[0] * 60 + time[1] < now.getHours() * 60 + now.getMinutes()) date = addDays(now, 1); }
+  return {date, time};
+}
+function parsePriority(c){
+  if (c.cut(/\b(?:e |con )?(?:priorita bassa|bassa priorita|non (?:e )?urgente|quando (?:posso|ho tempo|riesco)|con calma|senza fretta)\b/)) return 'bassa';
+  if (c.cut(/\b(?:e |con )?(?:priorita (?:alta|massima)|alta priorita|(?:e )?urgentissim[oa]|(?:e )?urgente|importantissim[oa]|assolutamente)\b/)) return 'alta';
+  if (c.cut(/\b(?:e |con )?(?:priorita media|(?:e )?importante)\b/)) return 'media';
+  return null;
+}
+const cleanTitle = s => cap(s.replace(/^[\s,:;.\-–]+|[\s,:;.\-–]+$/g, '').replace(/\s+(?:e|di|per|a|alle|il|la|entro|da)$/i, '').trim());
+
+/* =====================================================================
+   Cose da fare: punteggio di importanza
+   ===================================================================== */
+const URGENT_WORDS = /\b(esame|esami|scadenza|consegna|deadline|iscrizion|tesi|pagament|tasse|urgent|appello|prenotazion|bando|borsa)/;
+function score(t){
+  let s = {alta:60, media:30, bassa:0}[t.priority] ?? 30;
+  if (t.due){
+    const d = dayDiff(new Date(), fromYmd(t.due));
+    s += d < 0 ? 55 : d === 0 ? 45 : d === 1 ? 35 : d <= 3 ? 22 : d <= 7 ? 10 : 0;
+  }
+  if (URGENT_WORDS.test(norm(t.title))) s += 12;
+  return s;
+}
+const bucket = s => s >= 70 ? 'urgent' : s >= 35 ? 'important' : 'later';
+
+function addTask(title, opts = {}){
+  const t = {id:uid(), title:cleanTitle(title), due:opts.due || null, priority:opts.priority || 'media',
+    source:opts.source || 'manuale', emailId:opts.emailId || null, done:false, createdAt:Date.now()};
+  if (!t.title) return null;
+  tasks.unshift(t); saveTasks(); renderTodos(); renderAgenda(); renderStats();
+  return t;
+}
+function parseTaskText(text){
+  const c = cutter(text);
+  c.cut(/^(?:per favore |puoi )?(?:aggiung(?:i|ere)(?:mi)?|metti|segna(?:mi)?|inserisci|ricordami(?: di)?|devo(?: ancora)?|nuova attivita:?|nuovo task:?|da fare:?)\s+/);
+  c.cut(/\b(?:alla|nella|tra le|nelle|alle|in) (?:mia )?(?:lista|cose da fare|attivita|to ?do)(?: list)?\b/);
+  const priority = parsePriority(c);
+  const {date} = parseWhen(c);
+  return {title:c.rest(), due:date ? ymd(date) : null, priority};
+}
+const STOP = new Set('il lo la i gli le un uno una di a da in con su per tra fra e ed o al allo alla ai agli alle del dello della dei degli delle dal dalla nel nella sul sulla mi ti ci si che ho hai ha fatto finito completato terminato cosa cose lista task attivita gia appena'.split(' '));
+const stems = s => norm(s).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 1 && !STOP.has(w)).map(w => w.slice(0, 4));
+function findTask(query, list = tasks.filter(t => !t.done)){
+  const q = stems(query); if (!q.length) return null;
+  let best = null, bs = 0;
+  for (const t of list){
+    const ts = stems(t.title); if (!ts.length) continue;
+    const inter = q.filter(w => ts.includes(w)).length;
+    const sc = inter / q.length * 0.65 + inter / ts.length * 0.35;
+    if (sc > bs){ bs = sc; best = t; }
+  }
+  return bs >= 0.34 ? best : null;
+}
+function completeTask(t, done = true){
+  t.done = done; t.doneAt = done ? Date.now() : null; saveTasks(); renderTodos(); renderAgenda(); renderStats();
+}
+function deleteTask(t){
+  const i = tasks.indexOf(t); if (i < 0) return;
+  tasks.splice(i, 1); saveTasks(); renderTodos(); renderAgenda(); renderStats();
+  toast(`Eliminata: ${t.title}`, 'Annulla', () => { tasks.splice(i, 0, t); saveTasks(); renderTodos(); renderAgenda(); renderStats(); });
+}
+
+/* =====================================================================
+   Email: classificazione diretta / broadcast + analisi
+   ===================================================================== */
+function parseAddrs(str){
+  const out = [], re = /(?:"?([^"<>,]*?)"?\s*<([^<>\s]+@[^<>\s]+)>)|([^\s,<>;"]+@[^\s,<>;"]+)/g; let m;
+  while ((m = re.exec(str || ''))) out.push({name:(m[1] || '').trim(), email:(m[2] || m[3]).toLowerCase()});
+  return out;
+}
+function classify(e){
+  const h = e.headers, why = [];
+  const recips = [...e.to, ...e.cc];
+  const mine = myAddrs.filter(Boolean);
+  if (h['list-id']) why.push('mailing list');
+  else if (h['list-unsubscribe']) why.push('newsletter');
+  if (/bulk|list|junk/i.test(h['precedence'] || '')) why.push('invio massivo');
+  if (mine.length && !recips.some(r => mine.includes(r.email))) why.push('sei in Ccn o in una lista');
+  if (recips.length >= 6) why.push(`${recips.length} destinatari`);
+  if (/no-?reply|newsletter|notific|mailer|bounce/i.test(e.from.email)) why.push('mittente automatico');
+  if (recips.some(r => /studenti|students|tutti|allstud|^all[._-]|lista|mailing|corso|iscritti|docenti/i.test(r.email.split('@')[0] + ' ' + r.name))) why.push('indirizzo di gruppo');
+  if (why.length) return {type:'broadcast', why:[...new Set(why)]};
+  return {type:'direct', why:[recips.length > 2 ? `inviata a te e ad altre ${recips.length - 1} persone` : recips.length === 2 ? 'inviata a te e a un\'altra persona' : 'inviata solo a te']};
+}
+const REPLY_WORDS = /\?|fammi sapere|fatemi sapere|attendo|aspetto (una |la )?(tua|sua) risposta|mi (puoi|potresti|potrebbe) |conferma|disponibil|riesci|puoi |potresti|potrebbe|ti va|vi va|che ne pensi|mi dici|mi dica|rispondi|richiesta/i;
+const DEADLINE_WORDS = /entro (il |le |la |l'|lunedi|martedi|mercoledi|giovedi|venerdi|sabato|domenica|domani|oggi|\d)|scadenz|deadline|consegna|iscrizion|termine ultimo|non oltre|prenotazion/i;
+const isProf = e => /prof|docente|dott/i.test(e.from.name + ' ' + e.body.slice(-300)) || /^(gentile|egregi|caro studente|cara studentessa)/i.test(e.body.trim());
+const firstName = e => (e.from.name || e.from.email.split('@')[0]).replace(/^(prof\.?(ssa)?|dott\.?(ssa)?|ing\.?)\s+/i, '').split(/[\s.]+/)[0];
+const lastName = e => { const p = (e.from.name || '').replace(/^(prof\.?(ssa)?|dott\.?(ssa)?|ing\.?)\s+/i, '').trim().split(/\s+/); return p[p.length - 1] || ''; };
+
+function ruleAnalyze(e){
+  const text = e.subject + '\n' + e.body, n = norm(text);
+  const needsReply = e.cls.type === 'direct' && REPLY_WORDS.test(e.body.slice(0, 2500));
+  const tasksOut = [];
+  if (DEADLINE_WORDS.test(n)){
+    const m = n.match(/(entro|scadenza|consegna|termine|non oltre|iscrizion\w*|prenotazion\w*)[^.\n]{0,60}/);
+    const {date} = m ? parseWhen(cutter(m[0]), e.date) : {date:null};
+    tasksOut.push({titolo:e.subject.replace(/^(re|fwd?|r|i):\s*/i, ''), scadenza:date ? ymd(date) : null, priorita:'alta'});
+  }
+  const urg = /urgent|important|entro (oggi|domani)|al piu presto|asap/.test(n) || (tasksOut[0]?.scadenza && dayDiff(new Date(), fromYmd(tasksOut[0].scadenza)) <= 3) ? 'alta' : e.cls.type === 'direct' ? 'media' : 'bassa';
+  const sentences = e.body.replace(/\s+/g, ' ').trim().split(/(?<=[.!?])\s+/).filter(s => s.length > 25 && !/^(gentil|car[aoie] |ciao|buongiorno|salve|egregi)/i.test(s));
+  return {riassunto:(sentences.slice(0, 2).join(' ') || e.snippet).slice(0, 220), serve_risposta:needsReply, urgenza:urg,
+    bozza:needsReply ? templateDraft(e) : '', attivita:tasksOut, ai:false};
+}
+function templateDraft(e){
+  const formal = isProf(e);
+  const greet = formal ? `Gentile Prof. ${lastName(e) || firstName(e)},` : `Ciao ${cap(firstName(e))},`;
+  const n = norm(e.body);
+  let core;
+  if (/ricevimento|incontr|riunione|disponibil|appuntamento|vederci|call|colloquio/.test(n))
+    core = formal ? 'la ringrazio per la sua email. Confermo la mia disponibilità per l\'incontro proposto. [Se serve, indica un orario alternativo]' : 'grazie per il messaggio! Per me va bene, ci sono. [Eventualmente proponi un altro orario]';
+  else if (/allegat|document|file|relazione|consegn|invia|mandare|mandami|inviare/.test(n))
+    core = formal ? 'la ringrazio per la sua email. Le invio quanto richiesto [in allegato / entro il …].' : 'grazie! Ti mando tutto [in allegato / entro …].';
+  else if (/\?/.test(e.body))
+    core = formal ? 'la ringrazio per la sua email. In merito alla sua domanda: [scrivi qui la risposta].' : 'grazie del messaggio! Per rispondere alla tua domanda: [scrivi qui la risposta].';
+  else core = formal ? 'la ringrazio per la sua email, ho preso nota di quanto indicato.' : 'grazie, ricevuto! [aggiungi qui eventuali dettagli]';
+  const close = formal ? 'Cordiali saluti,' : 'A presto,';
+  return `${greet}\n\n${core}\n\n${close}\n${S.signature || S.name || ''}`.trim();
+}
+const getAnalysis = e => analysis[e.id] || (ruleCache[e.id] ||= ruleAnalyze(e));
+
+/* ---------- AI (Google Gemini, piano gratuito) ---------- */
+let lastAi = 0, aiCooldown = 0;
+async function gemini(prompt){
+  if (Date.now() < aiCooldown) throw new Error('limite gratuito momentaneamente raggiunto');
+  const wait = lastAi + 4500 - Date.now(); if (wait > 0) await sleep(wait);   // resta nei limiti del piano gratuito
+  lastAi = Date.now();
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(S.geminiModel || DEF.geminiModel)}:generateContent?key=${encodeURIComponent(S.geminiKey)}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:{responseMimeType:'application/json', temperature:0.4}})
+  });
+  if (r.status === 429){ aiCooldown = Date.now() + 60e3; throw new Error('limite gratuito momentaneamente raggiunto'); }
+  if (!r.ok) throw new Error(`Gemini ${r.status}: ${(await r.text()).slice(0, 160)}`);
+  const j = await r.json();
+  const txt = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+  return JSON.parse(txt.replace(/^\s*```(?:json)?|```\s*$/g, ''));
+}
+async function aiAnalyze(e){
+  const formal = isProf(e);
+  const prompt = `Sei l'assistente personale di ${S.name || 'uno studente universitario'} (email: ${myAddrs[0] || 'n/d'}). Oggi è ${new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}.
+Analizza questa email ${e.cls.type === 'direct' ? 'inviata direttamente a lui/lei' : 'inviata in broadcast (a tutto il corso o a una lista)'}.
+Rispondi SOLO con JSON con questa forma:
+{"riassunto": "max 2 frasi in italiano", "serve_risposta": true/false, "urgenza": "alta"|"media"|"bassa",
+ "bozza": "bozza di risposta in italiano, ${formal ? 'tono formale (è un docente/ufficio)' : 'tono adeguato al mittente'}, senza oggetto, firmata '${S.signature || S.name || ''}'. Stringa vuota se non serve rispondere o se è un broadcast. Metti tra [parentesi quadre] le informazioni che non conosci.",
+ "attivita": [{"titolo": "cosa deve fare, breve e all'infinito", "scadenza": "YYYY-MM-DD o null", "priorita": "alta"|"media"|"bassa"}]}
+"attivita" contiene solo azioni concrete richieste a me (consegne, iscrizioni, scadenze, documenti), altrimenti [].
+
+DA: ${e.from.name} <${e.from.email}>
+A: ${e.to.map(a => a.email).join(', ')}${e.cc.length ? '\nCC: ' + e.cc.map(a => a.email).join(', ') : ''}
+DATA: ${e.date.toLocaleString('it-IT')}
+OGGETTO: ${e.subject}
+
+${e.body.slice(0, 6000)}`;
+  const r = await gemini(prompt);
+  return {riassunto:String(r.riassunto || ''), serve_risposta:!!r.serve_risposta, urgenza:['alta','media','bassa'].includes(r.urgenza) ? r.urgenza : 'media',
+    bozza:String(r.bozza || ''), attivita:Array.isArray(r.attivita) ? r.attivita.slice(0, 4) : [], ai:true};
+}
+
+let analyzing = false;
+async function analyzeAll(){
+  if (analyzing) return; analyzing = true;
+  try{
+    if (aiOn()){
+      const todo = emails.filter(e => !analysis[e.id]?.ai && (e.cls.type === 'direct' || DEADLINE_WORDS.test(norm(e.subject + ' ' + e.body)))).slice(0, 15);
+      for (const [i, e] of todo.entries()){
+        setSub(`<span class="spin"></span> Leggo le email con l'AI… ${i + 1}/${todo.length}`);
+        try{ analysis[e.id] = await aiAnalyze(e); saveAnalysis(); renderMail(); }
+        catch(err){ console.warn(err); setSub(`AI non disponibile (${esc(err.message)}): uso le regole base.`); break; }
+      }
+    }
+    await autoDrafts();
+  } finally { analyzing = false; renderMail(); }
+}
+async function autoDrafts(){
+  if (!S.autoDrafts) return;
+  const todo = emails.filter(e => e.cls.type === 'direct' && e.unread && !drafts[e.id] && getAnalysis(e).serve_risposta && getAnalysis(e).bozza).slice(0, 10);
+  for (const e of todo){
+    try{ await saveDraft(e, getAnalysis(e).bozza, true); }
+    catch(err){ console.warn(err); break; }
+  }
+  if (todo.length) renderStats();
+}
+
+/* =====================================================================
+   Google: login, Gmail, Calendar
+   ===================================================================== */
+const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/calendar.events';
+let token = store.get('token', null), tokenClient = null;
+class AuthError extends Error {}
+function loadGis(){
+  if (window.google?.accounts?.oauth2) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+    s.onload = res; s.onerror = () => rej(new Error('Impossibile caricare il login Google'));
+    document.head.appendChild(s);
+  });
+}
+async function requestToken(prompt = ''){
+  await loadGis();
+  return new Promise((res, rej) => {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id:S.clientId.trim(), scope:SCOPES, login_hint:S.uniEmail || undefined,
+      callback:r => {
+        if (r.error) return rej(new Error(r.error_description || r.error));
+        token = {v:r.access_token, exp:Date.now() + (r.expires_in - 60) * 1000};
+        store.set('token', token); res();
+      },
+      error_callback:e => rej(new Error(e.message || e.type || 'login annullato'))
+    });
+    tokenClient.requestAccessToken({prompt});
+  });
+}
+async function gapi(url, opts = {}){
+  if (!token || Date.now() > token.exp) throw new AuthError('sessione scaduta');
+  const r = await fetch(url, {...opts, headers:{Authorization:'Bearer ' + token.v, 'Content-Type':'application/json', ...(opts.headers || {})}});
+  if (r.status === 401){ token = null; store.del('token'); throw new AuthError('sessione scaduta'); }
+  if (!r.ok){ const t = await r.text(); throw new Error(`Google ${r.status}: ${t.slice(0, 200)}`); }
+  return r.status === 204 ? null : r.json();
+}
+const GM = 'https://gmail.googleapis.com/gmail/v1/users/me';
+function b64dec(s, charset = 'utf-8'){
+  const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  try{ return new TextDecoder(charset).decode(bytes); }catch{ return new TextDecoder().decode(bytes); }
+}
+function b64enc(str){ const b = new TextEncoder().encode(str); let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(s); }
+const b64url = str => b64enc(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const encHeader = s => /[^\x20-\x7e]/.test(s) ? `=?UTF-8?B?${b64enc(s)}?=` : s;
+function htmlToText(h){
+  const d = new DOMParser().parseFromString(h.replace(/<(br|\/p|\/div|\/li|\/tr|\/h\d)[^>]*>/gi, '\n$&'), 'text/html');
+  d.querySelectorAll('style,script,head').forEach(n => n.remove());
+  return (d.body.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+}
+function extractBody(p){
+  let plain = '', html = '';
+  (function walk(part){
+    const ct = (part.mimeType || '').toLowerCase();
+    const cs = ((part.headers || []).find(h => h.name.toLowerCase() === 'content-type')?.value.match(/charset="?([\w-]+)/i) || [])[1] || 'utf-8';
+    if (part.body?.data){
+      if (ct === 'text/plain' && !plain) plain = b64dec(part.body.data, cs);
+      else if (ct === 'text/html' && !html) html = b64dec(part.body.data, cs);
+    }
+    (part.parts || []).forEach(walk);
+  })(p);
+  const txt = plain || (html ? htmlToText(html) : '');
+  return txt.replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();
+}
+function toEmail(m){
+  const headers = {}; (m.payload.headers || []).forEach(h => headers[h.name.toLowerCase()] = h.value);
+  const from = parseAddrs(headers.from)[0] || {name:'', email:''};
+  if (!from.name) from.name = from.email.split('@')[0];
+  const e = {id:m.id, threadId:m.threadId, headers, from, to:parseAddrs(headers.to), cc:parseAddrs(headers.cc),
+    subject:headers.subject || '(senza oggetto)', date:new Date(+m.internalDate), snippet:m.snippet ? htmlToText(m.snippet) : '',
+    body:extractBody(m.payload), unread:(m.labelIds || []).includes('UNREAD'), msgId:headers['message-id'] || ''};
+  e.cls = classify(e);
+  return e;
+}
+async function pool(items, n, fn){
+  const out = new Array(items.length); let i = 0;
+  await Promise.all(Array.from({length:Math.min(n, items.length)}, async () => { while (i < items.length){ const k = i++; out[k] = await fn(items[k]); } }));
+  return out;
+}
+async function fetchGoogle(){
+  const prof = await gapi(GM + '/profile');
+  myAddrs = [prof.emailAddress, S.uniEmail, ...S.aliases.split(',')].map(s => (s || '').trim().toLowerCase()).filter(Boolean);
+  if (!S.name) $('#greet').textContent = greeting() + ' 👋';
+  const list = await gapi(`${GM}/messages?maxResults=${Math.min(100, +S.maxMails || 40)}&q=${encodeURIComponent(S.mailQuery)}`);
+  const msgs = await pool(list.messages || [], 6, m => gapi(`${GM}/messages/${m.id}?format=full`).catch(() => null));
+  emails = msgs.filter(Boolean).map(toEmail).sort((a, b) => b.date - a.date);
+  emails.forEach(e => { if (e.cls.type === 'direct' && e.from.email) contacts[e.from.email] = e.from.name; });
+  store.set(K('contacts'), contacts);
+  // bozze già esistenti in Gmail (anche quelle create prima da qui)
+  try{
+    const dl = await gapi(`${GM}/drafts?maxResults=100`);
+    const byThread = {}; (dl.drafts || []).forEach(d => byThread[d.message.threadId] = d.id);
+    emails.forEach(e => { if (byThread[e.threadId] && !drafts[e.id]) drafts[e.id] = {id:byThread[e.threadId], at:Date.now()}; });
+    for (const id of Object.keys(drafts)) if (emails.some(e => e.id === id) && !Object.values(byThread).includes(drafts[id].id)) delete drafts[id];
+    saveDrafts();
+  }catch{}
+  const now = new Date();
+  const ev = await gapi(`https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime&maxResults=150&timeMin=${encodeURIComponent(sod(now).toISOString())}&timeMax=${encodeURIComponent(addDays(now, 21).toISOString())}`);
+  events = (ev.items || []).filter(x => x.status !== 'cancelled').map(x => ({
+    id:x.id, title:x.summary || '(senza titolo)', location:x.location || '', link:x.htmlLink,
+    allDay:!!x.start.date, start:x.start.date ? fromYmd(x.start.date) : new Date(x.start.dateTime),
+    end:x.end.date ? fromYmd(x.end.date) : new Date(x.end.dateTime)}));
+}
+function rawMessage({to, subject, body, inReplyTo}){
+  const lines = [`To: ${to}`, `Subject: ${encHeader(subject)}`, 'MIME-Version: 1.0', 'Content-Type: text/plain; charset="UTF-8"', 'Content-Transfer-Encoding: base64'];
+  if (inReplyTo) lines.push(`In-Reply-To: ${inReplyTo}`, `References: ${inReplyTo}`);
+  return b64url(lines.join('\r\n') + '\r\n\r\n' + b64enc(body).replace(/.{76}/g, '$&\r\n'));
+}
+async function saveDraft(e, text, silent = false){
+  const subject = /^re:/i.test(e.subject) ? e.subject : 'Re: ' + e.subject;
+  if (mode === 'demo'){
+    drafts[e.id] = {id:'demo', at:Date.now(), text}; saveDrafts();
+  } else {
+    const raw = rawMessage({to:e.headers['reply-to'] || e.headers.from, subject, body:text, inReplyTo:e.msgId});
+    const prev = drafts[e.id];
+    const res = prev?.id && prev.id !== 'demo'
+      ? await gapi(`${GM}/drafts/${prev.id}`, {method:'PUT', body:JSON.stringify({id:prev.id, message:{raw, threadId:e.threadId}})}).catch(() => null)
+      : null;
+    const d = res || await gapi(`${GM}/drafts`, {method:'POST', body:JSON.stringify({message:{raw, threadId:e.threadId}})});
+    drafts[e.id] = {id:d.id, at:Date.now(), text}; saveDrafts();
+  }
+  if (!silent) toast(mode === 'demo' ? 'Bozza salvata (demo). Con l\'account collegato finisce nelle Bozze di Gmail.' : 'Bozza salvata nelle Bozze di Gmail. Non è stato inviato nulla.');
+  renderMail(); renderStats();
+}
+async function sendEmail(to, subject, body){
+  if (mode === 'demo'){ toast(`(Demo) Email a ${to} "inviata". Collega l'account per inviarla davvero.`); return; }
+  await gapi(`${GM}/messages/send`, {method:'POST', body:JSON.stringify({raw:rawMessage({to, subject, body})})});
+  toast(`Email inviata a ${to} ✓`);
+}
+async function draftNew(to, subject, body){
+  if (mode === 'demo'){ toast('(Demo) Bozza salvata.'); return; }
+  await gapi(`${GM}/drafts`, {method:'POST', body:JSON.stringify({message:{raw:rawMessage({to, subject, body})}})});
+  toast('Bozza salvata in Gmail ✓');
+}
+async function addEvent({title, date, time, hours = 1}){
+  const allDay = !time;
+  const start = new Date(date); if (time) start.setHours(time[0], time[1], 0, 0);
+  const end = allDay ? addDays(start, 1) : new Date(start.getTime() + hours * 36e5);
+  if (mode === 'demo'){
+    const ev = {id:uid(), title, start, end, allDay, location:''};
+    events.push(ev);
+    const local = store.get('demo_extra_events', []); local.push({...ev, start:+start, end:+end}); store.set('demo_extra_events', local);
+  } else {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const body = allDay ? {summary:title, start:{date:ymd(start)}, end:{date:ymd(end)}}
+      : {summary:title, start:{dateTime:start.toISOString(), timeZone:tz}, end:{dateTime:end.toISOString(), timeZone:tz}};
+    const x = await gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events', {method:'POST', body:JSON.stringify(body)});
+    events.push({id:x.id, title, start, end, allDay, location:'', link:x.htmlLink});
+  }
+  events.sort((a, b) => a.start - b.start);
+  renderAgenda(); renderStats();
+}
+
+/* =====================================================================
+   Comandi (voce o testo)
+   ===================================================================== */
+const HELP = [
+  'ho finito la relazione di fisica',
+  'aggiungi studiare analisi entro venerdì urgente',
+  'segna in calendario ricevimento con il prof domani alle 15',
+  'manda una email a Giulia dicendo che porto io gli appunti',
+  'cosa devo fare oggi?',
+  'ho nuove email?',
+  'che impegni ho domani?'
+];
+function resolveRecipient(str){
+  let s = String(str || '').trim();
+  const spoken = norm(s).replace(/\s*chiocciola\s*/g, '@').replace(/\s+punto\s+/g, '.').replace(/\s+trattino\s+/g, '-');
+  if (spoken.includes('@')){ const em = spoken.replace(/\s+/g, ''); if (/^[^@]+@[^@]+\.[a-z]{2,}$/.test(em)) return {email:em, name:''}; }
+  const q = stems(s.replace(/\b(prof\.?|professor[ea]?|professoressa|dott\.?|dottor(essa)?|il|la|lo)\b/gi, ''));
+  let best = null, bs = 0;
+  for (const [em, name] of Object.entries(contacts)){
+    const ts = stems(name + ' ' + em.split('@')[0].replace(/[._-]/g, ' '));
+    const sc = q.filter(w => ts.includes(w)).length;
+    if (sc > bs){ bs = sc; best = {email:em, name}; }
+  }
+  return best || {email:'', name:s};
+}
+function openCompose(to, subject, body){
+  $('#cTo').value = to || ''; $('#cSubj').value = subject || ''; $('#cBody').value = body || '';
+  $('#composeDlg').showModal();
+  (to ? $('#cBody') : $('#cTo')).focus();
+}
+function openEventDlg(pre = {}){
+  $('#eTitle').value = pre.title || ''; $('#eDate').value = ymd(pre.date || new Date());
+  $('#eTime').value = pre.time ? `${String(pre.time[0]).padStart(2,'0')}:${String(pre.time[1]).padStart(2,'0')}` : '';
+  $('#eDur').value = pre.hours || 1; $('#eventDlg').showModal(); $('#eTitle').focus();
+}
+
+function ruleParse(text){
+  const c = cutter(text), n = c.n.trim();
+  if (/^(aiuto|help|cosa (puoi|sai) fare|che comandi)/.test(n)) return {action:'help'};
+  if (/^(aggiorna|ricarica|sincronizza|refresh)/.test(n)) return {action:'refresh'};
+
+  // email da inviare
+  if (/^(per favore |puoi )?(manda|mandare|invia|inviare|scrivi|scrivere|spedisci|prepara|rispondi)\b/.test(n) && /\b(e-?mail|mail|messaggio|posta|scrivi|rispondi)\b/.test(n)){
+    c.cut(/^(?:per favore |puoi )?(?:manda|mandare|invia|inviare|scrivi|scrivere|spedisci|prepara|rispondi)(?:re)?\s+(?:una |un |un'|l')?(?:e-?mail|mail|messaggio)?\s*/);
+    const subj = c.cut(/\b(?:con )?oggetto\s+(.+?)(?=\s+(?:dicendo|dicendogli|dicendole|che dice|scrivendo|con scritto|e (?:il )?testo|testo)\b|$)/d);
+    const body = c.cut(/\b(?:dicendo(?:gli|le)?|che dice|scrivendo(?:gli|le)?|con scritto|per dir(?:e|gli|le)|e (?:il )?testo|testo|e digli|e dille)\s*(?:che\s+)?(.+)$/d);
+    const to = c.cut(/\b(?:a|al|alla|allo|ai|agli|alle|per|ad)\s+(.+)$/d);
+    return {action:'send_email', to:to ? to.orig(1).trim() : c.rest(), subject:subj ? subj.orig(1).trim() : '', body:body ? body.orig(1).trim() : ''};
+  }
+  // letture
+  if (/\b(email|e-mail|mail|posta|messaggi)\b/.test(n) && /\b(leggi|nuove|nuovi|ci sono|ho|quante|quanti|dimmi|arrivat)/.test(n) && !/^(aggiungi|segna|metti)/.test(n)) return {action:'read_emails'};
+  if (/\b(impegni|agenda|appuntamenti|calendario|eventi|lezioni)\b/.test(n) && /\b(cosa|che|quali|dimmi|leggi|ho|com'?e)\b/.test(n) && !/^(aggiungi|segna|metti|inserisci|fissa|crea)/.test(n)){
+    const {date} = parseWhen(c); return {action:'read_agenda', date:date ? ymd(date) : ymd(new Date())};
+  }
+  if (/\b(cosa|che cosa|che) (devo|ho da|c'?e da|mi resta da|rimane da) fare\b|\b(leggi|elenca|dimmi|quali sono)\b.*\b(cose da fare|attivita|task|lista|priorita)\b|^(cose da fare|priorita)\??$/.test(n)) return {action:'read_tasks'};
+
+  // completare / eliminare
+  if (/^(?:ok |allora |guarda )?(?:ho|abbiamo) (?:gia |appena |finalmente )?([a-z]+(?:ato|uto|ito)|fatto|letto|preso|scritto|messo|chiesto|risposto|visto|detto|speso|vinto|chiuso)\b/.test(n)
+      || /^(fatto|finito|completato|segna (?:come )?(?:fatt[oa]|complet)|spunta)/.test(n)){
+    c.cut(/^(?:ok |allora |guarda )?(?:ho|abbiamo) (?:gia |appena |finalmente )?/);
+    c.cut(/^\s*(?:fatto|finito|completato|terminato|concluso|segna (?:come )?(?:fatt[oa]|completat[oa])|spunta)(?: (?:di|con))?\b/);
+    return {action:'complete_task', query:c.rest()};
+  }
+  if (/^(cancella|elimina|togli|rimuovi)\b/.test(n)){
+    c.cut(/^(?:cancella|elimina|togli|rimuovi)\s+/); c.cut(/\b(?:dalla|dalle|dai) (?:lista|cose da fare|attivita|to ?do)\b/);
+    return {action:'delete_task', query:c.rest()};
+  }
+
+  // evento in calendario
+  const calWords = /\b(calendario|evento|appuntamento|riunione|ricevimento|incontro|lezione|call|colloquio|visita)\b/;
+  const startsAdd = /^(per favore |puoi )?(aggiungi|metti|segna|inserisci|fissa|crea|programma|prenota|nuovo evento)/.test(n);
+  if ((startsAdd && /\b(calendario|evento|appuntamento)\b/.test(n)) || /^(fissa|programma)\b/.test(n) || (startsAdd && calWords.test(n) && /\b(alle|ore|all')\b/.test(n))){
+    c.cut(/^(?:per favore |puoi )?(?:aggiungi|metti|segna|inserisci|fissa|crea|programma|prenota)(?:mi)?\s+/);
+    c.cut(/\b(?:al|nel|sul|in|a) calendario\b/); c.cut(/^\s*(?:un |una |l')?(?:nuovo )?(?:evento|appuntamento|impegno)\s*(?::|di|per)?\s*/);
+    let hours = 1; const d = c.cut(/\b(?:per|di|da) (\d+(?:[.,]5)?|un'?|una|due|tre|quattro|mezz'?) or[ae]\b/);
+    if (d) hours = /mezz/.test(d[1]) ? 0.5 : (numOf(d[1].replace("'", '')) || parseFloat(d[1].replace(',', '.')) || 1);
+    const {date, time} = parseWhen(c);
+    return {action:'add_event', title:cleanTitle(c.rest()), date:date ? ymd(date) : ymd(new Date()), time:time ? `${time[0]}:${String(time[1]).padStart(2,'0')}` : null, hours};
+  }
+  // nuova cosa da fare
+  if (/^(per favore |puoi )?(aggiungi|aggiungere|metti|segna|inserisci|ricordami|devo|nuova attivita|nuovo task|da fare)\b/.test(n)){
+    const p = parseTaskText(text);
+    return {action:'add_task', title:p.title, due:p.due, priority:p.priority};
+  }
+  return {action:'unknown'};
+}
+
+async function aiParse(text){
+  const open = tasks.filter(t => !t.done).slice(0, 40).map(t => ({id:t.id, titolo:t.title, scadenza:t.due}));
+  const cont = Object.entries(contacts).slice(0, 60).map(([e, n]) => `${n} <${e}>`).join('; ');
+  const composeOpen = $('#composeDlg').open;
+  const prompt = `Sei l'assistente vocale della dashboard di ${S.name || 'uno studente'}. Oggi è ${new Date().toLocaleString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'})}.
+Trasforma il comando in UNA azione JSON. Azioni possibili:
+{"action":"add_task","title":"...","due":"YYYY-MM-DD"|null,"priority":"alta"|"media"|"bassa"}
+{"action":"complete_task","id":"<id della lista>"}   (l'utente dice di aver fatto qualcosa)
+{"action":"delete_task","id":"<id>"}
+{"action":"add_event","title":"...","date":"YYYY-MM-DD","time":"HH:MM"|null,"hours":numero}
+{"action":"send_email","to":"indirizzo email o nome","subject":"...","body":"email completa, educata, in italiano, firmata '${S.signature || S.name || ''}'"}
+{"action":"read_tasks"} {"action":"read_emails"} {"action":"read_agenda","date":"YYYY-MM-DD"} {"action":"refresh"} {"action":"help"}
+${composeOpen ? '{"action":"compose_send"} {"action":"compose_draft"} {"action":"compose_cancel"}  (c\'è una email aperta in attesa di conferma)\n' : ''}{"action":"unknown","reply":"risposta breve"}
+Per complete_task/delete_task scegli l'id più simile; se nessuno corrisponde usa unknown.
+Lista attuale cose da fare: ${JSON.stringify(open)}
+Contatti noti: ${cont || 'nessuno'}
+Comando: "${text.replace(/"/g, "'")}"`;
+  const r = await gemini(prompt);
+  if (r.action === 'complete_task' || r.action === 'delete_task'){ r.task = tasks.find(t => t.id === r.id); if (!r.task) r.query = text; }
+  return r;
+}
+
+async function handleCommand(text){
+  text = text.trim(); if (!text) return;
+  say(`«${text}»…`, false);
+  const n = norm(text);
+  // email in attesa di conferma
+  if ($('#composeDlg').open){
+    if (/^(invia|inviala|conferma|confermo|si|manda|mandala|ok invia)\b/.test(n)) return $('#cSend').click();
+    if (/^(salva|bozza|salvala)/.test(n)) return $('#cDraft').click();
+    if (/^(annulla|no|lascia stare|chiudi)\b/.test(n)){ $('#composeDlg').close(); return say('Ok, email annullata.'); }
+  }
+  let cmd = ruleParse(text);
+  if (aiOn() && (cmd.action === 'unknown' || cmd.action === 'send_email')){
+    try{ cmd = await aiParse(text); }catch(err){ console.warn(err); }
+  }
+  try{ await runCommand(cmd, text); }
+  catch(err){
+    if (err instanceof AuthError){ say('La sessione Google è scaduta: premi «Riconnetti» e riprova.'); showBanner(); }
+    else say('Qualcosa non ha funzionato: ' + err.message);
+  }
+}
+
+async function runCommand(cmd, text){
+  switch (cmd.action){
+    case 'help':
+      return say('Puoi dirmi per esempio:\n• ' + HELP.join('\n• '), false);
+    case 'refresh':
+      say('Aggiorno…', false); await refreshAll(); return say('Fatto, tutto aggiornato.');
+    case 'add_task':{
+      if (!cmd.title) return say('Cosa devo aggiungere? Prova con «aggiungi comprare il libro di chimica».');
+      const t = addTask(cmd.title, {due:cmd.due, priority:cmd.priority || 'media', source:'voce'});
+      return say(`Aggiunto: ${t.title}${t.due ? ', per ' + relDay(t.due) + (dayDiff(new Date(), fromYmd(t.due)) > 1 ? ' ' + fromYmd(t.due).toLocaleDateString('it-IT', {day:'numeric', month:'long'}) : '') : ''}${t.priority === 'alta' ? ', priorità alta' : ''}.`);
+    }
+    case 'complete_task':
+    case 'delete_task':{
+      const t = cmd.task || findTask(cmd.query || '');
+      if (!t){
+        if (cmd.action === 'complete_task' && cmd.query && cmd.query.split(' ').length > 1)
+          return say(`Non trovo «${cmd.query}» nella lista. Bravo/a comunque! 🎉`);
+        return say('Non ho capito quale attività intendi. Dimmi una parola del titolo.');
+      }
+      if (cmd.action === 'delete_task'){ deleteTask(t); return say(`Eliminata: ${t.title}.`); }
+      completeTask(t);
+      toast(`Completata: ${t.title}`, 'Annulla', () => completeTask(t, false));
+      const left = tasks.filter(x => !x.done).length;
+      return say(`Ottimo! Ho segnato come fatta «${t.title}». ${left ? `Ne restano ${left}.` : 'Hai finito tutto! 🎉'}`);
+    }
+    case 'add_event':{
+      if (!cmd.title) return openEventDlg({date:cmd.date ? fromYmd(cmd.date) : new Date()});
+      const time = cmd.time ? cmd.time.split(':').map(Number) : null;
+      await addEvent({title:cap(cmd.title), date:cmd.date ? fromYmd(cmd.date) : new Date(), time, hours:+cmd.hours || 1});
+      return say(`Aggiunto in calendario: ${cap(cmd.title)}, ${relDay(cmd.date || ymd(new Date()))}${time ? ' alle ' + cmd.time : ''}.`);
+    }
+    case 'send_email':{
+      const r = resolveRecipient(cmd.to);
+      let body = cmd.body || '';
+      if (body && !aiOn()){
+        const prof = /prof|dott/i.test(cmd.to || '');
+        const nm = r.name ? r.name.replace(/^(prof\.?(ssa)?|dott\.?(ssa)?)\s+/i, '').split(' ') : [];
+        const greet = prof ? `Gentile Prof. ${nm[nm.length - 1] || ''},` : `Ciao${nm[0] ? ' ' + cap(nm[0]) : ''},`;
+        body = `${greet}\n\n${cap(body.replace(/\s+$/, ''))}${/[.!?]$/.test(body) ? '' : '.'}\n\n${prof ? 'Cordiali saluti,' : 'A presto,'}\n${S.signature || S.name || ''}`.trim();
+      }
+      const subj = cmd.subject || (cmd.body ? cap(cmd.body.split(/\s+/).slice(0, 6).join(' ')).replace(/[.,;:!?]+$/, '') : '');
+      openCompose(r.email || (cmd.to && cmd.to.includes('@') ? cmd.to : ''), subj, body);
+      return say(r.email ? `Ho preparato l'email per ${r.name || r.email}. Controllala e di' «conferma» per inviarla, oppure «salva» per tenerla come bozza.`
+        : `Ho preparato l'email, ma non trovo l'indirizzo di «${cmd.to || '?'}»: scrivilo nel campo «A».`);
+    }
+    case 'compose_send': return $('#cSend').click();
+    case 'compose_draft': return $('#cDraft').click();
+    case 'compose_cancel': $('#composeDlg').close(); return say('Ok, annullata.');
+    case 'read_tasks':{
+      const open = tasks.filter(t => !t.done).sort((a, b) => score(b) - score(a));
+      if (!open.length) return say('Non hai niente da fare. Goditi la giornata! 🎉');
+      const top = open.slice(0, 5).map((t, i) => `${i + 1}. ${t.title}${t.due ? ' (' + relDay(t.due) + ')' : ''}`);
+      return say(`Hai ${open.length} cose da fare. Le più importanti:\n${top.join('\n')}`);
+    }
+    case 'read_emails':{
+      const direct = emails.filter(e => e.cls.type === 'direct');
+      const unread = direct.filter(e => e.unread);
+      const br = emails.filter(e => e.cls.type === 'broadcast' && e.unread).length;
+      if (!direct.length) return say(`Nessuna email personale.${br ? ` Ci sono ${br} broadcast non letti.` : ''}`);
+      const list = (unread.length ? unread : direct).slice(0, 4).map(e => `• ${e.from.name}: ${e.subject}`);
+      return say(`Hai ${unread.length} email per te non lette${br ? ` e ${br} broadcast` : ''}.\n${list.join('\n')}`);
+    }
+    case 'read_agenda':{
+      const d = cmd.date || ymd(new Date());
+      const evs = events.filter(e => ymd(e.start) === d);
+      const dl = tasks.filter(t => !t.done && t.due === d);
+      if (!evs.length && !dl.length) return say(`${cap(relDay(d))} non hai impegni in calendario.`);
+      const parts = evs.map(e => `• ${e.allDay ? 'tutto il giorno' : fmtTime(e.start)} ${e.title}`).concat(dl.map(t => `• scadenza: ${t.title}`));
+      return say(`${cap(relDay(d))} hai:\n${parts.join('\n')}`);
+    }
+    default:
+      return say(cmd.reply || 'Non ho capito il comando. Prova per esempio: «' + HELP[Math.floor(Math.random() * HELP.length)] + '». Di\' «aiuto» per altri esempi.');
+  }
+}
+
+/* =====================================================================
+   Rendering
+   ===================================================================== */
+const greeting = () => { const h = new Date().getHours(); return h < 6 ? 'Buonanotte' : h < 13 ? 'Buongiorno' : h < 18 ? 'Buon pomeriggio' : 'Buonasera'; };
+function renderHeader(){
+  $('#greet').textContent = `${greeting()}${S.name ? ', ' + S.name : ''} 👋`;
+  $('#todayLbl').textContent = new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const mp = $('#modePill');
+  mp.className = 'pill ' + (mode === 'google' && token ? 'ok' : mode === 'google' ? 'warn' : '');
+  mp.lastElementChild.textContent = mode === 'demo' ? 'Dati di esempio' : (token ? (myAddrs[0] || 'Collegato') : 'Da riconnettere');
+  const ap = $('#aiPill');
+  ap.className = 'pill ' + (aiOn() ? 'ok' : '');
+  ap.lastElementChild.textContent = aiOn() ? 'AI Gemini attiva' : 'Regole base (senza AI)';
+  $('#connectBtn').textContent = mode === 'google' ? (token ? 'Collegato ✓' : 'Riconnetti') : 'Collega account';
+  $('#connectBtn').classList.toggle('primary', !(mode === 'google' && token));
+}
+function showBanner(){
+  const b = $('#banner');
+  if (mode === 'demo'){
+    $('#bannerTxt').innerHTML = '👀 Stai guardando <b>dati di esempio</b>. Collega l\'account universitario per vedere le tue email e il tuo calendario.';
+    $('#bannerBtn').textContent = 'Collega ora'; b.classList.add('on');
+  } else if (!token){
+    $('#bannerTxt').textContent = '🔒 La sessione Google è scaduta (dura un\'ora per sicurezza).';
+    $('#bannerBtn').textContent = 'Riconnetti'; b.classList.add('on');
+  } else b.classList.remove('on');
+  renderHeader();
+}
+function renderStats(){
+  const direct = emails.filter(e => e.cls.type === 'direct');
+  $('#stDirect').textContent = direct.filter(e => e.unread).length || direct.length;
+  $('#stDirect').nextElementSibling.textContent = direct.some(e => e.unread) ? 'email per te da leggere' : 'email per te';
+  $('#stDrafts').textContent = emails.filter(e => drafts[e.id]).length;
+  const today = ymd(new Date());
+  $('#stEvents').textContent = events.filter(e => ymd(e.start) === today || (e.allDay && e.start <= new Date() && e.end > new Date())).length;
+  $('#stUrgent').textContent = tasks.filter(t => !t.done && bucket(score(t)) === 'urgent').length;
+}
+function setSub(html){ $('#mailSub').innerHTML = html; }
+
+function renderMail(){
+  const direct = emails.filter(e => e.cls.type === 'direct'), broad = emails.filter(e => e.cls.type === 'broadcast');
+  const withDraft = emails.filter(e => drafts[e.id]);
+  $('#nDirect').textContent = direct.filter(e => e.unread).length || direct.length;
+  $('#nBroad').textContent = broad.filter(e => e.unread).length || broad.length;
+  $('#nDrafts').textContent = withDraft.length;
+  document.querySelectorAll('#mailTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === mailTab));
+  const list = mailTab === 'direct' ? direct : mailTab === 'broadcast' ? broad : withDraft;
+  if (!analyzing) setSub(mailTab === 'direct' ? 'Email scritte proprio a te: qui trovi le bozze di risposta già pronte.'
+    : mailTab === 'broadcast' ? 'Comunicazioni inviate a tutto il corso, liste e newsletter.'
+    : 'Bozze preparate dall\'assistente. Restano in Gmail finché non decidi tu di inviarle.');
+  if (!emails.length){ $('#mailList').innerHTML = `<div class="empty"><span class="big">📭</span>${mode === 'google' && !token ? 'Riconnetti l\'account per vedere le email.' : 'Nessuna email.'}</div>`; return; }
+  if (!list.length){ $('#mailList').innerHTML = `<div class="empty"><span class="big">${mailTab === 'drafts' ? '✍️' : '🎉'}</span>${mailTab === 'drafts' ? 'Nessuna bozza al momento.' : 'Niente qui. Tutto tranquillo!'}</div>`; return; }
+  const urgOrder = {alta:0, media:1, bassa:2};
+  const sorted = mailTab === 'direct' ? [...list].sort((a, b) => (b.unread - a.unread) || (urgOrder[getAnalysis(a).urgenza] - urgOrder[getAnalysis(b).urgenza]) || (b.date - a.date)) : list;
+  $('#mailList').innerHTML = sorted.map(e => {
+    const an = getAnalysis(e), tags = [];
+    if (drafts[e.id]) tags.push('<span class="tag violet">✍️ Bozza pronta</span>');
+    else if (an.serve_risposta) tags.push('<span class="tag blue">↩ Da rispondere</span>');
+    if (an.urgenza === 'alta') tags.push('<span class="tag red">Urgente</span>');
+    if (an.attivita?.length) tags.push('<span class="tag amber">📌 Scadenza</span>');
+    if (e.cls.type === 'broadcast') tags.push(`<span class="tag" title="${esc(e.cls.why.join(', '))}">📢 ${esc(e.cls.why[0])}</span>`);
+    return `<button class="mail ${e.unread ? 'unread' : ''} ${openEmailId === e.id ? 'sel' : ''}" data-id="${esc(e.id)}">
+      <span class="avatar" style="--h:${hueOf(e.from.email)}">${esc(initials(e.from.name))}</span>
+      <span class="mail-main">
+        <span class="mail-top"><b>${esc(e.from.name)}</b><time>${esc(fmtMailDate(e.date))}</time></span>
+        <span class="mail-subj">${esc(e.subject)}</span>
+        <span class="mail-snip">${an.ai ? '✨ ' : ''}${esc(an.riassunto || e.snippet)}</span>
+        ${tags.length ? `<span class="tags">${tags.join('')}</span>` : ''}
+      </span>
+      ${e.unread ? '<span class="unread-dot" aria-label="non letta"></span>' : ''}
+    </button>`;
+  }).join('');
+}
+
+function openEmail(id){
+  const e = emails.find(x => x.id === id); if (!e) return;
+  openEmailId = id;
+  const an = getAnalysis(e);
+  const draftText = drafts[e.id]?.text || an.bozza || templateDraft(e);
+  const sugg = (an.attivita || []).filter(a => a && a.titolo);
+  $('#dTitle').textContent = e.subject;
+  $('#dBody').innerHTML = `
+    <div class="meta-row">
+      <span class="avatar" style="--h:${hueOf(e.from.email)}">${esc(initials(e.from.name))}</span>
+      <div class="who"><b>${esc(e.from.name)}</b><span>${esc(e.from.email)} · ${esc(e.date.toLocaleString('it-IT', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}))}</span><br>
+      <span>A: ${esc(e.to.map(a => a.name || a.email).slice(0, 4).join(', '))}${e.to.length > 4 ? ` e altri ${e.to.length - 4}` : ''}${e.cc.length ? ` · Cc: ${e.cc.length}` : ''}</span></div>
+    </div>
+    <div class="tags">
+      ${e.cls.type === 'direct' ? '<span class="tag green">👤 Per te</span>' : '<span class="tag">📢 Broadcast</span>'}
+      ${e.cls.why.map(w => `<span class="tag">${esc(w)}</span>`).join('')}
+      ${an.urgenza === 'alta' ? '<span class="tag red">Urgente</span>' : ''}
+    </div>
+    <div class="box ai"><h4>${an.ai ? '✨ Riassunto AI' : 'In breve'}</h4><div>${esc(an.riassunto || e.snippet || '—')}</div></div>
+    ${sugg.length ? `<div class="box"><h4>📌 Cose da fare trovate</h4>${sugg.map((a, i) => `
+      <div class="sugg"><span>${esc(a.titolo)}${a.scadenza ? ` · <b>${esc(relDay(a.scadenza))}</b>` : ''}</span>
+      <button class="btn sm" data-addsugg="${i}">+ Aggiungi</button></div>`).join('')}</div>` : ''}
+    <div class="box"><h4>✍️ Bozza di risposta</h4>
+      <textarea id="draftTxt">${esc(draftText)}</textarea>
+      <div class="row">
+        <button class="btn primary sm" id="saveDraftBtn">${drafts[e.id] ? 'Aggiorna bozza in Gmail' : 'Salva come bozza in Gmail'}</button>
+        ${aiOn() ? '<button class="btn sm" id="regenBtn">✨ Rigenera con AI</button>' : ''}
+        <button class="btn sm" id="copyDraftBtn">Copia</button>
+        <button class="btn sm" id="taskFromMail">+ Crea attività</button>
+        ${mode === 'google' ? `<a class="btn sm ghost" href="https://mail.google.com/mail/u/0/#all/${esc(e.threadId)}" target="_blank" rel="noopener">Apri in Gmail ↗</a>` : ''}
+      </div>
+      <div class="note">🔒 Nessuna email viene inviata automaticamente: la bozza resta in Gmail finché non la invii tu.</div>
+    </div>
+    <div class="box"><h4>Messaggio</h4><div class="body">${esc(e.body.slice(0, 12000) || e.snippet)}</div></div>`;
+  $('#drawer').classList.add('on'); $('#scrim').classList.add('on');
+  renderMail();
+
+  $('#saveDraftBtn').onclick = async ev => {
+    ev.target.disabled = true;
+    try{ await saveDraft(e, $('#draftTxt').value); ev.target.textContent = 'Aggiorna bozza in Gmail'; }
+    catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account.' : 'Errore: ' + err.message); }
+    ev.target.disabled = false;
+  };
+  $('#copyDraftBtn').onclick = () => { navigator.clipboard?.writeText($('#draftTxt').value).then(() => toast('Bozza copiata')); };
+  $('#taskFromMail').onclick = () => { const t = addTask((e.cls.type === 'direct' ? 'Rispondere a ' + e.from.name + ': ' : '') + e.subject.replace(/^(re|fwd?|r|i):\s*/i, ''), {source:'email', emailId:e.id, priority:an.urgenza}); toast(`Aggiunta: ${t.title}`); };
+  if ($('#regenBtn')) $('#regenBtn').onclick = async ev => {
+    ev.target.disabled = true; ev.target.innerHTML = '<span class="spin"></span> Scrivo…';
+    try{ analysis[e.id] = await aiAnalyze(e); saveAnalysis(); $('#draftTxt').value = analysis[e.id].bozza || templateDraft(e); renderMail(); }
+    catch(err){ toast('AI: ' + err.message); }
+    ev.target.disabled = false; ev.target.textContent = '✨ Rigenera con AI';
+  };
+  document.querySelectorAll('[data-addsugg]').forEach(b => b.onclick = () => {
+    const a = sugg[+b.dataset.addsugg];
+    addTask(a.titolo, {due:a.scadenza || null, priority:a.priorita || 'alta', source:'email', emailId:e.id});
+    b.textContent = '✓ Aggiunta'; b.disabled = true;
+  });
+}
+function closeDrawer(){ $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); openEmailId = null; renderMail(); }
+
+function renderWeek(){
+  const now = new Date(); let html = '';
+  for (let i = 0; i < 7; i++){
+    const d = addDays(now, i), k = ymd(d);
+    const ne = events.filter(e => ymd(e.start) === k).length, nd = tasks.filter(t => !t.done && t.due === k).length;
+    const dots = '<i></i>'.repeat(Math.min(ne, 3)) + '<i class="dl"></i>'.repeat(Math.min(nd, 2));
+    html += `<button class="wd ${i === 0 ? 'today' : ''} ${selDay === k ? 'sel' : ''}" data-day="${k}">
+      <small>${d.toLocaleDateString('it-IT', {weekday:'short'}).replace('.', '')}</small><b>${d.getDate()}</b><span class="dots">${dots}</span></button>`;
+  }
+  $('#week').innerHTML = html;
+}
+function renderAgenda(){
+  renderWeek();
+  const now = new Date(), items = [];
+  events.forEach(e => { if (e.end > now || ymd(e.start) === ymd(now)) items.push({k:ymd(e.start), t:e.allDay ? -1 : e.start.getHours() * 60 + e.start.getMinutes(), html:
+    `<div class="ev"><span class="bar"></span><span class="when">${e.allDay ? 'Tutto il<br>giorno' : fmtTime(e.start)}</span>
+     <span class="what"><b>${esc(e.title)}</b><span>${e.allDay ? '' : fmtTime(e.start) + '–' + fmtTime(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</span></span></div>`}); });
+  tasks.filter(t => !t.done && t.due).forEach(t => {
+    const k = dayDiff(now, fromYmd(t.due)) < 0 ? ymd(now) : t.due;
+    items.push({k, t:-2, html:`<div class="ev dl"><span class="bar"></span><span class="when">Scadenza</span>
+      <span class="what"><b>${esc(t.title)}</b><span>${t.due < ymd(now) ? '⚠️ ' + relDay(t.due) : 'dalle cose da fare'}</span></span></div>`});
+  });
+  const days = [...new Set(items.map(i => i.k))].sort().filter(k => !selDay || k === selDay);
+  if (!days.length){ $('#agenda').innerHTML = `<div class="empty"><span class="big">🌤️</span>${selDay ? 'Nessun impegno in questo giorno.' : 'Nessun impegno nei prossimi giorni.'}</div>`; return; }
+  $('#agenda').innerHTML = days.slice(0, 14).map(k => {
+    const d = fromYmd(k), lbl = relDay(k);
+    const head = (lbl === 'oggi' || lbl === 'domani' ? cap(lbl) + ' · ' : '') + d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+    return `<div class="day-h">${esc(head)}</div>` + items.filter(i => i.k === k).sort((a, b) => a.t - b.t).map(i => i.html).join('');
+  }).join('');
+}
+
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function taskRow(t){
+  const s = score(t), d = t.due ? dayDiff(new Date(), fromYmd(t.due)) : null;
+  const dueCls = d == null ? '' : d < 0 ? 'red' : d <= 1 ? 'amber' : 'blue';
+  const pr = {alta:'<span class="tag red">Alta</span>', media:'', bassa:'<span class="tag">Bassa</span>'}[t.priority] || '';
+  const src = t.source === 'voce' ? '<span class="tag" title="Aggiunta a voce">🎙️</span>' : t.source === 'email' ? '<span class="tag" title="Da un\'email">✉️</span>' : '';
+  return `<div class="task ${t.done ? 'done' : ''}" data-task="${esc(t.id)}" title="Punteggio importanza: ${s}">
+    <button class="check" data-act="toggle" aria-label="${t.done ? 'Segna da fare' : 'Segna come fatta'}">${CHECK}</button>
+    <div class="t"><b>${esc(t.title)}</b>
+      <div class="meta">${t.due ? `<span class="tag ${dueCls}">📅 ${esc(relDay(t.due))}</span>` : ''}${pr}${src}</div></div>
+    ${t.done ? '' : `<div class="acts">
+      <button class="ibtn" data-act="prio" title="Cambia priorità">⇅</button>
+      <button class="ibtn" data-act="edit" title="Modifica">✎</button>
+      <button class="ibtn" data-act="del" title="Elimina">🗑</button></div>`}
+  </div>`;
+}
+function renderTodos(){
+  const open = tasks.filter(t => !t.done).sort((a, b) => score(b) - score(a) || (a.due || '9').localeCompare(b.due || '9'));
+  const done = tasks.filter(t => t.done).sort((a, b) => b.doneAt - a.doneAt).slice(0, 15);
+  $('#todoCount').textContent = open.length ? `${open.length} da fare` : 'tutto fatto ✓';
+  const groups = [['urgent', '🔥 Urgente', 'var(--red)'], ['important', '⭐ Importante', 'var(--amber)'], ['later', '🌱 Quando puoi', 'var(--green)']];
+  let html = '';
+  for (const [k, lbl] of groups){
+    const g = open.filter(t => bucket(score(t)) === k);
+    if (g.length) html += `<div class="group-h">${lbl} <span class="n">${g.length}</span></div>` + g.map(taskRow).join('');
+  }
+  if (!open.length) html = '<div class="empty"><span class="big">🎉</span>Niente da fare! Aggiungi qualcosa sopra o dimmelo a voce.</div>';
+  if (done.length) html += `<details class="donebox"><summary class="group-h">✓ Completate <span class="n">${done.length}</span> <span class="n">▾</span></summary>${done.map(taskRow).join('')}</details>`;
+  $('#todoList').innerHTML = html;
+}
+function renderAll(){ renderHeader(); renderStats(); renderMail(); renderAgenda(); renderTodos(); }
+
+/* =====================================================================
+   Caricamento dati
+   ===================================================================== */
+let refreshing = false;
+async function refreshAll(){
+  if (refreshing) return; refreshing = true;
+  $('#refreshBtn').innerHTML = '<span class="spin"></span>';
+  try{
+    if (mode === 'demo') loadDemo();
+    else {
+      myAddrs = [S.uniEmail, ...S.aliases.split(',')].map(s => s.trim().toLowerCase()).filter(Boolean);
+      setSub('<span class="spin"></span> Carico email e calendario…');
+      await fetchGoogle();
+    }
+    showBanner(); renderAll();
+    analyzeAll();
+  }catch(err){
+    console.error(err);
+    if (err instanceof AuthError) showBanner();
+    else toast('Errore: ' + err.message, null, null, 8000);
+    renderAll();
+  }finally{ refreshing = false; $('#refreshBtn').textContent = '⟳'; }
+}
+async function connect(){
+  if (mode === 'google' && token) return openSettings();
+  if (!S.clientId){ openSettings(); toast('Prima incolla il tuo OAuth Client ID (guida nel README).', null, null, 6000); $('#sClient').focus(); return; }
+  if (location.protocol === 'file:'){ toast('Il login Google non funziona aprendo il file dal disco: usa GitHub Pages o un server locale (vedi README).', null, null, 8000); return; }
+  try{
+    await requestToken(mode === 'google' ? '' : 'consent');
+    if (mode !== 'google'){ mode = 'google'; store.set('mode', mode); loadLocal(); emails = []; events = []; }
+    await refreshAll();
+    say(`Collegato! Ho letto ${emails.length} email: ${emails.filter(e => e.cls.type === 'direct').length} sono per te.`);
+  }catch(err){
+    toast('Collegamento non riuscito: ' + err.message + (/admin|policy|access_denied|org_internal/i.test(err.message) ? ' — forse l\'università blocca le app esterne: vedi README.' : ''), null, null, 9000);
+  }
+}
+
+/* =====================================================================
+   Dati demo
+   ===================================================================== */
+function demoTasks(){
+  const n = new Date();
+  return [
+    {id:uid(), title:'Consegnare esercitazione di Analisi 2', due:ymd(addDays(n, 2)), priority:'alta', source:'email', done:false, createdAt:Date.now()},
+    {id:uid(), title:'Iscriversi all\'appello di Fisica', due:ymd(addDays(n, 4)), priority:'media', source:'email', done:false, createdAt:Date.now()},
+    {id:uid(), title:'Ripassare capitolo 5 di Chimica', due:ymd(addDays(n, 1)), priority:'media', source:'voce', done:false, createdAt:Date.now()},
+    {id:uid(), title:'Pagare la seconda rata delle tasse', due:ymd(addDays(n, 9)), priority:'alta', source:'manuale', done:false, createdAt:Date.now()},
+    {id:uid(), title:'Restituire libro in biblioteca', due:null, priority:'bassa', source:'manuale', done:false, createdAt:Date.now()},
+    {id:uid(), title:'Comprare quaderno ad anelli', due:null, priority:'bassa', source:'voce', done:false, createdAt:Date.now()},
+    {id:uid(), title:'Scrivere al tutor per il tirocinio', due:null, priority:'media', source:'manuale', done:true, doneAt:Date.now() - 3600e3, createdAt:Date.now()}
+  ];
+}
+function loadDemo(){
+  const me = S.uniEmail || 'mario.rossi@studenti.uni.it';
+  myAddrs = [me.toLowerCase()];
+  const n = new Date(), h = x => new Date(Date.now() - x * 3600e3);
+  const mk = (id, from, to, subject, body, date, unread, extra = {}) => {
+    const e = {id, threadId:id, from:parseAddrs(from)[0], to:parseAddrs(to), cc:parseAddrs(extra.cc || ''), subject, body, date, unread,
+      snippet:body.replace(/\s+/g, ' ').slice(0, 140), headers:{from, to, ...(extra.headers || {})}, msgId:'<' + id + '@demo>'};
+    e.cls = classify(e); return e;
+  };
+  const wdName = d => WDAYS[d.getDay()].replace(/di$/, 'dì'), vf = wdName(addDays(n, 3));
+  emails = [
+    mk('d1', 'Prof. Laura Bianchi <laura.bianchi@uni.it>', me, 'Ricevimento per la tesi',
+      `Gentile Mario,\n\nho letto la bozza del primo capitolo che mi ha inviato. Nel complesso va bene, ma vorrei discutere con lei la struttura del secondo capitolo.\n\nSarebbe disponibile per un ricevimento giovedì alle 11 nel mio studio (stanza 204)? Mi faccia sapere.\n\nCordiali saluti,\nLaura Bianchi`, h(2), true),
+    mk('d2', 'Giulia Verdi <giulia.verdi@studenti.uni.it>', `${me}, luca.neri@studenti.uni.it`, 'Progetto di gruppo – slide',
+      `Ciao Mario!\n\nho finito la mia parte delle slide del progetto di Basi di Dati. Riesci a mandarmi la tua entro ${vf} sera così le uniamo? Ti va di vederci in biblioteca venerdì pomeriggio per provare la presentazione?\n\nGiulia`, h(5), true),
+    mk('b1', 'Segreteria Studenti <noreply@uni.it>', 'studenti-ingegneria@liste.uni.it', 'Apertura iscrizioni appelli sessione invernale',
+      `Si comunica a tutti gli studenti che dal ${n.getDate()} ${MONTHS[n.getMonth()]} sono aperte le iscrizioni agli appelli della sessione invernale. Le iscrizioni chiudono entro il ${addDays(n, 6).getDate()} ${MONTHS[addDays(n, 6).getMonth()]}. Le prenotazioni si effettuano esclusivamente dal portale studenti.`, h(8), true,
+      {headers:{'list-id':'<studenti-ingegneria.liste.uni.it>', precedence:'bulk'}}),
+    mk('d3', 'Dott. Marco Gallo <marco.gallo@uni.it>', me, 'Esercitazione 4 – consegna',
+      `Gentile studente,\n\nle ricordo che la consegna dell'esercitazione 4 di Analisi 2 è entro ${wdName(addDays(n, 2))} alle 23:59 sulla piattaforma Moodle. Non verranno accettate consegne in ritardo.\n\nSaluti,\nMarco Gallo`, h(20), false),
+    mk('b2', 'Biblioteca di Ateneo <newsletter@biblio.uni.it>', 'iscritti-newsletter@biblio.uni.it', 'Novità di novembre: orari prolungati in sessione',
+      'Durante la sessione d\'esami le sale studio resteranno aperte fino alle 23. Scopri anche i nuovi corsi gratuiti su come cercare fonti per la tesi.', h(26), true,
+      {headers:{'list-unsubscribe':'<mailto:unsub@biblio.uni.it>'}}),
+    mk('b3', 'Rappresentanti Studenti <rappresentanti@studenti.uni.it>', 'rappresentanti@studenti.uni.it', 'Assemblea di corso – ordine del giorno',
+      'Ciao a tutti! Giovedì alle 13 in aula magna si terrà l\'assemblea di corso. Ordine del giorno: orario delle lezioni del secondo semestre, aule studio, varie ed eventuali.', h(30), false),
+    mk('d4', 'Ufficio Erasmus <erasmus@uni.it>', me, 'Documenti mancanti – Learning Agreement',
+      `Gentile studente,\n\nper completare la sua candidatura Erasmus manca il Learning Agreement firmato. La preghiamo di caricarlo sul portale entro il ${addDays(n, 5).getDate()} ${MONTHS[addDays(n, 5).getMonth()]}. Può confermarci di aver ricevuto questa comunicazione?\n\nUfficio Mobilità Internazionale`, h(44), true),
+    mk('b4', 'Mensa Universitaria <info@mensa.uni.it>', 'tutti@uni.it', 'Menù della settimana',
+      'Ecco il menù della settimana: lunedì pasta al pomodoro, martedì risotto ai funghi…', h(50), false)
+  ];
+  contacts = {}; emails.forEach(e => contacts[e.from.email] = e.from.name);
+  contacts['luca.neri@studenti.uni.it'] = 'Luca Neri';
+  const at = (d, hh, mm = 0) => { const x = addDays(n, d); x.setHours(hh, mm, 0, 0); return x; };
+  events = [
+    {id:'e1', title:'Lezione di Analisi 2', location:'Aula 3', start:at(0, 9), end:at(0, 11), allDay:false},
+    {id:'e2', title:'Laboratorio di Basi di Dati', location:'Lab B', start:at(0, 14), end:at(0, 16, 30), allDay:false},
+    {id:'e3', title:'Palestra', location:'', start:at(0, 19), end:at(0, 20), allDay:false},
+    {id:'e4', title:'Lezione di Fisica', location:'Aula Magna', start:at(1, 11), end:at(1, 13), allDay:false},
+    {id:'e5', title:'Ricevimento prof. Bianchi', location:'Stanza 204', start:at(2, 11), end:at(2, 11, 30), allDay:false},
+    {id:'e6', title:'Prova in itinere di Chimica', location:'Aula 7', start:at(4, 9), end:at(4, 12), allDay:false},
+    {id:'e7', title:'Cena con amici', location:'', start:at(5, 20, 30), end:at(5, 23), allDay:false}
+  ].concat(store.get('demo_extra_events', []).map(e => ({...e, start:new Date(e.start), end:new Date(e.end)})))
+   .sort((a, b) => a.start - b.start);
+}
+
+/* =====================================================================
+   Impostazioni
+   ===================================================================== */
+function openSettings(){
+  $('#sName').value = S.name; $('#sUni').value = S.uniEmail; $('#sAliases').value = S.aliases; $('#sClient').value = S.clientId;
+  $('#sQuery').value = S.mailQuery; $('#sMax').value = S.maxMails; $('#sGemini').value = S.geminiKey; $('#sModel').value = S.geminiModel;
+  $('#sAuto').checked = S.autoDrafts; $('#sSign').value = S.signature; $('#sVoice').checked = S.voiceReplies; $('#sTheme').value = S.theme;
+  $('#settingsDlg').showModal();
+}
+function saveSettings(){
+  const before = JSON.stringify([S.uniEmail, S.aliases, S.mailQuery, S.maxMails, S.geminiKey]);
+  Object.assign(S, {
+    name:$('#sName').value.trim(), uniEmail:$('#sUni').value.trim(), aliases:$('#sAliases').value.trim(), clientId:$('#sClient').value.trim(),
+    mailQuery:$('#sQuery').value.trim() || DEF.mailQuery, maxMails:Math.max(5, Math.min(100, +$('#sMax').value || 40)),
+    geminiKey:$('#sGemini').value.trim(), geminiModel:$('#sModel').value.trim() || DEF.geminiModel,
+    autoDrafts:$('#sAuto').checked, signature:$('#sSign').value.trim(), voiceReplies:$('#sVoice').checked, theme:$('#sTheme').value
+  });
+  store.set('settings', S); applyTheme(); $('#settingsDlg').close();
+  Object.keys(ruleCache).forEach(k => delete ruleCache[k]);
+  renderAll();
+  if (before !== JSON.stringify([S.uniEmail, S.aliases, S.mailQuery, S.maxMails, S.geminiKey]) && (mode === 'demo' || token)) refreshAll();
+  toast('Impostazioni salvate');
+}
+
+/* =====================================================================
+   Eventi UI
+   ===================================================================== */
+$('#cmdForm').onsubmit = e => { e.preventDefault(); const t = $('#cmdInput').value; $('#cmdInput').value = ''; handleCommand(t); };
+$('#micBtn').onclick = toggleMic; $('#cMic').onclick = toggleMic;
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm'){ e.preventDefault(); toggleMic(); }
+  else if (e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName) && !document.querySelector('dialog[open]')){ e.preventDefault(); $('#cmdInput').focus(); }
+  else if (e.key === 'Escape' && $('#drawer').classList.contains('on')) closeDrawer();
+});
+$('#hints').innerHTML = HELP.slice(0, 5).map(h => `<button class="chip" type="button">${esc(h)}</button>`).join('');
+$('#hints').onclick = e => { const b = e.target.closest('.chip'); if (b) handleCommand(b.textContent); };
+
+$('#mailTabs').onclick = e => { const b = e.target.closest('button'); if (b){ mailTab = b.dataset.tab; renderMail(); } };
+$('#mailList').onclick = e => { const b = e.target.closest('.mail'); if (b) openEmail(b.dataset.id); };
+$('#dClose').onclick = closeDrawer; $('#scrim').onclick = closeDrawer;
+
+$('#week').onclick = e => { const b = e.target.closest('.wd'); if (b){ selDay = selDay === b.dataset.day ? null : b.dataset.day; renderAgenda(); } };
+$('#addEventBtn').onclick = () => openEventDlg({date:selDay ? fromYmd(selDay) : new Date()});
+$('#eSave').onclick = async () => {
+  const title = $('#eTitle').value.trim(); if (!title) return $('#eTitle').focus();
+  const time = $('#eTime').value ? $('#eTime').value.split(':').map(Number) : null;
+  try{ await addEvent({title, date:fromYmd($('#eDate').value || ymd(new Date())), time, hours:+$('#eDur').value || 1}); $('#eventDlg').close(); toast('Evento aggiunto ✓'); }
+  catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account.' : 'Errore: ' + err.message); }
+};
+
+$('#addTaskForm').onsubmit = e => {
+  e.preventDefault(); const v = $('#taskInput').value.trim(); if (!v) return;
+  const p = parseTaskText(v);
+  const t = addTask(p.title || v, {due:p.due, priority:p.priority || 'media'});
+  $('#taskInput').value = '';
+  if (t && (t.due || p.priority)) toast(`Aggiunta${t.due ? ' per ' + relDay(t.due) : ''}${p.priority ? ', priorità ' + p.priority : ''}`);
+};
+$('#todoList').onclick = e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const t = tasks.find(x => x.id === b.closest('.task').dataset.task); if (!t) return;
+  const a = b.dataset.act;
+  if (a === 'toggle'){ completeTask(t, !t.done); if (t.done) toast(`Completata: ${t.title}`, 'Annulla', () => completeTask(t, false)); }
+  else if (a === 'del') deleteTask(t);
+  else if (a === 'prio'){ t.priority = {alta:'bassa', media:'alta', bassa:'media'}[t.priority] || 'media'; saveTasks(); renderTodos(); renderStats(); toast('Priorità: ' + t.priority); }
+  else if (a === 'edit'){
+    const v = prompt('Modifica attività (puoi scrivere anche la scadenza, es. "entro venerdì")', t.title + (t.due ? '' : ''));
+    if (v && v.trim()){ const p = parseTaskText(v); t.title = cleanTitle(p.title || v); if (p.due) t.due = p.due; if (p.priority) t.priority = p.priority; saveTasks(); renderTodos(); renderAgenda(); renderStats(); }
+  }
+};
+
+$('#cSend').onclick = async () => {
+  const to = $('#cTo').value.trim(), subj = $('#cSubj').value.trim(), body = $('#cBody').value;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to.replace(/^.*<|>$/g, ''))){ $('#cTo').focus(); return say('Manca un indirizzo email valido nel campo «A».'); }
+  $('#cSend').disabled = true;
+  try{ await sendEmail(to, subj || '(senza oggetto)', body); $('#composeDlg').close(); say('Email inviata.'); }
+  catch(err){ say(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account e riprova.' : 'Invio non riuscito: ' + err.message); }
+  $('#cSend').disabled = false;
+};
+$('#cDraft').onclick = async () => {
+  try{ await draftNew($('#cTo').value.trim(), $('#cSubj').value.trim(), $('#cBody').value); $('#composeDlg').close(); say('Salvata come bozza, non ho inviato niente.'); }
+  catch(err){ say('Non sono riuscito a salvare la bozza: ' + err.message); }
+};
+
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('dialog').close());
+$('#settingsBtn').onclick = openSettings;
+$('#saveSettings').onclick = saveSettings;
+$('#connectBtn').onclick = connect;
+$('#bannerBtn').onclick = connect;
+$('#refreshBtn').onclick = () => (mode === 'google' && !token) ? connect() : refreshAll();
+$('#themeBtn').onclick = () => {
+  const dark = S.theme === 'dark' || (S.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  S.theme = dark ? 'light' : 'dark'; store.set('settings', S); applyTheme();
+};
+$('#testAiBtn').onclick = async () => {
+  const old = {...S}; S.geminiKey = $('#sGemini').value.trim(); S.geminiModel = $('#sModel').value.trim() || DEF.geminiModel;
+  $('#testAiBtn').innerHTML = '<span class="spin"></span>';
+  try{ const r = await gemini('Rispondi solo con il JSON {"ok": true}'); toast(r.ok ? 'La chiave funziona ✓' : 'Risposta inattesa'); }
+  catch(err){ toast('Non funziona: ' + err.message, null, null, 8000); }
+  Object.assign(S, {geminiKey:old.geminiKey, geminiModel:old.geminiModel}); $('#testAiBtn').textContent = 'Prova la chiave';
+};
+$('#disconnectBtn').onclick = () => {
+  if (token && window.google?.accounts?.oauth2) try{ google.accounts.oauth2.revoke(token.v); }catch{}
+  token = null; store.del('token'); mode = 'demo'; store.set('mode', mode);
+  $('#settingsDlg').close(); loadLocal(); refreshAll(); toast('Account scollegato. Sei tornato ai dati di esempio.');
+};
+$('#exportBtn').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(tasks, null, 2)], {type:'application/json'}));
+  a.download = 'cose-da-fare.json'; a.click();
+};
+$('#importInp').onchange = async e => {
+  try{
+    const arr = JSON.parse(await e.target.files[0].text());
+    if (!Array.isArray(arr)) throw new Error('formato non valido');
+    const ids = new Set(tasks.map(t => t.id)); arr.forEach(t => { if (t && t.title && !ids.has(t.id)) tasks.push({...t, id:t.id || uid()}); });
+    saveTasks(); renderAll(); toast(`Importate ${arr.length} attività`);
+  }catch(err){ toast('Import non riuscito: ' + err.message); }
+  e.target.value = '';
+};
+if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};
+setInterval(() => { renderHeader(); renderStats(); }, 60e3);
+
+/* ---------- avvio ---------- */
+applyTheme();
+loadLocal();
+if (token && Date.now() > token.exp){ token = null; store.del('token'); }
+if (mode === 'google' && token) refreshAll();
+else { if (mode === 'demo') loadDemo(); showBanner(); renderAll(); if (mode === 'demo') analyzeAll(); }
+</script>
+</body>
+</html>
