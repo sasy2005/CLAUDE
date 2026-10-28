@@ -6,7 +6,9 @@ Una dashboard personale in un **unico file** (`index.html`) che:
 - ✍️ **prepara le bozze di risposta** per le email dirette e le salva nelle **Bozze di Gmail**, **senza mai inviare niente**
 - 📌 trova nelle email **scadenze e cose da fare** (iscrizioni, consegne, documenti…) e te le propone con un clic
 - ✅ ordina le **cose da fare per importanza** (🔥 Urgente / ⭐ Importante / 🌱 Quando puoi) in base a scadenza, priorità e parole chiave (esame, consegna, tasse…)
-- 📅 mostra il **calendario** dei prossimi giorni, con le scadenze delle attività
+- 📅 mostra il **calendario** dei prossimi giorni, con le scadenze delle attività; gli impegni sono **colorati per importanza** (🔴 molto importante, 🟡 importante, nessun colore = normale)
+- 🗓️ ha **«La mia giornata»**: la sera programmi il giorno dopo a blocchi orari (es. `10-14 università`, `15-17 palestra`), il giorno dopo vedi cosa stai facendo *adesso*, quanto manca e i buchi liberi
+- ☀️ ogni **mattina** ti accoglie con un **recap**: programma della giornata, impegni importanti, cose urgenti, email da leggere e bozze pronte (con la chiave Gemini anche un breve riassunto scritto dall'AI). Premi «🔊 Leggimelo» per ascoltarlo
 - 🎙️ si comanda **a voce** (o scrivendo) in italiano
 - 💸 è **tutto gratis**: niente server, niente abbonamenti; i dati restano nel tuo browser
 
@@ -25,6 +27,10 @@ Premi il microfono (o `Ctrl+M`) e parla. Esempi:
 | Aggiungere un'attività | «aggiungi studiare analisi entro venerdì urgente», «ricordami di chiamare la segreteria il 3 novembre» |
 | Aggiungere al calendario | «segna in calendario ricevimento con il prof domani alle 15», «fissa riunione di gruppo giovedì alle 3 per 2 ore» |
 | Scrivere un'email | «manda una email a Giulia dicendo che porto io gli appunti» → si apre l'email pronta; poi di' **«conferma»** per inviarla, **«salva»** per lasciarla in bozza o **«annulla»** |
+| Organizzare la giornata | «programma domani dalle 10 alle 14 università, 15 17 palestra, 19 21 beach volley, 23 23:30 libro» |
+| Sentire il programma | «cosa ho in programma domani?», «com'è la mia giornata?» |
+| Recap del mattino | «recap», «buongiorno» |
+| Evento importante | «segna in calendario esame di fisica venerdì alle 9 molto importante» |
 | Sapere cosa fare | «cosa devo fare oggi?», «che impegni ho domani?», «ho nuove email?» |
 | Altro | «aggiorna», «aiuto» |
 
@@ -40,7 +46,7 @@ Il riconoscimento vocale è quello gratuito del browser: funziona su **Chrome, E
 Il login Google non funziona aprendo il file dal disco: serve un indirizzo web.
 
 1. Su GitHub vai in **Settings → Pages** di questo repository
-2. **Deploy from a branch** → scegli il branch → cartella `/ (root)` → **Save**
+2. **Deploy from a branch** → scegli il branch `claude/friendly-goodall-vbrqrk` → cartella `/ (root)` → **Save**
 3. Dopo un paio di minuti la dashboard è su **`https://sasy2005.github.io/CLAUDE/dashboard/`**
 
 (In alternativa, sul tuo PC: `python3 -m http.server 8000` nella cartella del repo e apri `http://localhost:8000/dashboard/`.)
@@ -92,6 +98,31 @@ La dashboard rispetta i limiti del piano gratuito (una richiesta ogni ~5 secondi
 > Nota privacy: con la chiave attiva il testo delle email viene inviato a Google Gemini per l'analisi. Nel piano gratuito Google può usare questi dati per migliorare i suoi servizi. Se non vuoi, lascia il campo vuoto e usa le regole base.
 
 ---
+
+## 🎨 Importanza degli impegni
+
+Il colore viene deciso così (il primo che vale):
+
+1. quello che scegli tu: **tocca un evento** per passare da normale → importante → molto importante
+2. il colore dato all'evento in Google Calendar (rosso/rosa = molto importante, arancio/giallo = importante)
+3. le parole nel titolo: *esame, prova, appello, scritto, orale, laurea, tesi, consegna, scadenza, visita…* = molto importante; *ricevimento, riunione, incontro, appuntamento, presentazione, seminario…* = importante
+4. tutto il resto (lezioni, palestra, ecc.) resta **senza colore**
+
+Gli impegni importanti dei prossimi 3 giorni finiscono nel recap del mattino.
+
+## 🗓️ La mia giornata — come scriverla
+
+Un'attività per riga, oppure tutto di fila; vanno bene tutti questi formati:
+
+```
+10-14 università
+15:30-17 palestra
+dalle 19 alle 21 beach volley
+23 23:30 libro
+università dalle 10 alle 14, palestra dalle 15 alle 17
+```
+
+Dopo le 19 la sezione si apre direttamente su **Domani**. Gli orari dopo mezzanotte (es. `22-1 film`) sono gestiti. Le attività prendono un'icona e un colore in automatico (studio, sport, svago, casa, lavoro).
 
 ## 🧠 Come capisce se un'email è «per te» o «broadcast»
 

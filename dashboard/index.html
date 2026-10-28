@@ -143,16 +143,64 @@
   .wd small{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
   .wd b{font-size:1rem}
   .wd .dots{display:flex;gap:2px;height:5px}
-  .wd .dots i{width:5px;height:5px;border-radius:50%;background:var(--accent)}
-  .wd .dots i.dl{background:var(--amber)}
+  .wd .dots i{width:5px;height:5px;border-radius:50%;background:var(--faint)}
+  .wd .dots i.alta{background:var(--red)} .wd .dots i.media{background:var(--amber)}
+  .wd .dots i.dl{background:transparent;box-shadow:inset 0 0 0 1px var(--faint)}
   .wd.today{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
-  .wd.today small{color:rgba(255,255,255,.85)} .wd.today .dots i{background:#fff}
+  .wd.today small{color:rgba(255,255,255,.85)} .wd.today .dots i{box-shadow:0 0 0 1.5px #fff}
   .wd.sel{border-color:var(--accent)}
   .day-h{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:12px 8px 6px}
   .ev{display:flex;gap:11px;padding:9px 8px;border-radius:12px;align-items:stretch}
   .ev:hover{background:var(--surface-2)}
-  .ev .bar{width:4px;border-radius:4px;background:var(--accent);flex:none}
-  .ev.dl .bar{background:var(--amber)}
+  .ev{cursor:pointer}
+  .ev .bar{width:4px;border-radius:4px;background:var(--border);flex:none}
+  .ev.imp-alta{background:var(--red-soft)} .ev.imp-alta .bar{background:var(--red)}
+  .ev.imp-media{background:var(--amber-soft)} .ev.imp-media .bar{background:var(--amber)}
+  .ev.dl{cursor:default} .ev.dl .bar{background:repeating-linear-gradient(var(--faint) 0 4px,transparent 4px 8px)}
+  .legend{display:flex;gap:6px 12px;flex-wrap:wrap;font-size:.72rem;color:var(--muted);padding:0 18px 6px}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:0}
+
+  /* ---------- la mia giornata ---------- */
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .plan-b{padding:0 14px 14px}
+  .blk{display:flex;gap:12px;align-items:center;padding:9px 12px;border-radius:12px;margin-bottom:6px;background:var(--surface-2);
+    position:relative;overflow:hidden;border-left:4px solid var(--faint)}
+  .blk .ic{font-size:1.1rem;flex:none}
+  .blk .tm{width:96px;flex:none;font-size:.8rem;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+  .blk .tt{flex:1;min-width:0} .blk .tt b{font-weight:600;font-size:.92rem;display:block}
+  .blk .tt span{font-size:.74rem;color:var(--muted)}
+  .blk.past{opacity:.45}
+  .blk.now{background:var(--accent-soft)}
+  .blk .prog{position:absolute;left:0;bottom:0;height:3px;background:var(--accent)}
+  .blk.c-studio{border-left-color:var(--blue)} .blk.c-sport{border-left-color:var(--green)} .blk.c-svago{border-left-color:var(--amber)}
+  .blk.c-casa{border-left-color:var(--accent)} .blk.c-lavoro{border-left-color:var(--red)}
+  .free{font-size:.75rem;color:var(--faint);padding:0 12px 6px 16px}
+  .plan-edit textarea{min-height:150px;font-variant-numeric:tabular-nums}
+
+  /* ---------- recap ---------- */
+  .recap{display:none;background:linear-gradient(135deg,var(--accent-soft),var(--surface) 70%);border:1px solid var(--border);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
+  .recap.on{display:block}
+  .recap-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .recap-h h2{margin:0;font-size:1.15rem;font-weight:800;letter-spacing:-.01em}
+  .recap-ai{margin:10px 0 0;font-size:.95rem;line-height:1.6;max-width:900px}
+  .recap-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  @media(max-width:1000px){.recap-grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.recap-grid{grid-template-columns:1fr}}
+  .rc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;min-width:0}
+  .rc h4{margin:0 0 6px;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .rc ul{margin:0;padding:0;list-style:none;font-size:.86rem}
+  .rc li{padding:3px 0;display:flex;gap:8px;align-items:baseline}
+  .rc li span{color:var(--muted);font-size:.78rem;font-variant-numeric:tabular-nums;flex:none;min-width:44px}
+  .rc li i{width:7px;height:7px;border-radius:50%;flex:none;align-self:center}
+  .rc .none{color:var(--faint);font-size:.84rem}
+  .rc .big{font-size:1.5rem;font-weight:800}
+  .steps{display:grid;gap:6px;margin-bottom:6px}
+  .step{display:flex;gap:10px;align-items:center;font-size:.86rem;padding:8px 12px;border-radius:11px;background:var(--surface-2)}
+  .step.ok{background:var(--green-soft)}
+  .step b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;background:var(--border);flex:none}
+  .step.ok b{background:var(--green);color:#fff}
+  code{background:var(--surface-2);border:1px solid var(--border);padding:1px 6px;border-radius:6px;font-size:.82rem}
   .ev .when{width:62px;flex:none;font-size:.8rem;font-weight:600;color:var(--muted);padding-top:1px}
   .ev .what{min-width:0;flex:1}
   .ev .what b{font-weight:600;font-size:.9rem;display:block}
@@ -252,12 +300,22 @@
       <span class="pill" id="modePill"><span class="dot"></span><span>Demo</span></span>
       <button class="btn icon ghost" id="refreshBtn" title="Aggiorna">⟳</button>
       <button class="btn icon ghost" id="themeBtn" title="Tema chiaro/scuro">🌓</button>
+      <button class="btn" id="recapBtn">☀️ Recap</button>
       <button class="btn" id="settingsBtn">⚙️ Impostazioni</button>
       <button class="btn primary" id="connectBtn">Collega account</button>
     </div>
   </header>
 
   <div class="banner" id="banner"><span id="bannerTxt"></span><button class="btn sm" id="bannerBtn"></button></div>
+
+  <section class="recap" id="recap" aria-label="Recap del mattino">
+    <div class="recap-h">
+      <h2 id="recapTitle">☀️ Il tuo recap</h2>
+      <div class="row" style="margin:0"><button class="btn sm" id="recapSpeak">🔊 Leggimelo</button><button class="btn sm ghost" id="recapClose">Chiudi</button></div>
+    </div>
+    <div class="recap-ai" id="recapAi"></div>
+    <div class="recap-grid" id="recapGrid"></div>
+  </section>
 
   <section class="stats" aria-label="Riepilogo">
     <div class="stat"><div class="ico" style="background:var(--blue-soft)">✉️</div><div><b id="stDirect">0</b><span>email per te</span></div></div>
@@ -292,6 +350,16 @@
       <div class="card-b" id="mailList"></div>
     </section>
 
+    <div class="col">
+    <!-- LA MIA GIORNATA -->
+    <section class="card" id="planCard">
+      <div class="card-h">
+        <h2>🗓️ La mia giornata</h2>
+        <div class="seg" id="planTabs"><button data-pd="today">Oggi</button><button data-pd="tomorrow">Domani</button></div>
+      </div>
+      <div class="plan-b" id="planBody"></div>
+    </section>
+
     <!-- CALENDAR -->
     <section class="card" id="calCard">
       <div class="card-h">
@@ -299,8 +367,10 @@
         <button class="btn sm" id="addEventBtn">+ Evento</button>
       </div>
       <div class="week" id="week"></div>
+      <div class="legend"><span><i style="background:var(--red)"></i>Molto importante</span><span><i style="background:var(--amber)"></i>Importante</span><span><i style="background:var(--border)"></i>Normale</span><span>· tocca un evento per cambiarlo</span></div>
       <div class="card-b" id="agenda"></div>
     </section>
+    </div>
 
     <!-- TODO -->
     <section class="card" id="todoCard">
@@ -332,6 +402,8 @@
 <dialog id="settingsDlg">
   <div class="dlg-h"><h3>⚙️ Impostazioni</h3><button class="btn icon ghost" data-close>✕</button></div>
   <div class="dlg-b">
+    <div class="sec">Configurazione</div>
+    <div class="steps" id="setupSteps"></div>
     <div class="sec">Profilo</div>
     <div class="two">
       <div class="field"><label for="sName">Il tuo nome</label><input type="text" id="sName" placeholder="Mario"></div>
@@ -342,7 +414,8 @@
 
     <div class="sec">Account Google (email + calendario)</div>
     <div class="field"><label for="sClient">OAuth Client ID</label><input type="text" id="sClient" placeholder="1234-abc.apps.googleusercontent.com">
-      <div class="hint">Gratuito. Si crea una volta sola in 5 minuti: guida nel file <a href="https://github.com/sasy2005/CLAUDE/blob/main/dashboard/README.md" target="_blank" rel="noopener">README</a>.</div></div>
+      <div class="hint">Gratuito. Si crea una volta sola in 5 minuti: guida nel file <a href="https://github.com/sasy2005/CLAUDE/blob/claude/friendly-goodall-vbrqrk/dashboard/README.md" target="_blank" rel="noopener">README</a>.<br>
+      Origine da autorizzare nel progetto Google: <code id="originLbl"></code> <button class="btn sm" type="button" id="copyOrigin">Copia</button></div></div>
     <div class="field"><label for="sQuery">Quali email leggere</label><input type="text" id="sQuery">
       <div class="hint">Sintassi di ricerca Gmail. Max <input type="number" id="sMax" min="5" max="100" style="width:70px;padding:3px 6px;display:inline-block"> email per aggiornamento.</div></div>
 
@@ -455,7 +528,7 @@ const DEF = {
 let S = {...DEF, ...store.get('settings', {})};
 let mode = store.get('mode', 'demo');                 // 'demo' | 'google'
 const K = k => (mode === 'demo' ? 'demo_' : '') + k;  // i dati demo non si mescolano a quelli veri
-let tasks = [], drafts = {}, analysis = store.get('analysis', {}), contacts = {};
+let tasks = [], drafts = {}, analysis = store.get('analysis', {}), contacts = {}, plans = {}, eventImp = {};
 let emails = [], events = [], myAddrs = [];
 let mailTab = 'direct', selDay = null, openEmailId = null;
 const ruleCache = {};
@@ -464,6 +537,10 @@ function loadLocal(){
   tasks = store.get(K('tasks'), null);
   drafts = store.get(K('drafts'), {});
   contacts = store.get(K('contacts'), {});
+  eventImp = store.get(K('eventImp'), {});
+  plans = store.get(K('plans'), null);
+  if (mode === 'demo' && !plans) plans = demoPlans();
+  plans = plans || {};
   if (mode === 'demo' && !tasks) tasks = demoTasks();
   tasks = tasks || [];
 }
@@ -606,7 +683,7 @@ function parseWhen(c, now = new Date()){
 }
 function parsePriority(c){
   if (c.cut(/\b(?:e |con )?(?:priorita bassa|bassa priorita|non (?:e )?urgente|quando (?:posso|ho tempo|riesco)|con calma|senza fretta)\b/)) return 'bassa';
-  if (c.cut(/\b(?:e |con )?(?:priorita (?:alta|massima)|alta priorita|(?:e )?urgentissim[oa]|(?:e )?urgente|importantissim[oa]|assolutamente)\b/)) return 'alta';
+  if (c.cut(/\b(?:e |con )?(?:priorita (?:alta|massima)|alta priorita|(?:e )?urgentissim[oa]|(?:e )?urgente|(?:e )?molto importante|importantissim[oa]|assolutamente)\b/)) return 'alta';
   if (c.cut(/\b(?:e |con )?(?:priorita media|(?:e )?importante)\b/)) return 'media';
   return null;
 }
@@ -663,6 +740,178 @@ function deleteTask(t){
   tasks.splice(i, 1); saveTasks(); renderTodos(); renderAgenda(); renderStats();
   toast(`Eliminata: ${t.title}`, 'Annulla', () => { tasks.splice(i, 0, t); saveTasks(); renderTodos(); renderAgenda(); renderStats(); });
 }
+
+/* =====================================================================
+   Calendario: importanza degli eventi (rosso = molto importante, giallo = importante, nessun colore = normale)
+   ===================================================================== */
+const IMP_HIGH = /\b(esam|prova|appell|scritt[oi]\b|oral[ei]\b|discussion|laurea|tesi\b|colloqui|visita|scadenz|consegn|parzial|compitin|test\b|concors)/;
+const IMP_MED = /\b(ricevimento|riunion|incontr|appuntament|presentazion|seminari|call\b|medic|dentist|meeting|esercitazion|colloquio)/;
+const GCOLOR = {'11':'alta', '4':'alta', '6':'media', '5':'media'};   // colori impostati in Google Calendar: rosso/rosa, arancio/giallo
+function impOf(e){
+  if (eventImp[e.id] !== undefined) return eventImp[e.id];
+  if (GCOLOR[e.colorId]) return GCOLOR[e.colorId];
+  const n = norm(e.title);
+  return IMP_HIGH.test(n) ? 'alta' : IMP_MED.test(n) ? 'media' : '';
+}
+const IMP_LBL = {alta:'Molto importante', media:'Importante', '':'Normale'};
+function cycleImp(e){
+  const nx = {'':'media', media:'alta', alta:''}[impOf(e)];
+  eventImp[e.id] = nx; store.set(K('eventImp'), eventImp);
+  renderAgenda(); renderRecap(); toast(`${e.title}: ${IMP_LBL[nx].toLowerCase()}`);
+}
+
+/* =====================================================================
+   La mia giornata: blocchi orari programmati (di solito la sera prima)
+   ===================================================================== */
+const toMin = (h, m) => h * 60 + (m || 0);
+const fmtMin = m => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+const fmtDur = m => m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`;
+const CATS = [
+  ['studio', '📚', /\b(universit|uni\b|lezion|lab|studi|bibliotec|esam|tesi|ripass|corso|aula|compiti)/],
+  ['sport', '🏐', /\b(palestr|beach|volley|pallavol|calci|corsa|correre|nuot|yoga|allenament|padel|tennis|bici|sport|basket|camminat|pilates|gym|partita)/],
+  ['svago', '📖', /\b(libro|legg|lettur|film|serie|relax|amic|uscit|aperitiv|cinema|musica|gioc|netflix|riposo|pisolino|ragazz)/],
+  ['casa', '🍽️', /\b(pranzo|cena|colazion|spesa|cucin|pulizi|lavatric|casa|famiglia|doccia)/],
+  ['lavoro', '💼', /\b(lavor|turno|ufficio|riunion|call|meeting|ripetizion)/]
+];
+const catOf = t => CATS.find(c => c[2].test(norm(t))) || ['altro', '•'];
+function parsePlan(text){
+  const out = [];
+  const RANGE = /(?:dalle\s+(?:ore\s+)?|ore\s+)?\b(\d{1,2})(?:[:.](\d{2}))?\s*(?:-|–|—|\/|alle|fino alle|a)?\s*\b(\d{1,2})(?:[:.](\d{2}))?\b/gi;
+  const clean = t => { t = t.trim(); for (let i = 0; i < 3; i++) t = t.replace(/^[\s,;:.\-–]+|[\s,;:.\-–]+$/g, '').replace(/^(e|poi|quindi|dopo|infine|dalle|alle|ore|fino)\s+/i, '').replace(/\s+(e|poi|dalle|alle|ore|fino|quindi)$/i, ''); return cap(t); };
+  for (const line of String(text).split(/\n|;|,(?!\d)/)){
+    const L = line.trim(); if (!L) continue;
+    const found = [];
+    for (const m of L.matchAll(RANGE)){
+      if (+m[1] > 24 || +m[3] > 24 || +(m[2] || 0) > 59 || +(m[4] || 0) > 59) continue;
+      let a = toMin(+m[1], +m[2] || 0), b = toMin(+m[3], +m[4] || 0);
+      if (+m[1] <= 7 && +m[3] <= 8 && !/^0/.test(m[1])){ a += 720; b += 720; }      // "3 5 palestra" = 15-17
+      if (b <= a){ if (a >= 18 * 60 && b < 12 * 60) b += 1440; else continue; }    // oltre mezzanotte
+      found.push({i:m.index, end:m.index + m[0].length, a, b});
+    }
+    if (!found.length){
+      const m = /(?:alle|ore|dalle)\s+(\d{1,2})(?:[:.](\d{2}))?/i.exec(L);
+      if (m && +m[1] <= 24){ const a = toMin(+m[1], +m[2] || 0); found.push({i:m.index, end:m.index + m[0].length, a, b:a + 60}); }
+    }
+    if (!found.length) continue;
+    const titleFirst = !!clean(L.slice(0, found[0].i));       // "università dalle 10 alle 14" oppure "10-14 università"
+    found.forEach((f, k) => {
+      const t = clean(titleFirst ? L.slice(k ? found[k - 1].end : 0, f.i) : L.slice(f.end, k + 1 < found.length ? found[k + 1].i : L.length));
+      if (t) out.push({s:f.a, e:f.b, t});
+    });
+  }
+  return out.sort((x, y) => x.s - y.s);
+}
+const planToText = bl => bl.map(b => `${fmtMin(b.s)}-${fmtMin(b.e)} ${b.t}`).join('\n');
+let planDay = new Date().getHours() >= 19 ? 'tomorrow' : 'today', planEditing = false;
+const planKey = day => ymd(day === 'tomorrow' ? addDays(new Date(), 1) : new Date());
+function savePlan(day, blocks){
+  const k = planKey(day);
+  if (blocks.length) plans[k] = {blocks, at:Date.now()}; else delete plans[k];
+  const old = ymd(addDays(new Date(), -30));
+  Object.keys(plans).forEach(x => { if (x < old) delete plans[x]; });
+  store.set(K('plans'), plans);
+  planDay = day; planEditing = false; renderPlan(); renderRecap();
+}
+function renderPlan(){
+  document.querySelectorAll('#planTabs button').forEach(b => b.classList.toggle('on', b.dataset.pd === planDay));
+  const p = plans[planKey(planDay)], bl = p?.blocks || [];
+  if (planEditing || !bl.length){
+    const evening = new Date().getHours() >= 18;
+    $('#planBody').innerHTML = `<div class="plan-edit">
+      <div class="note" style="margin:0 0 8px">${planDay === 'tomorrow' ? (evening ? '🌙 È sera: organizza la giornata di domani.' : 'Organizza la giornata di domani.') : 'Organizza la giornata di oggi.'}
+        Un'attività per riga, oppure tutto di fila.</div>
+      <label class="sr" for="planTxt">Programma</label>
+      <textarea id="planTxt" placeholder="10-14 università&#10;15-17 palestra&#10;19-21 beach volley&#10;23-23:30 libro">${esc(planToText(bl))}</textarea>
+      <div class="row"><button class="btn primary sm" data-pa="save">Salva</button>${bl.length ? '<button class="btn sm" data-pa="cancel">Annulla</button><button class="btn sm danger" data-pa="clear">Svuota</button>' : ''}</div>
+      <div class="note">🎙️ Oppure a voce: «programma domani dalle 10 alle 14 università, 15 17 palestra, 19 21 beach volley, 23 23:30 libro»</div></div>`;
+    return;
+  }
+  const isToday = planDay === 'today', nowM = new Date().getHours() * 60 + new Date().getMinutes();
+  let html = '', prevEnd = null;
+  for (const b of bl){
+    if (prevEnd != null && b.s - prevEnd >= 30) html += `<div class="free">libero ${fmtMin(prevEnd)}–${fmtMin(b.s)}</div>`;
+    const [cat, ico] = catOf(b.t);
+    const st = !isToday ? '' : b.e <= nowM ? 'past' : b.s <= nowM ? 'now' : '';
+    const prog = st === 'now' ? `<span class="prog" style="width:${Math.round((nowM - b.s) / (b.e - b.s) * 100)}%"></span>` : '';
+    html += `<div class="blk c-${cat} ${st}"><span class="ic">${ico}</span><span class="tm">${fmtMin(b.s)} – ${fmtMin(b.e)}</span>
+      <span class="tt"><b>${esc(b.t)}</b><span>${st === 'now' ? '▶ adesso · mancano ' + fmtDur(b.e - nowM) : fmtDur(b.e - b.s)}</span></span>${prog}</div>`;
+    prevEnd = Math.max(prevEnd ?? 0, b.e);
+  }
+  const tot = bl.reduce((a, b) => a + b.e - b.s, 0);
+  html += `<div class="row" style="justify-content:space-between;align-items:center"><span class="note" style="margin:0">${bl.length} attività · ${fmtDur(tot)} pianificate</span>
+    <button class="btn sm" data-pa="edit">✎ Modifica</button></div>`;
+  $('#planBody').innerHTML = html;
+}
+
+/* =====================================================================
+   Recap del mattino
+   ===================================================================== */
+function recapData(){
+  const now = new Date(), today = ymd(now);
+  const open = tasks.filter(t => !t.done).sort((a, b) => score(b) - score(a));
+  return {
+    plan:plans[today]?.blocks || [],
+    evToday:events.filter(e => ymd(e.start) === today && e.end > now),
+    important:events.filter(e => impOf(e) && e.end > now && dayDiff(now, e.start) <= 3).sort((a, b) => a.start - b.start).slice(0, 5),
+    urgent:open.filter(t => bucket(score(t)) === 'urgent' || (t.due && t.due <= today)).slice(0, 5),
+    openCount:open.length,
+    unread:emails.filter(e => e.cls.type === 'direct' && e.unread),
+    draftsReady:emails.filter(e => drafts[e.id]).length,
+    broadcast:emails.filter(e => e.cls.type === 'broadcast' && e.unread).length
+  };
+}
+const whenLbl = e => { const r = relDay(ymd(e.start)); return (r === 'oggi' ? '' : r + ' ') + (e.allDay ? '' : fmtTime(e.start)); };
+function recapSpeech(){
+  const d = recapData(), parts = [`${greeting()}${S.name ? ' ' + S.name : ''}! Oggi è ${new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'})}.`];
+  const ai = store.get(K('recapAI'), null);
+  if (ai?.d === ymd(new Date()) && ai.text) parts.push(ai.text);
+  if (d.plan.length) parts.push('In programma: ' + d.plan.map(b => `${b.t} dalle ${fmtMin(b.s)} alle ${fmtMin(b.e)}`).join(', ') + '.');
+  if (d.important.length) parts.push('Impegni importanti: ' + d.important.map(e => `${e.title} ${relDay(ymd(e.start))}${e.allDay ? '' : ' alle ' + fmtTime(e.start)}`).join(', ') + '.');
+  if (d.urgent.length) parts.push('Le cose più urgenti: ' + d.urgent.slice(0, 3).map(t => t.title + (t.due ? ' per ' + relDay(t.due) : '')).join(', ') + '.');
+  parts.push(d.unread.length ? `Hai ${d.unread.length} email per te da leggere${d.draftsReady ? ` e ${d.draftsReady} bozze di risposta già pronte` : ''}.` : 'Nessuna email nuova per te.');
+  return parts.join(' ');
+}
+function renderRecap(){
+  if (!$('#recap').classList.contains('on')) return;
+  const d = recapData();
+  $('#recapTitle').textContent = `☀️ ${greeting()}${S.name ? ', ' + S.name : ''}! Ecco la tua giornata`;
+  const ai = store.get(K('recapAI'), null);
+  $('#recapAi').innerHTML = ai?.d === ymd(new Date()) && ai.text ? '✨ ' + esc(ai.text) : (aiOn() ? '<span class="spin"></span> Preparo il riassunto…' : '');
+  const li = (a, b, dot) => `<li>${dot ? `<i style="background:${dot}"></i>` : ''}${a ? `<span>${esc(a)}</span>` : '•'}${esc(b)}</li>`;
+  const none = t => `<div class="none">${t}</div>`;
+  const nowM = new Date().getHours() * 60 + new Date().getMinutes();
+  $('#recapGrid').innerHTML = `
+    <div class="rc"><h4>🗓️ La tua giornata</h4>${d.plan.length ? '<ul>' + d.plan.map(b => li(fmtMin(b.s), (b.s <= nowM && nowM < b.e ? '▶ ' : '') + b.t)).join('') + '</ul>'
+      : none('Non hai ancora organizzato oggi. <a href="#planCard" data-recap-plan>Organizzala ora</a>')}</div>
+    <div class="rc"><h4>⭐ Impegni importanti</h4>${d.important.length ? '<ul>' + d.important.map(e => li(whenLbl(e) || 'oggi', e.title, impOf(e) === 'alta' ? 'var(--red)' : 'var(--amber)')).join('') + '</ul>'
+      : none(d.evToday.length ? `Niente di speciale: ${d.evToday.length} impegni normali oggi.` : 'Nessun impegno importante nei prossimi 3 giorni.')}</div>
+    <div class="rc"><h4>🔥 Da fare</h4>${d.urgent.length ? '<ul>' + d.urgent.map(t => li(t.due ? relDay(t.due) : '', t.title)).join('') + '</ul>'
+      : none(d.openCount ? `Niente di urgente (${d.openCount} cose in lista).` : 'Lista vuota 🎉')}</div>
+    <div class="rc"><h4>✉️ Email</h4><div class="big">${d.unread.length}</div><div class="note" style="margin:0 0 6px">per te da leggere${d.draftsReady ? ` · ${d.draftsReady} bozze pronte` : ''}${d.broadcast ? ` · ${d.broadcast} broadcast` : ''}</div>
+      ${d.unread.length ? '<ul>' + d.unread.slice(0, 3).map(e => li('', e.from.name.split(' ').slice(0, 2).join(' ') + ': ' + e.subject)).join('') + '</ul>' : ''}</div>`;
+}
+let recapAiBusy = false;
+async function recapAI(){
+  const today = ymd(new Date()), c = store.get(K('recapAI'), null);
+  if (!aiOn() || recapAiBusy || (c?.d === today && c.text)) return;
+  recapAiBusy = true;
+  try{
+    const d = recapData();
+    const r = await gemini(`Sei l'assistente personale di ${S.name || 'uno studente universitario'}. Scrivi il recap del mattino: massimo 3 frasi in italiano, tono caldo, concreto e motivante, dando del tu.
+Metti in evidenza l'impegno più importante e la cosa più urgente; se la giornata è piena suggerisci come gestire il tempo. Niente elenchi, niente emoji.
+Oggi: ${new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'})}.
+Programma della giornata: ${d.plan.map(b => `${fmtMin(b.s)}-${fmtMin(b.e)} ${b.t}`).join('; ') || 'non organizzato'}
+Impegni importanti (prossimi 3 giorni): ${d.important.map(e => `${e.title} (${whenLbl(e) || 'oggi'}, ${IMP_LBL[impOf(e)]})`).join('; ') || 'nessuno'}
+Altri impegni oggi: ${d.evToday.filter(e => !impOf(e)).map(e => `${e.title} ${e.allDay ? '' : fmtTime(e.start)}`).join('; ') || 'nessuno'}
+Cose urgenti: ${d.urgent.map(t => t.title + (t.due ? ` (scadenza ${relDay(t.due)})` : '')).join('; ') || 'nessuna'}
+Email personali da leggere: ${d.unread.length}, bozze pronte: ${d.draftsReady}
+Rispondi solo con JSON: {"testo": "..."}`);
+    if (r.testo) store.set(K('recapAI'), {d:today, text:String(r.testo)});
+  }catch(err){ console.warn(err); }
+  finally{ recapAiBusy = false; if (!(store.get(K('recapAI'), null)?.d === today)) $('#recapAi').textContent = ''; renderRecap(); }
+}
+function showRecap(){ $('#recap').classList.add('on'); renderRecap(); recapAI(); }
+function maybeAutoRecap(){ if (new Date().getHours() < 13 && store.get(K('recapSeen'), '') !== ymd(new Date())) showRecap(); }
 
 /* =====================================================================
    Email: classificazione diretta / broadcast + analisi
@@ -884,7 +1133,7 @@ async function fetchGoogle(){
   const now = new Date();
   const ev = await gapi(`https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime&maxResults=150&timeMin=${encodeURIComponent(sod(now).toISOString())}&timeMax=${encodeURIComponent(addDays(now, 21).toISOString())}`);
   events = (ev.items || []).filter(x => x.status !== 'cancelled').map(x => ({
-    id:x.id, title:x.summary || '(senza titolo)', location:x.location || '', link:x.htmlLink,
+    id:x.id, title:x.summary || '(senza titolo)', location:x.location || '', link:x.htmlLink, colorId:x.colorId,
     allDay:!!x.start.date, start:x.start.date ? fromYmd(x.start.date) : new Date(x.start.dateTime),
     end:x.end.date ? fromYmd(x.end.date) : new Date(x.end.dateTime)}));
 }
@@ -919,23 +1168,25 @@ async function draftNew(to, subject, body){
   await gapi(`${GM}/drafts`, {method:'POST', body:JSON.stringify({message:{raw:rawMessage({to, subject, body})}})});
   toast('Bozza salvata in Gmail ✓');
 }
-async function addEvent({title, date, time, hours = 1}){
+async function addEvent({title, date, time, hours = 1, imp}){
+  let id;
   const allDay = !time;
   const start = new Date(date); if (time) start.setHours(time[0], time[1], 0, 0);
   const end = allDay ? addDays(start, 1) : new Date(start.getTime() + hours * 36e5);
   if (mode === 'demo'){
     const ev = {id:uid(), title, start, end, allDay, location:''};
-    events.push(ev);
+    id = ev.id; events.push(ev);
     const local = store.get('demo_extra_events', []); local.push({...ev, start:+start, end:+end}); store.set('demo_extra_events', local);
   } else {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const body = allDay ? {summary:title, start:{date:ymd(start)}, end:{date:ymd(end)}}
       : {summary:title, start:{dateTime:start.toISOString(), timeZone:tz}, end:{dateTime:end.toISOString(), timeZone:tz}};
     const x = await gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events', {method:'POST', body:JSON.stringify(body)});
-    events.push({id:x.id, title, start, end, allDay, location:'', link:x.htmlLink});
+    id = x.id; events.push({id, title, start, end, allDay, location:'', link:x.htmlLink});
   }
+  if (imp !== undefined && imp !== null){ eventImp[id] = imp; store.set(K('eventImp'), eventImp); }
   events.sort((a, b) => a.start - b.start);
-  renderAgenda(); renderStats();
+  renderAgenda(); renderStats(); renderRecap();
 }
 
 /* =====================================================================
@@ -943,6 +1194,8 @@ async function addEvent({title, date, time, hours = 1}){
    ===================================================================== */
 const HELP = [
   'ho finito la relazione di fisica',
+  'programma domani dalle 10 alle 14 università, 15 17 palestra, 19 21 beach volley',
+  'recap',
   'aggiungi studiare analisi entro venerdì urgente',
   'segna in calendario ricevimento con il prof domani alle 15',
   'manda una email a Giulia dicendo che porto io gli appunti',
@@ -978,6 +1231,19 @@ function ruleParse(text){
   const c = cutter(text), n = c.n.trim();
   if (/^(aiuto|help|cosa (puoi|sai) fare|che comandi)/.test(n)) return {action:'help'};
   if (/^(aggiorna|ricarica|sincronizza|refresh)/.test(n)) return {action:'refresh'};
+  if (/\b(recap|riepilogo|briefing|riassunto della giornata)\b|^buongiorno\b/.test(n)) return {action:'recap'};
+
+  // programma della giornata
+  const planStart = /^(?:per favore )?(?:programma|organizza|pianifica|imposta)(?:mi)?\b|^(?:la )?(?:mia )?giornata (?:di )?(?:oggi|domani)|^(?:oggi|domani) (?:faccio|ho)\b/;
+  if (planStart.test(n) && (/giornata/.test(n) || parsePlan(text).length >= 2)){
+    c.cut(/^(?:per favore )?(?:programma|organizza|pianifica|imposta)(?:mi)?\s*/);
+    c.cut(/^\s*(?:la )?(?:mia )?(?:giornata|agenda)?\s*(?:di |per )?/);
+    const dm = c.cut(/\b(oggi|domani)\b\s*(?:faccio|ho)?\s*:?/);
+    const day = dm ? (dm[1] === 'oggi' ? 'today' : 'tomorrow') : (new Date().getHours() >= 15 ? 'tomorrow' : 'today');
+    return {action:'plan_day', day, blocks:parsePlan(c.rest())};
+  }
+  if (/\b(cosa ho in programma|cosa faccio|com'?e (?:la )?(?:mia )?giornata|la mia giornata|programma di (?:oggi|domani))\b/.test(n))
+    return {action:'read_plan', day:/domani/.test(n) ? 'tomorrow' : 'today'};
 
   // email da inviare
   if (/^(per favore |puoi )?(manda|mandare|invia|inviare|scrivi|scrivere|spedisci|prepara|rispondi)\b/.test(n) && /\b(e-?mail|mail|messaggio|posta|scrivi|rispondi)\b/.test(n)){
@@ -1014,8 +1280,9 @@ function ruleParse(text){
     c.cut(/\b(?:al|nel|sul|in|a) calendario\b/); c.cut(/^\s*(?:un |una |l')?(?:nuovo )?(?:evento|appuntamento|impegno)\s*(?::|di|per)?\s*/);
     let hours = 1; const d = c.cut(/\b(?:per|di|da) (\d+(?:[.,]5)?|un'?|una|due|tre|quattro|mezz'?) or[ae]\b/);
     if (d) hours = /mezz/.test(d[1]) ? 0.5 : (numOf(d[1].replace("'", '')) || parseFloat(d[1].replace(',', '.')) || 1);
+    const pr = parsePriority(c), imp = pr === 'alta' ? 'alta' : pr === 'media' ? 'media' : pr === 'bassa' ? '' : undefined;
     const {date, time} = parseWhen(c);
-    return {action:'add_event', title:cleanTitle(c.rest()), date:date ? ymd(date) : ymd(new Date()), time:time ? `${time[0]}:${String(time[1]).padStart(2,'0')}` : null, hours};
+    return {action:'add_event', imp, title:cleanTitle(c.rest()), date:date ? ymd(date) : ymd(new Date()), time:time ? `${time[0]}:${String(time[1]).padStart(2,'0')}` : null, hours};
   }
   // nuova cosa da fare
   if (/^(per favore |puoi )?(aggiungi|aggiungere|metti|segna|inserisci|ricordami|devo|nuova attivita|nuovo task|da fare)\b/.test(n)){
@@ -1034,7 +1301,9 @@ Trasforma il comando in UNA azione JSON. Azioni possibili:
 {"action":"add_task","title":"...","due":"YYYY-MM-DD"|null,"priority":"alta"|"media"|"bassa"}
 {"action":"complete_task","id":"<id della lista>"}   (l'utente dice di aver fatto qualcosa)
 {"action":"delete_task","id":"<id>"}
-{"action":"add_event","title":"...","date":"YYYY-MM-DD","time":"HH:MM"|null,"hours":numero}
+{"action":"add_event","title":"...","date":"YYYY-MM-DD","time":"HH:MM"|null,"hours":numero,"imp":"alta"|"media"|""}   (imp: importanza dell'evento, "" se normale)
+{"action":"plan_day","day":"today"|"tomorrow","blocks":[{"start":"HH:MM","end":"HH:MM","title":"..."}]}   (l'utente organizza la sua giornata a blocchi orari)
+{"action":"read_plan","day":"today"|"tomorrow"} {"action":"recap"}
 {"action":"send_email","to":"indirizzo email o nome","subject":"...","body":"email completa, educata, in italiano, firmata '${S.signature || S.name || ''}'"}
 {"action":"read_tasks"} {"action":"read_emails"} {"action":"read_agenda","date":"YYYY-MM-DD"} {"action":"refresh"} {"action":"help"}
 ${composeOpen ? '{"action":"compose_send"} {"action":"compose_draft"} {"action":"compose_cancel"}  (c\'è una email aperta in attesa di conferma)\n' : ''}{"action":"unknown","reply":"risposta breve"}
@@ -1043,6 +1312,10 @@ Lista attuale cose da fare: ${JSON.stringify(open)}
 Contatti noti: ${cont || 'nessuno'}
 Comando: "${text.replace(/"/g, "'")}"`;
   const r = await gemini(prompt);
+  if (r.action === 'plan_day' && Array.isArray(r.blocks)){
+    const hm = x => { const [h, m] = String(x || '').split(':').map(Number); return toMin(h || 0, m || 0); };
+    r.blocks = r.blocks.map(b => { const s = hm(b.start); let e = hm(b.end); if (e <= s) e += 1440; return {s, e, t:cap(String(b.title || ''))}; }).filter(b => b.t).sort((a, b) => a.s - b.s);
+  }
   if (r.action === 'complete_task' || r.action === 'delete_task'){ r.task = tasks.find(t => t.id === r.id); if (!r.task) r.query = text; }
   return r;
 }
@@ -1093,11 +1366,25 @@ async function runCommand(cmd, text){
       const left = tasks.filter(x => !x.done).length;
       return say(`Ottimo! Ho segnato come fatta «${t.title}». ${left ? `Ne restano ${left}.` : 'Hai finito tutto! 🎉'}`);
     }
+    case 'recap':
+      showRecap(); $('#recap').scrollIntoView({behavior:'smooth', block:'start'}); return say(recapSpeech());
+    case 'plan_day':{
+      const bl = cmd.blocks || [];
+      if (!bl.length) return say('Non ho capito gli orari. Prova così: «programma domani dalle 10 alle 14 università, dalle 15 alle 17 palestra».');
+      savePlan(cmd.day || 'tomorrow', bl);
+      return say(`Ho organizzato ${cmd.day === 'today' ? 'oggi' : 'domani'}: ` + bl.map(b => `${b.t} dalle ${fmtMin(b.s)} alle ${fmtMin(b.e)}`).join(', ') + '.');
+    }
+    case 'read_plan':{
+      const day = cmd.day || 'today', bl = plans[planKey(day)]?.blocks || [];
+      planDay = day; planEditing = false; renderPlan();
+      if (!bl.length) return say(`Non hai ancora organizzato ${day === 'today' ? 'oggi' : 'domani'}. Dimmi per esempio «programma ${day === 'today' ? 'oggi' : 'domani'} dalle 10 alle 14 università».`);
+      return say(`${day === 'today' ? 'Oggi' : 'Domani'} hai in programma: ` + bl.map(b => `${b.t} dalle ${fmtMin(b.s)} alle ${fmtMin(b.e)}`).join(', ') + '.');
+    }
     case 'add_event':{
       if (!cmd.title) return openEventDlg({date:cmd.date ? fromYmd(cmd.date) : new Date()});
       const time = cmd.time ? cmd.time.split(':').map(Number) : null;
-      await addEvent({title:cap(cmd.title), date:cmd.date ? fromYmd(cmd.date) : new Date(), time, hours:+cmd.hours || 1});
-      return say(`Aggiunto in calendario: ${cap(cmd.title)}, ${relDay(cmd.date || ymd(new Date()))}${time ? ' alle ' + cmd.time : ''}.`);
+      await addEvent({title:cap(cmd.title), date:cmd.date ? fromYmd(cmd.date) : new Date(), time, hours:+cmd.hours || 1, imp:cmd.imp});
+      return say(`Aggiunto in calendario: ${cap(cmd.title)}, ${relDay(cmd.date || ymd(new Date()))}${time ? ' alle ' + cmd.time : ''}${cmd.imp ? ' (' + IMP_LBL[cmd.imp].toLowerCase() + ')' : ''}.`);
     }
     case 'send_email':{
       const r = resolveRecipient(cmd.to);
@@ -1279,8 +1566,10 @@ function renderWeek(){
   const now = new Date(); let html = '';
   for (let i = 0; i < 7; i++){
     const d = addDays(now, i), k = ymd(d);
-    const ne = events.filter(e => ymd(e.start) === k).length, nd = tasks.filter(t => !t.done && t.due === k).length;
-    const dots = '<i></i>'.repeat(Math.min(ne, 3)) + '<i class="dl"></i>'.repeat(Math.min(nd, 2));
+    const rank = {alta:0, media:1, '':2};
+    const imps = events.filter(e => ymd(e.start) === k).map(impOf).sort((a, b) => rank[a] - rank[b]);
+    const nd = tasks.filter(t => !t.done && t.due === k).length;
+    const dots = imps.slice(0, 3).map(x => `<i class="${x}"></i>`).join('') + '<i class="dl"></i>'.repeat(Math.min(nd, 2));
     html += `<button class="wd ${i === 0 ? 'today' : ''} ${selDay === k ? 'sel' : ''}" data-day="${k}">
       <small>${d.toLocaleDateString('it-IT', {weekday:'short'}).replace('.', '')}</small><b>${d.getDate()}</b><span class="dots">${dots}</span></button>`;
   }
@@ -1289,9 +1578,9 @@ function renderWeek(){
 function renderAgenda(){
   renderWeek();
   const now = new Date(), items = [];
-  events.forEach(e => { if (e.end > now || ymd(e.start) === ymd(now)) items.push({k:ymd(e.start), t:e.allDay ? -1 : e.start.getHours() * 60 + e.start.getMinutes(), html:
-    `<div class="ev"><span class="bar"></span><span class="when">${e.allDay ? 'Tutto il<br>giorno' : fmtTime(e.start)}</span>
-     <span class="what"><b>${esc(e.title)}</b><span>${e.allDay ? '' : fmtTime(e.start) + '–' + fmtTime(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</span></span></div>`}); });
+  events.forEach(e => { if (e.end > now || ymd(e.start) === ymd(now)){ const imp = impOf(e); items.push({k:ymd(e.start), t:e.allDay ? -1 : e.start.getHours() * 60 + e.start.getMinutes(), html:
+    `<div class="ev ${imp ? 'imp-' + imp : ''}" data-ev="${esc(e.id)}" title="Importanza: ${IMP_LBL[imp]} — tocca per cambiarla"><span class="bar"></span><span class="when">${e.allDay ? 'Tutto il<br>giorno' : fmtTime(e.start)}</span>
+     <span class="what"><b>${esc(e.title)}</b><span>${e.allDay ? '' : fmtTime(e.start) + '–' + fmtTime(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</span></span></div>`}); } });
   tasks.filter(t => !t.done && t.due).forEach(t => {
     const k = dayDiff(now, fromYmd(t.due)) < 0 ? ymd(now) : t.due;
     items.push({k, t:-2, html:`<div class="ev dl"><span class="bar"></span><span class="when">Scadenza</span>
@@ -1336,7 +1625,7 @@ function renderTodos(){
   if (done.length) html += `<details class="donebox"><summary class="group-h">✓ Completate <span class="n">${done.length}</span> <span class="n">▾</span></summary>${done.map(taskRow).join('')}</details>`;
   $('#todoList').innerHTML = html;
 }
-function renderAll(){ renderHeader(); renderStats(); renderMail(); renderAgenda(); renderTodos(); }
+function renderAll(){ renderHeader(); renderStats(); renderMail(); renderPlan(); renderAgenda(); renderTodos(); renderRecap(); }
 
 /* =====================================================================
    Caricamento dati
@@ -1353,6 +1642,7 @@ async function refreshAll(){
       await fetchGoogle();
     }
     showBanner(); renderAll();
+    maybeAutoRecap();
     analyzeAll();
   }catch(err){
     console.error(err);
@@ -1389,6 +1679,9 @@ function demoTasks(){
     {id:uid(), title:'Comprare quaderno ad anelli', due:null, priority:'bassa', source:'voce', done:false, createdAt:Date.now()},
     {id:uid(), title:'Scrivere al tutor per il tirocinio', due:null, priority:'media', source:'manuale', done:true, doneAt:Date.now() - 3600e3, createdAt:Date.now()}
   ];
+}
+function demoPlans(){
+  return {[ymd(new Date())]:{at:Date.now(), blocks:parsePlan('9-11 lezione di analisi\n11:30-13 biblioteca\n14-16:30 laboratorio basi di dati\n19-20 palestra\n21:30-22 serie tv\n23-23:30 libro')}};
 }
 function loadDemo(){
   const me = S.uniEmail || 'mario.rossi@studenti.uni.it';
@@ -1442,6 +1735,13 @@ function openSettings(){
   $('#sName').value = S.name; $('#sUni').value = S.uniEmail; $('#sAliases').value = S.aliases; $('#sClient').value = S.clientId;
   $('#sQuery').value = S.mailQuery; $('#sMax').value = S.maxMails; $('#sGemini').value = S.geminiKey; $('#sModel').value = S.geminiModel;
   $('#sAuto').checked = S.autoDrafts; $('#sSign').value = S.signature; $('#sVoice').checked = S.voiceReplies; $('#sTheme').value = S.theme;
+  $('#originLbl').textContent = location.protocol === 'file:' ? '(apri la pagina da GitHub Pages)' : location.origin;
+  const steps = [
+    [!!S.geminiKey, 'Chiave Gemini gratuita', 'per bozze, riassunti e recap scritti dall\'AI'],
+    [!!S.clientId, 'Client ID Google', 'per leggere email e calendario'],
+    [mode === 'google' && !!token, 'Account collegato', mode === 'google' && token ? (myAddrs[0] || '') : 'dopo aver salvato, premi «Collega account»']
+  ];
+  $('#setupSteps').innerHTML = steps.map(([ok, t, d], i) => `<div class="step ${ok ? 'ok' : ''}"><b>${ok ? '✓' : i + 1}</b><span><strong>${t}</strong> — ${esc(d)}</span></div>`).join('');
   $('#settingsDlg').showModal();
 }
 function saveSettings(){
@@ -1476,6 +1776,25 @@ $('#mailTabs').onclick = e => { const b = e.target.closest('button'); if (b){ ma
 $('#mailList').onclick = e => { const b = e.target.closest('.mail'); if (b) openEmail(b.dataset.id); };
 $('#dClose').onclick = closeDrawer; $('#scrim').onclick = closeDrawer;
 
+$('#agenda').onclick = e => { const x = e.target.closest('[data-ev]'); const ev = x && events.find(v => v.id === x.dataset.ev); if (ev) cycleImp(ev); };
+$('#planTabs').onclick = e => { const b = e.target.closest('button'); if (b){ planDay = b.dataset.pd; planEditing = false; renderPlan(); } };
+$('#planBody').onclick = e => {
+  const b = e.target.closest('[data-pa]'); if (!b) return;
+  const a = b.dataset.pa;
+  if (a === 'edit'){ planEditing = true; renderPlan(); $('#planTxt').focus(); }
+  else if (a === 'cancel'){ planEditing = false; renderPlan(); }
+  else if (a === 'clear'){ savePlan(planDay, []); }
+  else if (a === 'save'){
+    const bl = parsePlan($('#planTxt').value);
+    if (!bl.length && $('#planTxt').value.trim()) return toast('Non trovo gli orari: scrivi ad esempio «10-14 università».');
+    savePlan(planDay, bl); if (bl.length) toast(`Giornata di ${planDay === 'today' ? 'oggi' : 'domani'} salvata ✓`);
+  }
+};
+$('#recapBtn').onclick = () => { if ($('#recap').classList.contains('on')) $('#recapClose').click(); else showRecap(); };
+$('#recapClose').onclick = () => { $('#recap').classList.remove('on'); store.set(K('recapSeen'), ymd(new Date())); try{ speechSynthesis.cancel(); }catch{} };
+$('#recapSpeak').onclick = () => say(recapSpeech());
+$('#recapGrid').onclick = e => { if (e.target.closest('[data-recap-plan]')){ e.preventDefault(); planDay = 'today'; planEditing = true; renderPlan(); $('#planCard').scrollIntoView({behavior:'smooth'}); $('#planTxt').focus(); } };
+$('#copyOrigin').onclick = () => navigator.clipboard?.writeText(location.origin).then(() => toast('Copiato: ' + location.origin));
 $('#week').onclick = e => { const b = e.target.closest('.wd'); if (b){ selDay = selDay === b.dataset.day ? null : b.dataset.day; renderAgenda(); } };
 $('#addEventBtn').onclick = () => openEventDlg({date:selDay ? fromYmd(selDay) : new Date()});
 $('#eSave').onclick = async () => {
@@ -1555,14 +1874,14 @@ $('#importInp').onchange = async e => {
   e.target.value = '';
 };
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};
-setInterval(() => { renderHeader(); renderStats(); }, 60e3);
+setInterval(() => { renderHeader(); renderStats(); if (!planEditing) renderPlan(); }, 60e3);
 
 /* ---------- avvio ---------- */
 applyTheme();
 loadLocal();
 if (token && Date.now() > token.exp){ token = null; store.del('token'); }
 if (mode === 'google' && token) refreshAll();
-else { if (mode === 'demo') loadDemo(); showBanner(); renderAll(); if (mode === 'demo') analyzeAll(); }
+else { if (mode === 'demo') loadDemo(); showBanner(); renderAll(); maybeAutoRecap(); if (mode === 'demo') analyzeAll(); }
 </script>
 </body>
 </html>
