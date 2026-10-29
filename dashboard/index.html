@@ -302,6 +302,52 @@
   .dlg-f{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 18px}
 
   [hidden]{display:none!important}
+  /* PC: la colonna delle email arriva fino in fondo e scorre al suo interno, niente buchi vuoti */
+  @media(min-width:761px){
+    #mailCard{height:0;min-height:max(100%, 600px)}
+    #mailCard .card-b{flex:1 1 auto;min-height:0;max-height:none}
+  }
+  /* ---------- telefono: una sezione alla volta, barra in basso ---------- */
+  .tabbar{display:none}
+  @media(max-width:760px){
+    .wrap{padding:14px 12px calc(96px + env(safe-area-inset-bottom))}
+    .wrap{display:flex;flex-direction:column}
+    .top{order:-3} .banner{order:-2} .cmd{order:-1}
+    .top{margin-bottom:12px;gap:8px;flex-wrap:nowrap;align-items:center}
+    .hello{min-width:0;flex:1}
+    .hello h1{font-size:1.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .hello p{font-size:.8rem;white-space:nowrap}
+    .top-actions{gap:4px;flex-wrap:nowrap;flex:none}
+    #aiPill,#modePill,#installBtn,#themeBtn,#recapBtn,.btn .lbl,#connectBtn:not(.primary),.stats,.hints{display:none}
+    .top-actions .btn{padding:7px 10px;font-size:.85rem}
+    .ttd.past-day{display:none}
+    .card-h h2{white-space:nowrap}
+    #mailCard .card-h{flex-wrap:wrap} #mailSub{display:none}
+    .banner{margin-bottom:12px;font-size:.84rem}
+    .cmd{padding:6px 6px 6px 14px;margin-bottom:12px;border-radius:14px}
+    .cmd input{font-size:.95rem}
+    .mic{position:fixed;right:16px;bottom:calc(82px + env(safe-area-inset-bottom));width:58px;height:58px;z-index:32;box-shadow:0 8px 24px rgba(90,86,224,.45)}
+    .mic svg{width:24px;height:24px}
+    .reply{position:fixed;left:12px;right:86px;bottom:calc(82px + env(safe-area-inset-bottom));z-index:31;margin:0;background:var(--surface);border:1px solid var(--border);
+      border-radius:16px;padding:10px 12px;box-shadow:var(--shadow);max-height:40vh;overflow:auto;font-size:.88rem}
+    .grid{gap:12px} .col{gap:12px}
+    .card-h{padding:14px 14px 10px} .sub{padding:0 14px 8px} .card-b{padding:0 6px 10px}
+    .recap{display:block;padding:14px;margin-bottom:12px} #recapClose{display:none}
+    .recap-grid{gap:8px;margin-top:10px}
+    .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;gap:4px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+      background:color-mix(in srgb, var(--surface) 88%, transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--border)}
+    .tabbar button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.7rem;font-weight:600;
+      color:var(--muted);padding:6px 0 5px;border-radius:14px;position:relative}
+    .tabbar .ti{font-size:1.25rem;line-height:1.1;filter:grayscale(1);opacity:.7}
+    .tabbar button.on{color:var(--accent);background:var(--accent-soft)}
+    .tabbar button.on .ti{filter:none;opacity:1}
+    .tabbar .bd{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:99px;background:var(--red);color:#fff;font-size:.64rem;font-weight:700;display:grid;place-items:center;padding:0 5px}
+    body[data-tab="oggi"] [data-sec]:not([data-sec~="oggi"]),
+    body[data-tab="email"] [data-sec]:not([data-sec~="email"]),
+    body[data-tab="agenda"] [data-sec]:not([data-sec~="agenda"]),
+    body[data-tab="attivita"] [data-sec]:not([data-sec~="attivita"]){display:none!important}
+    .ttgrid{gap:6px}
+    .uni-b{padding:0 14px 14px;gap:16px}
+  }
   /* ---------- università ---------- */
   #uniCard{grid-column:1/-1}
   .uni-b{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1fr);gap:22px;padding:0 18px 18px}
@@ -380,15 +426,15 @@
       <button class="btn icon ghost" id="refreshBtn" title="Aggiorna">⟳</button>
       <button class="btn icon ghost" id="themeBtn" title="Tema chiaro/scuro">🌓</button>
       <button class="btn" id="installBtn" hidden>📲 Installa</button>
-      <button class="btn" id="recapBtn">☀️ Recap</button>
-      <button class="btn" id="settingsBtn">⚙️ Impostazioni</button>
+      <button class="btn" id="recapBtn">☀️<span class="lbl"> Recap</span></button>
+      <button class="btn" id="settingsBtn" aria-label="Impostazioni">⚙️<span class="lbl"> Impostazioni</span></button>
       <button class="btn primary" id="connectBtn">Collega account</button>
     </div>
   </header>
 
   <div class="banner" id="banner"><span id="bannerTxt"></span><button class="btn sm" id="bannerBtn"></button></div>
 
-  <section class="recap" id="recap" aria-label="Recap del mattino">
+  <section class="recap" id="recap" aria-label="Recap del mattino" data-sec="oggi">
     <div class="recap-h">
       <h2 id="recapTitle">☀️ Il tuo recap</h2>
       <div class="row" style="margin:0"><button class="btn sm" id="recapSpeak">🔊 Leggimelo</button><button class="btn sm ghost" id="recapClose">Chiudi</button></div>
@@ -417,7 +463,7 @@
 
   <main class="grid">
     <!-- EMAIL -->
-    <section class="card" id="mailCard">
+    <section class="card" id="mailCard" data-sec="email">
       <div class="card-h">
         <h2>📬 Email</h2>
         <div class="seg" id="mailTabs">
@@ -432,7 +478,7 @@
 
     <div class="col">
     <!-- LA MIA GIORNATA -->
-    <section class="card" id="planCard">
+    <section class="card" id="planCard" data-sec="oggi">
       <div class="card-h">
         <h2>🗓️ La mia giornata</h2>
         <div class="seg" id="planTabs"><button data-pd="today">Oggi</button><button data-pd="tomorrow">Domani</button></div>
@@ -441,7 +487,7 @@
     </section>
 
     <!-- CALENDAR -->
-    <section class="card" id="calCard">
+    <section class="card" id="calCard" data-sec="agenda">
       <div class="card-h">
         <h2>📅 Calendario</h2>
         <button class="btn sm" id="addEventBtn">+ Evento</button>
@@ -454,7 +500,7 @@
 
     <div class="col">
     <!-- TODO -->
-    <section class="card" id="todoCard">
+    <section class="card" id="todoCard" data-sec="attivita">
       <div class="card-h">
         <h2>✅ Cose da fare</h2>
         <span class="pill" id="todoCount">0</span>
@@ -468,7 +514,7 @@
     </section>
 
     <!-- ABITUDINI -->
-    <section class="card" id="habitCard">
+    <section class="card" id="habitCard" data-sec="attivita">
       <div class="card-h"><h2>💪 Abitudini</h2><span class="pill" id="habitSum"></span></div>
       <div class="card-b" id="habitList"></div>
       <form class="add" id="habitForm" autocomplete="off" style="padding-bottom:14px">
@@ -481,7 +527,7 @@
     </div>
 
     <!-- UNIVERSITÀ -->
-    <section class="card" id="uniCard">
+    <section class="card" id="uniCard" data-sec="agenda">
       <div class="card-h"><h2>🎓 Università</h2></div>
       <div class="uni-b">
         <div>
@@ -503,6 +549,13 @@
     </section>
   </main>
 </div>
+
+<nav class="tabbar" id="tabbar" aria-label="Sezioni">
+  <button data-tab="oggi"><span class="ti">☀️</span>Oggi</button>
+  <button data-tab="email"><span class="ti">✉️</span>Email<span class="bd" id="bdEmail" hidden></span></button>
+  <button data-tab="agenda"><span class="ti">📅</span>Agenda<span class="bd" id="bdAgenda" hidden></span></button>
+  <button data-tab="attivita"><span class="ti">✅</span>Attività<span class="bd" id="bdTasks" hidden></span></button>
+</nav>
 
 <!-- email drawer -->
 <div class="scrim" id="scrim"></div>
@@ -1092,7 +1145,8 @@ function recapData(){
   const open = tasks.filter(t => !t.done).sort((a, b) => score(b) - score(a));
   return {
     plan:plans[today]?.blocks || [],
-    evToday:events.filter(e => ymd(e.start) === today && e.end > now),
+    evToday:events.filter(e => !e.lesson && ymd(e.start) === today && e.end > now),
+    lessonsToday:events.filter(e => e.lesson && !e.allDay && ymd(e.start) === today && e.end > now).sort((a, b) => a.start - b.start),
     important:events.filter(e => impOf(e) && e.end > now && dayDiff(now, e.start) <= 3).sort((a, b) => a.start - b.start).slice(0, 5),
     urgent:open.filter(t => bucket(score(t)) === 'urgent' || (t.due && t.due <= today)).slice(0, 5),
     openCount:open.length,
@@ -1115,8 +1169,9 @@ function recapSpeech(){
   parts.push(d.unread.length ? `Hai ${d.unread.length} email per te da leggere${d.draftsReady ? ` e ${d.draftsReady} bozze di risposta già pronte` : ''}.` : 'Nessuna email nuova per te.');
   return parts.join(' ');
 }
+const isPhone = () => matchMedia('(max-width:760px)').matches;
 function renderRecap(){
-  if (!$('#recap').classList.contains('on')) return;
+  if (!$('#recap').classList.contains('on') && !isPhone()) return;
   const d = recapData();
   $('#recapTitle').textContent = `☀️ ${greeting()}${S.name ? ', ' + S.name : ''}! Ecco la tua giornata`;
   const ai = store.get(K('recapAI'), null);
@@ -1126,6 +1181,7 @@ function renderRecap(){
   const nowM = new Date().getHours() * 60 + new Date().getMinutes();
   $('#recapGrid').innerHTML = `
     <div class="rc"><h4>🗓️ La tua giornata</h4>${d.plan.length ? '<ul>' + d.plan.map(b => li(fmtMin(b.s), (b.s <= nowM && nowM < b.e ? '▶ ' : '') + b.t)).join('') + '</ul>'
+      : d.lessonsToday.length ? '<ul>' + d.lessonsToday.map(e => li(fmtTime(e.start), '🎓 ' + courseLabel(e))).join('') + '</ul>'
       : none('Non hai ancora organizzato oggi. <a href="#planCard" data-recap-plan>Organizzala ora</a>')}
       ${d.habitsLeft.length ? `<div class="note">💪 Questa settimana ti manca: ${d.habitsLeft.map(x => `${esc(x.h.name)} ×${x.left}`).join(', ')}</div>` : ''}</div>
     <div class="rc"><h4>⭐ Impegni importanti</h4>${d.important.length || d.exams.length ? '<ul>' + d.exams.map(x => li('⏳ ' + dayDiff(new Date(), fromYmd(x.date)) + ' gg', x.name)).join('') + d.important.map(e => li(whenLbl(e) || 'oggi', e.title, impOf(e) === 'alta' ? 'var(--red)' : 'var(--amber)')).join('') + '</ul>'
@@ -1781,7 +1837,7 @@ async function runCommand(cmd, text){
 const greeting = () => { const h = new Date().getHours(); return h < 6 ? 'Buonanotte' : h < 13 ? 'Buongiorno' : h < 18 ? 'Buon pomeriggio' : 'Buonasera'; };
 function renderHeader(){
   $('#greet').textContent = `${greeting()}${S.name ? ', ' + S.name : ''} 👋`;
-  $('#todayLbl').textContent = new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  $('#todayLbl').textContent = new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
   const mp = $('#modePill');
   mp.className = 'pill ' + (mode === 'google' && token ? 'ok' : mode === 'google' ? 'warn' : '');
   mp.lastElementChild.textContent = mode === 'demo' ? 'Dati di esempio' : (token ? (myAddrs[0] || 'Collegato') : 'Da riconnettere');
@@ -1805,14 +1861,23 @@ function showBanner(){
   } else b.classList.remove('on');
   renderHeader();
 }
+function renderTabs(){
+  const b = (id, n) => { $(id).hidden = !n; $(id).textContent = n > 9 ? '9+' : n; };
+  b('#bdEmail', emails.filter(e => e.cls.type === 'direct' && e.unread).length);
+  b('#bdTasks', tasks.filter(t => !t.done && bucket(score(t)) === 'urgent').length);
+  const today = ymd(new Date());
+  b('#bdAgenda', events.filter(e => !e.allDay && ymd(e.start) === today && e.end > new Date()).length);
+  document.querySelectorAll('#tabbar button').forEach(x => x.classList.toggle('on', x.dataset.tab === document.body.dataset.tab));
+}
 function renderStats(){
   const direct = emails.filter(e => e.cls.type === 'direct');
   $('#stDirect').textContent = direct.filter(e => e.unread).length || direct.length;
   $('#stDirect').nextElementSibling.textContent = direct.some(e => e.unread) ? 'email per te da leggere' : 'email per te';
   $('#stDrafts').textContent = emails.filter(e => drafts[e.id]).length;
   const today = ymd(new Date());
-  $('#stEvents').textContent = events.filter(e => ymd(e.start) === today || (e.allDay && e.start <= new Date() && e.end > new Date())).length;
+  $('#stEvents').textContent = events.filter(e => !e.lesson && (ymd(e.start) === today || (e.allDay && e.start <= new Date() && e.end > new Date()))).length;
   $('#stUrgent').textContent = tasks.filter(t => !t.done && bucket(score(t)) === 'urgent').length;
+  renderTabs();
 }
 function setSub(html){ $('#mailSub').innerHTML = html; }
 
@@ -1921,7 +1986,7 @@ function renderWeek(){
   for (let i = 0; i < 7; i++){
     const d = addDays(now, i), k = ymd(d);
     const rank = {alta:0, media:1, '':2};
-    const imps = events.filter(e => ymd(e.start) === k).map(impOf).sort((a, b) => rank[a] - rank[b]);
+    const imps = events.filter(e => !e.lesson && ymd(e.start) === k).map(impOf).sort((a, b) => rank[a] - rank[b]);
     const nd = tasks.filter(t => !t.done && t.due === k).length;
     const dots = imps.slice(0, 3).map(x => `<i class="${x}"></i>`).join('') + '<i class="dl"></i>'.repeat(Math.min(nd, 2));
     html += `<button class="wd ${i === 0 ? 'today' : ''} ${selDay === k ? 'sel' : ''}" data-day="${k}">
@@ -1932,7 +1997,7 @@ function renderWeek(){
 function renderAgenda(){
   renderWeek();
   const now = new Date(), items = [];
-  events.forEach(e => { if (e.end > now || ymd(e.start) === ymd(now)){ const imp = impOf(e); items.push({k:ymd(e.start), t:e.allDay ? -1 : e.start.getHours() * 60 + e.start.getMinutes(), html:
+  events.forEach(e => { if (!e.lesson && (e.end > now || ymd(e.start) === ymd(now))){ const imp = impOf(e); items.push({k:ymd(e.start), t:e.allDay ? -1 : e.start.getHours() * 60 + e.start.getMinutes(), html:
     `<div class="ev ${imp ? 'imp-' + imp : ''}" data-ev="${esc(e.id)}" title="Importanza: ${IMP_LBL[imp]} — tocca per le opzioni"><span class="bar"></span><span class="when">${e.allDay ? 'Tutto il<br>giorno' : fmtTime(e.start)}</span>
      <span class="what"><b>${esc(e.title)}</b><span>${e.allDay ? '' : fmtTime(e.start) + '–' + fmtTime(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</span></span></div>`}); } });
   tasks.filter(t => !t.done && t.due).forEach(t => {
@@ -1941,7 +2006,7 @@ function renderAgenda(){
       <span class="what"><b>${esc(t.title)}</b><span>${t.due < ymd(now) ? '⚠️ ' + relDay(t.due) : 'dalle cose da fare'}</span></span></div>`});
   });
   const days = [...new Set(items.map(i => i.k))].sort().filter(k => !selDay || k === selDay);
-  if (!days.length){ $('#agenda').innerHTML = `<div class="empty"><span class="big">🌤️</span>${selDay ? 'Nessun impegno in questo giorno.' : 'Nessun impegno nei prossimi giorni.'}</div>`; return; }
+  if (!days.length){ $('#agenda').innerHTML = `<div class="empty"><span class="big">🌤️</span>${selDay ? 'Nessun impegno in questo giorno.' : 'Nessun impegno nei prossimi giorni.'}<br><span style="font-size:.8rem">Le lezioni sono in 🎓 Università.</span></div>`; return; }
   $('#agenda').innerHTML = days.slice(0, 14).map(k => {
     const d = fromYmd(k), lbl = relDay(k);
     const head = (lbl === 'oggi' || lbl === 'domani' ? cap(lbl) + ' · ' : '') + d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
@@ -2318,11 +2383,24 @@ setInterval(() => { renderHeader(); renderStats(); if (!planEditing) renderPlan(
 let calendars = [], allEvents = [];
 function weekStart(d = new Date()){ const x = sod(d); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; }
 // stessa "chiave" per tutte le lezioni di un corso: «Lezione di Analisi 2 (Aula 3)» → «analisi 2»
-const courseKey = e => norm(e.title).replace(/\(.*?\)|\[.*?\]/g, ' ')
+const oldCourseKey = e => norm(e.title).replace(/\(.*?\)|\[.*?\]/g, ' ')
   .replace(/\b(lezione|lezioni|lab|laboratorio|esercitazione|esercitazioni|aula\s*\S+|turno\s*\S+|di|del|della|dello)\b/g, ' ')
   .replace(/[^a-z0-9]+/g, ' ').trim() || norm(e.title);
-const courseLabel = e => e.title.replace(/^(lezione|lezioni)\s+(di\s+)?/i, '').replace(/\s*[-–]\s*(lezione|lab\w*|esercitazion\w*)$/i, '') || e.title;
-function refreshVisible(){ events = allEvents.filter(e => !hiddenCourses[courseKey(e)]); }
+// «MATEMATICA FINANZIARIA (T1 FRONTALE TURNO 1) GRASSI ROSANNA… U1-08 …» → «Matematica finanziaria» e aula «U1-08»
+const sentenceCase = t => /[A-Z]/.test(t) && t === t.toUpperCase() ? cap(t.toLowerCase()) : t;
+const courseLabel = e => sentenceCase(e.title.split(/\s*[([]|\s+[-–]\s+/)[0].replace(/^(lezione|lezioni|esercitazione|esercitazioni|laboratorio)\s+(di\s+)?/i, '').trim()) || e.title;
+const courseKey = e => norm(courseLabel(e)).replace(/[^a-z0-9]+/g, ' ').trim() || norm(e.title);
+const roomOf = e => e.location || (e.title.match(/\b[A-Z]{1,3}\d{1,2}-\d{1,3}\b/) || [''])[0];
+function refreshVisible(){
+  // corsi nascosti con la chiave di prima (che conteneva anche docenti e aula): li porto alla chiave nuova
+  let migrated = false;
+  for (const k of Object.keys(hiddenCourses)){
+    const ev = allEvents.find(e => oldCourseKey(e) === k && courseKey(e) !== k);
+    if (ev){ hiddenCourses[courseKey(ev)] = {title:courseLabel(ev)}; delete hiddenCourses[k]; migrated = true; }
+  }
+  if (migrated) saveHidden();
+  events = allEvents.filter(e => !hiddenCourses[courseKey(e)]);
+}
 
 async function fetchCalendars(){
   const now = new Date(), from = new Date(Math.min(+sod(now), +weekStart(now))), to = addDays(now, 70);
@@ -2353,9 +2431,9 @@ async function fetchCalendars(){
 let evCur = null;
 function openEvDlg(e){
   evCur = e;
-  $('#evTitle').textContent = e.title;
+  $('#evTitle').textContent = e.lesson ? courseLabel(e) : e.title;
   $('#evWhen').textContent = cap(e.start.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'}))
-    + (e.allDay ? ' · tutto il giorno' : ` · ${fmtTime(e.start)}–${fmtTime(e.end)}`) + (e.location ? ' · ' + e.location : '') + (e.calName ? ' · 📅 ' + e.calName : '');
+    + (e.allDay ? ' · tutto il giorno' : ` · ${fmtTime(e.start)}–${fmtTime(e.end)}`) + (roomOf(e) ? ' · ' + roomOf(e) : '') + (e.calName ? ' · 📅 ' + e.calName : '');
   const imp = impOf(e);
   document.querySelectorAll('#evImp button').forEach(b => b.classList.toggle('on', b.dataset.imp === imp));
   const k = courseKey(e), same = allEvents.filter(x => courseKey(x) === k);
@@ -2400,8 +2478,8 @@ function renderUni(){
     const d = addDays(ws, i), k = ymd(d);
     const ls = events.filter(e => e.lesson && !e.allDay && ymd(e.start) === k).sort((a, b) => a.start - b.start);
     if (ls.length) any = true;
-    return `<div class="ttd ${k === ymd(now) ? 'today' : ''} ${ls.length ? '' : 'empty-day'}"><h5>${esc(d.toLocaleDateString('it-IT', {weekday:'short', day:'numeric'}))}</h5>`
-      + (ls.map(e => `<button class="les" data-les="${esc(e.id)}" style="--h:${hueOf(courseKey(e))}" title="${esc(e.title)}"><b>${esc(courseLabel(e))}</b>${fmtTime(e.start)}–${fmtTime(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</button>`).join('') || '<div class="none">Nessuna lezione</div>') + '</div>';
+    return `<div class="ttd ${k === ymd(now) ? 'today' : ''} ${ls.length ? '' : 'empty-day'} ${k < ymd(now) ? 'past-day' : ''}"><h5>${esc(d.toLocaleDateString('it-IT', {weekday:'short', day:'numeric'}))}</h5>`
+      + (ls.map(e => `<button class="les" data-les="${esc(e.id)}" style="--h:${hueOf(courseKey(e))}" title="${esc(e.title)}"><b>${esc(courseLabel(e))}</b>${fmtTime(e.start)}–${fmtTime(e.end)}${roomOf(e) ? ' · ' + esc(roomOf(e)) : ''}</button>`).join('') || '<div class="none">Nessuna lezione</div>') + '</div>';
   });
   $('#timetable').innerHTML = any ? cols.join('')
     : `<div class="empty" style="grid-column:1/-1"><span class="big">🎓</span>Nessuna lezione in questa settimana.<br>Importa l'orario dell'università in Google Calendar e sceglilo in ⚙️ Impostazioni → «Calendario delle lezioni».</div>`;
@@ -2511,7 +2589,7 @@ function routineFor(k){
 function proposeDay(k){
   const d = fromYmd(k);
   const fixed = events.filter(e => !e.allDay && ymd(e.start) === k).map(e => ({s:e.start.getHours() * 60 + e.start.getMinutes(),
-    e:ymd(e.end) !== k ? 1440 : e.end.getHours() * 60 + e.end.getMinutes(), t:e.title, src:e.lesson ? 'lezione' : 'impegno'}));
+    e:ymd(e.end) !== k ? 1440 : e.end.getHours() * 60 + e.end.getMinutes(), t:e.lesson ? 'Lezione di ' + courseLabel(e) : e.title, src:e.lesson ? 'lezione' : 'impegno'}));
   const r = routineFor(k), lessons = fixed.filter(f => f.src === 'lezione');
   const routine = r.blocks.filter(b => !fixed.some(f => overlap(f, b) >= (b.e - b.s) / 2)
     && !(catOf(b.t)[0] === 'studio' && lessons.some(f => overlap(f, b) > 0)));
@@ -2633,7 +2711,7 @@ function checkReminders(){
   if (!S.notify) return;
   const now = Date.now(), lead = (+S.notifyLead || 10) * 60e3, today = ymd(new Date()), items = [];
   events.forEach(e => { if (!e.allDay) items.push({key:`ev:${e.id}:${+e.start}`, at:+e.start,
-    title:(impOf(e) === 'alta' ? '🔴 ' : impOf(e) === 'media' ? '🟡 ' : '') + e.title, body:fmtTime(e.start) + (e.location ? ' · ' + e.location : '')}); });
+    title:(impOf(e) === 'alta' ? '🔴 ' : impOf(e) === 'media' ? '🟡 ' : '') + (e.lesson ? courseLabel(e) : e.title), body:fmtTime(e.start) + (roomOf(e) ? ' · ' + roomOf(e) : '')}); });
   if (!(S.planToCal && mode === 'google'))      // se la giornata è su Google Calendar avvisa già lui
     (plans[today]?.blocks || []).forEach(b => items.push({key:`pl:${today}:${b.s}:${b.t}`, at:+sod(new Date()) + b.s * 60e3, title:b.t, body:`${fmtMin(b.s)} – ${fmtMin(b.e)} · La mia giornata`}));
   let changed = false;
@@ -2896,8 +2974,21 @@ document.addEventListener('pointerdown', maybeRenew, true);
 document.addEventListener('keydown', maybeRenew, true);
 $('#setupSteps').onclick = e => { if (e.target.closest('#permBtn')){ $('#settingsDlg').close(); upgradeScopes(); } };
 
+/* ---------- schede (telefono) ---------- */
+document.body.dataset.tab = store.get('tab', 'oggi');
+$('#tabbar').onclick = e => {
+  const b = e.target.closest('[data-tab]'); if (!b) return;
+  document.body.dataset.tab = b.dataset.tab; store.set('tab', b.dataset.tab); renderTabs(); renderRecap();
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+// sul telefono la risposta dell'assistente galleggia sopra la barra: un tocco la chiude, e sparisce da sola dopo un po'
+let replyTimer;
+$('#reply').onclick = () => { if (isPhone()) $('#reply').classList.remove('on'); };
+new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer = setTimeout(() => $('#reply').classList.remove('on'), 15000); })
+  .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
+
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 8';
+const APP_VERSION = '29 ottobre · 10';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();

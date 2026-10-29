@@ -14,7 +14,7 @@ Una dashboard personale in un **unico file** (`index.html`) che:
 - ✨ la sera ti **propone la giornata di domani** dopo aver imparato la tua routine (non chiede niente le prime volte)
 - 💪 tiene traccia di **abitudini e sport** (palestra, beach volley, lettura…) con obiettivo settimanale e serie di settimane di fila
 - 🔔 manda **notifiche** prima di impegni e attività
-- 📲 si **installa come app** sul telefono e **si sincronizza** tra PC e telefono
+- 📲 si **installa come app** sul telefono e sul PC e **si sincronizza** tra i due; sul telefono è divisa in 4 schede (☀️ Oggi · ✉️ Email · 📅 Agenda · ✅ Attività) con il microfono sempre a portata di pollice
 - 🎙️ si comanda **a voce** (o scrivendo) in italiano, anche per **rispondere alle email**, **archiviarle** o **segnarle come lette**
 - 💸 è **tutto gratis**: niente server, niente abbonamenti; i dati restano nel tuo browser e nel tuo Google Drive
 
