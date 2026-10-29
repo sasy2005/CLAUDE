@@ -1793,7 +1793,7 @@ function showBanner(){
     $('#bannerTxt').innerHTML = '👀 Stai guardando <b>dati di esempio</b>. Collega l\'account universitario per vedere le tue email e il tuo calendario.';
     $('#bannerBtn').textContent = 'Collega ora'; b.classList.add('on');
   } else if (!token){
-    $('#bannerTxt').textContent = '🔒 La sessione Google è scaduta (dura un\'ora per sicurezza).';
+    $('#bannerTxt').textContent = '🔒 L\'accesso a Google è scaduto: tocca un punto qualsiasi della pagina e lo rinnovo da solo.';
     $('#bannerBtn').textContent = 'Riconnetti'; b.classList.add('on');
   } else if (!hasScopes()){
     $('#bannerTxt').textContent = '🆕 Nuove funzioni (sincronizzazione col telefono, tutti i calendari, archivia email): serve dare a Google un permesso in più.';
@@ -2129,7 +2129,9 @@ function openSettings(){
   $('#sNotify').checked = !!S.notify && 'Notification' in window && Notification.permission === 'granted';
   $('#sLead').value = String(S.notifyLead || 10); $('#sPlanCal').checked = !!S.planToCal;
   $('#syncLbl').innerHTML = mode === 'google' ? (syncState || 'Non ancora sincronizzato.') : 'Disponibile dopo aver collegato l\'account.';
-  $('#setupSteps').innerHTML = steps.map(([ok, t, d], i) => `<div class="step ${ok ? 'ok' : ''}"><b>${ok ? '✓' : i + 1}</b><span><strong>${t}</strong> — ${esc(d)}</span></div>`).join('');
+  if (mode === 'google') steps.push([hasScopes(), 'Permessi completi', hasScopes() ? 'archivio email, tutti i calendari, sincronizzazione col telefono' : 'premi il pulsante qui sotto e accetta tutto']);
+  $('#setupSteps').innerHTML = steps.map(([ok, t, d], i) => `<div class="step ${ok ? 'ok' : ''}"><b>${ok ? '✓' : i + 1}</b><span><strong>${t}</strong> — ${esc(d)}</span></div>`).join('')
+    + (mode === 'google' && !hasScopes() ? '<button class="btn primary sm" type="button" id="permBtn" style="justify-self:start">🔑 Aggiorna permessi Google</button>' : '');
   $('#settingsDlg').showModal();
 }
 function saveSettings(){
@@ -2758,7 +2760,10 @@ async function syncNow(){
   }
 }
 async function upgradeScopes(){
-  try{ await requestToken('consent'); showBanner(); await refreshAll(); toast('Permessi aggiornati ✓'); }
+  try{
+    await requestToken('consent'); showBanner(); await refreshAll();
+    toast(hasScopes() ? 'Permessi aggiornati ✓' : 'Alcuni permessi non sono stati concessi: nella finestra di Google spunta tutte le caselle.', null, null, 8000);
+  }
   catch(err){ toast('Non riuscito: ' + err.message, null, null, 8000); }
 }
 
@@ -2835,10 +2840,27 @@ setInterval(checkReminders, 30e3);
 setInterval(() => { if (document.visibilityState === 'visible') syncNow(); }, 5 * 60e3);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible'){ checkReminders(); syncNow(); } });
 
+/* ---------- accesso Google sempre attivo ----------
+   Google dà accessi di un'ora alle pagine web senza server. Quando sta per scadere (o è scaduto)
+   lo rinnovo al primo clic o tasto: Google apre e chiude da solo una finestrella, senza chiedere niente. */
+let renewing = false;
+function maybeRenew(){
+  if (mode !== 'google' || !S.clientId || renewing || !window.google?.accounts?.oauth2) return;
+  if (token && Date.now() < token.exp - 5 * 60e3) return;
+  renewing = true;
+  const hadData = emails.length > 0;
+  requestToken('').then(() => { showBanner(); if (hadData) syncNow(); else refreshAll(); })
+    .catch(err => console.warn(err)).finally(() => { renewing = false; });
+}
+document.addEventListener('pointerdown', maybeRenew, true);
+document.addEventListener('keydown', maybeRenew, true);
+$('#setupSteps').onclick = e => { if (e.target.closest('#permBtn')){ $('#settingsDlg').close(); upgradeScopes(); } };
+
 /* ---------- avvio ---------- */
 applyTheme();
 loadLocal();
 if (token && Date.now() > token.exp){ token = null; store.del('token'); }
+if (mode === 'google' && S.clientId && location.protocol !== 'file:') loadGis().catch(err => console.warn(err));   // pronto per il rinnovo automatico
 if (mode === 'google' && token) refreshAll();
 else { if (mode === 'demo') loadDemo(); showBanner(); renderAll(); maybeAutoRecap(); if (mode === 'demo') analyzeAll(); }
 </script>

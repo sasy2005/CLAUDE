@@ -81,7 +81,7 @@ Molte università usano Google Workspace (Gmail) per la posta degli studenti. Se
 6. Nella dashboard: **⚙️ Impostazioni** → incolla il Client ID, scrivi la tua email universitaria → **Salva** → **Collega account**
 
 Al primo accesso Google mostrerà l'avviso "app non verificata": è normale, l'app è la tua → *Avanzate → Vai a Dashboard*.
-Per sicurezza l'accesso dura un'ora: dopo basta premere **Riconnetti**.
+Google dà alle pagine web accessi di un'ora. La dashboard li **rinnova da sola**: quando l'accesso sta per scadere, al primo clic o tasto si apre e si chiude da sola una finestrella di Google, senza chiederti niente.
 
 Permessi richiesti: lettura email e gestione delle etichette (segnare come letta / archiviare), creazione bozze/invio (solo quando confermi tu), lettura dei tuoi calendari e aggiunta di eventi, una cartella privata dell'app su Google Drive per la sincronizzazione.
 
@@ -137,12 +137,19 @@ Dopo le 19 la sezione si apre direttamente su **Domani**. Gli orari dopo mezzano
 
 ## 🎓 Orario delle lezioni
 
-1. Sul sito dell'orario della tua università cerca un pulsante tipo **«Esporta» / «iCal» / «Aggiungi a Google Calendar»** e copia il link del calendario
-2. In [Google Calendar](https://calendar.google.com) (con l'account universitario): **Altri calendari → + → Da URL** → incolla il link
-3. Nella dashboard: **⚙️ Impostazioni → Calendario delle lezioni** → scegli quel calendario (se nel nome c'è «lezioni» o «orario» lo trova da solo)
+**Università di Milano-Bicocca (orario EasyStaff, «Cerca il tuo orario per corso di studio»):**
 
-Le lezioni che non segui: **toccale** nell'orario → **«Non seguo questo corso»** e spariscono tutte (le ritrovi in Impostazioni → Corsi nascosti).
-Se invece le hai importate in un tuo calendario (file `.ics`), puoi anche **eliminarle davvero** da Google Calendar con «Elimina tutti i …».
+1. Nella pagina dell'orario, in **«Lista insegnamenti»** togli la spunta ai corsi che **non segui**
+2. Premi **«Esporta sul tuo calendario»**: scarica un file `.ics` con le lezioni selezionate
+3. Su PC apri [Google Calendar](https://calendar.google.com) con l'account universitario:
+   - a sinistra, accanto ad **«Altri calendari»**, premi **+ → Crea nuovo calendario** → nome **«Lezioni»** → Crea
+   - poi **⚙️ Impostazioni → Importa ed esporta → Importa**: scegli il file `.ics` e come calendario **«Lezioni»** → **Importa**
+4. La dashboard trova da sola il calendario «Lezioni» (o sceglilo in ⚙️ Impostazioni → Calendario delle lezioni)
+
+Il file è una copia: se l'orario cambia, elimina il calendario «Lezioni» e ripeti l'importazione.
+Siccome le lezioni stanno in un calendario tuo, dalla dashboard puoi anche **eliminarle davvero** («Elimina tutti i …») oppure solo **nasconderle** («Non seguo questo corso»).
+
+**Altre università:** se il sito dell'orario dà un **link** iCal invece di un file, usa in Google Calendar **Altri calendari → + → Da URL**.
 
 ## ✨ «Organizzami domani»
 
