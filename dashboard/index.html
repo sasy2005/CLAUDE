@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>La mia Dashboard</title>
 <meta name="description" content="Email, calendario e cose da fare in un'unica dashboard, con comandi vocali.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5a56e0">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dashboard">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -295,6 +301,57 @@
   .switch input{width:18px;height:18px;accent-color:var(--accent)}
   .dlg-f{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 18px}
 
+  [hidden]{display:none!important}
+  /* ---------- università ---------- */
+  #uniCard{grid-column:1/-1}
+  .uni-b{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1fr);gap:22px;padding:0 18px 18px}
+  .uni-b > div{min-width:0}
+  @media(max-width:980px){.uni-b{grid-template-columns:minmax(0,1fr)}}
+  .uni-t{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px;min-height:28px}
+  .wknav{display:flex;align-items:center;gap:2px;text-transform:none;letter-spacing:0;font-weight:600}
+  .ttgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+  @media(max-width:700px){.ttgrid{grid-template-columns:1fr}.ttd.empty-day{display:none}}
+  .ttd{background:var(--surface-2);border-radius:14px;padding:8px;min-height:96px;min-width:0}
+  .ttd.today{box-shadow:inset 0 0 0 2px var(--accent)}
+  .ttd h5{margin:2px 4px 8px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .ttd .none{font-size:.75rem;color:var(--faint);padding:2px 4px}
+  .les{display:block;width:100%;text-align:left;border:0;background:var(--surface);border-left:3px solid hsl(var(--h) 65% 55%);
+    border-radius:9px;padding:6px 8px;margin-bottom:6px;font-size:.74rem;color:var(--muted)}
+  .les:hover{box-shadow:0 0 0 1px var(--border)}
+  .les b{display:block;font-size:.8rem;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .exam{display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px}
+  .exam:hover{background:var(--surface-2)}
+  .exam .ed{width:56px;height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;background:var(--accent-soft);color:var(--accent)}
+  .exam .ed b{font-size:1.25rem;font-weight:800;line-height:1.05}
+  .exam .ed span{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .exam .ed.red{background:var(--red-soft);color:var(--red)} .exam .ed.amber{background:var(--amber-soft);color:var(--amber)}
+  .exam .en{flex:1;min-width:0} .exam .en b{display:block;font-weight:600;font-size:.92rem} .exam .en span{font-size:.78rem;color:var(--muted)}
+  .exam.past{opacity:.5}
+  .exam .ibtn,.hab .ibtn{opacity:0} .exam:hover .ibtn,.hab:hover .ibtn{opacity:1}
+  @media(hover:none){.exam .ibtn,.hab .ibtn{opacity:1}}
+  form.ex-add{padding:8px 0 0}
+  select.mini,input.mini{border:1px solid var(--border);background:var(--surface-2);border-radius:11px;padding:8px;outline:none;color:var(--fg);min-width:0}
+  .sugg-chip{margin:8px 6px 0 0}
+  .uni-note{font-size:.75rem;color:var(--muted);margin-top:8px}
+  /* ---------- abitudini ---------- */
+  .hab{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:12px}
+  .hab:hover{background:var(--surface-2)}
+  .hab .hi{font-size:1.25rem;width:28px;text-align:center;flex:none}
+  .hab .hn{flex:1;min-width:0} .hab .hn b{display:block;font-weight:600;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hab .hn span{font-size:.72rem;color:var(--muted)}
+  .hbar{height:4px;border-radius:4px;background:var(--border);margin-top:5px;overflow:hidden} .hbar i{display:block;height:100%;background:var(--green);border-radius:4px}
+  .hdays{display:flex;gap:3px;flex:none}
+  .hd{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);background:transparent;font-size:.6rem;font-weight:700;color:var(--muted);padding:0;display:grid;place-items:center}
+  .hd.on{background:var(--green);border-color:var(--green);color:#fff}
+  .hd.today{border-color:var(--accent)}
+  .hd:disabled{opacity:.35;cursor:default}
+  /* ---------- proposta giornata ---------- */
+  .prop{background:var(--accent-soft);border-radius:14px;padding:12px;margin-bottom:12px}
+  .prop-h{font-weight:700;font-size:.92rem;margin-bottom:8px} .prop-h span{display:block;font-weight:500;font-size:.75rem;color:var(--muted)}
+  .prop .blk{background:var(--surface)}
+  .src{font-size:.66rem;font-weight:600;padding:1px 7px;border-radius:99px;background:var(--surface-2);color:var(--muted);margin-left:6px;white-space:nowrap}
+  #evActs{flex-direction:column;align-items:stretch}
+  #evActs .btn{justify-content:flex-start;text-align:left}
   /* ---------- toast ---------- */
   .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);opacity:0;background:var(--fg);color:var(--bg);
     padding:11px 16px;border-radius:13px;font-size:.88rem;font-weight:500;z-index:60;transition:all .25s;display:flex;gap:12px;align-items:center;
@@ -319,6 +376,7 @@
       <span class="pill" id="modePill"><span class="dot"></span><span>Demo</span></span>
       <button class="btn icon ghost" id="refreshBtn" title="Aggiorna">⟳</button>
       <button class="btn icon ghost" id="themeBtn" title="Tema chiaro/scuro">🌓</button>
+      <button class="btn" id="installBtn" hidden>📲 Installa</button>
       <button class="btn" id="recapBtn">☀️ Recap</button>
       <button class="btn" id="settingsBtn">⚙️ Impostazioni</button>
       <button class="btn primary" id="connectBtn">Collega account</button>
@@ -386,11 +444,12 @@
         <button class="btn sm" id="addEventBtn">+ Evento</button>
       </div>
       <div class="week" id="week"></div>
-      <div class="legend"><span><i style="background:var(--red)"></i>Molto importante</span><span><i style="background:var(--amber)"></i>Importante</span><span><i style="background:var(--border)"></i>Normale</span><span>· tocca un evento per cambiarlo</span></div>
+      <div class="legend"><span><i style="background:var(--red)"></i>Molto importante</span><span><i style="background:var(--amber)"></i>Importante</span><span><i style="background:var(--border)"></i>Normale</span><span>· tocca un evento per le opzioni</span></div>
       <div class="card-b" id="agenda"></div>
     </section>
     </div>
 
+    <div class="col">
     <!-- TODO -->
     <section class="card" id="todoCard">
       <div class="card-h">
@@ -403,6 +462,41 @@
         <button class="btn primary sm" type="submit">Aggiungi</button>
       </form>
       <div class="card-b" id="todoList"></div>
+    </section>
+
+    <!-- ABITUDINI -->
+    <section class="card" id="habitCard">
+      <div class="card-h"><h2>💪 Abitudini</h2><span class="pill" id="habitSum"></span></div>
+      <div class="card-b" id="habitList"></div>
+      <form class="add" id="habitForm" autocomplete="off" style="padding-bottom:14px">
+        <label class="sr" for="habitName">Nuova abitudine</label>
+        <input id="habitName" placeholder="Nuova abitudine (es. Corsa)">
+        <select id="habitGoal" class="mini" aria-label="Quante volte a settimana"></select>
+        <button class="btn sm" type="submit">+</button>
+      </form>
+    </section>
+    </div>
+
+    <!-- UNIVERSITÀ -->
+    <section class="card" id="uniCard">
+      <div class="card-h"><h2>🎓 Università</h2></div>
+      <div class="uni-b">
+        <div>
+          <div class="uni-t"><span>📅 Orario lezioni</span><span class="wknav"><button class="ibtn" data-wk="-1" aria-label="Settimana precedente">‹</button><span id="wkLbl"></span><button class="ibtn" data-wk="1" aria-label="Settimana successiva">›</button></span></div>
+          <div class="ttgrid" id="timetable"></div>
+          <div class="uni-note" id="uniNote"></div>
+        </div>
+        <div>
+          <div class="uni-t"><span>⏳ Countdown esami</span></div>
+          <div id="examList"></div>
+          <form class="add ex-add" id="examForm" autocomplete="off">
+            <input id="examName" placeholder="Esame (es. Analisi 2)" aria-label="Nome esame">
+            <input type="date" id="examDate" class="mini" aria-label="Data esame">
+            <button class="btn sm primary" type="submit">+</button>
+          </form>
+          <div id="examSugg"></div>
+        </div>
+      </div>
     </section>
   </main>
 </div>
@@ -476,20 +570,38 @@
     <button class="btn sm" type="button" id="testVoice" style="margin-bottom:12px">▶ Prova la voce</button>
     <div class="field"><label for="sTheme">Tema</label><select id="sTheme"><option value="auto">Automatico</option><option value="light">Chiaro</option><option value="dark">Scuro</option></select></div>
 
+    <div class="sec">Calendari e lezioni</div>
+    <div id="calSettings"></div>
+    <div class="field"><label for="sLessonCal">Calendario delle lezioni</label><select id="sLessonCal"></select>
+      <div class="hint">Le lezioni di questo calendario finiscono nell'orario 🎓. Come importare l'orario dell'università: vedi il README.</div></div>
+    <div id="hiddenSettings"></div>
+
+    <div class="sec">Notifiche</div>
+    <label class="switch"><input type="checkbox" id="sNotify"> Avvisami prima di impegni e attività della giornata</label>
+    <div class="two">
+      <div class="field"><label for="sLead">Quanti minuti prima</label><select id="sLead"><option value="5">5 minuti</option><option value="10">10 minuti</option><option value="15">15 minuti</option><option value="30">30 minuti</option></select></div>
+      <div class="field"><label>&nbsp;</label><button class="btn" type="button" id="testNotify" style="width:100%">🔔 Prova notifica</button></div>
+    </div>
+    <label class="switch"><input type="checkbox" id="sPlanCal"> Copia «La mia giornata» su Google Calendar, così il telefono ti avvisa anche a dashboard chiusa</label>
+
+    <div class="sec">Sincronizzazione PC ↔ telefono</div>
+    <div class="row" style="margin-top:0;align-items:center"><span class="note" id="syncLbl" style="margin:0;flex:1"></span><button class="btn sm" type="button" id="syncBtn">☁️ Sincronizza ora</button></div>
+    <div class="note">Cose da fare, giornata, abitudini, esami e impostazioni vengono salvati in una cartella nascosta del tuo Google Drive, che vede solo questa app.</div>
+
     <div class="sec">Dati</div>
     <div class="row" style="margin-top:0">
       <button class="btn sm" type="button" id="exportBtn">⬇ Esporta cose da fare</button>
       <label class="btn sm" style="cursor:pointer">⬆ Importa<input type="file" id="importInp" accept="application/json" hidden></label>
       <button class="btn sm danger" type="button" id="disconnectBtn">Scollega Google</button>
     </div>
-    <div class="note">Tutto resta nel tuo browser: niente server, niente abbonamenti.</div>
+    <div class="note">Niente server e niente abbonamenti: i dati restano nel tuo browser e nel tuo Google Drive.</div>
   </div>
   <div class="dlg-f"><button class="btn" data-close>Annulla</button><button class="btn primary" id="saveSettings">Salva</button></div>
 </dialog>
 
 <!-- compose -->
 <dialog id="composeDlg">
-  <div class="dlg-h"><h3>✉️ Nuova email</h3><button class="btn icon ghost" data-close>✕</button></div>
+  <div class="dlg-h"><h3 id="cTitle">✉️ Nuova email</h3><button class="btn icon ghost" data-close>✕</button></div>
   <div class="dlg-b">
     <div class="field"><label for="cTo">A</label><input type="email" id="cTo" placeholder="destinatario@uni.it"></div>
     <div class="field"><label for="cSubj">Oggetto</label><input type="text" id="cSubj"></div>
@@ -512,6 +624,16 @@
     <div class="note">Lascia vuota l'ora per un evento di tutto il giorno.</div>
   </div>
   <div class="dlg-f"><button class="btn" data-close>Annulla</button><button class="btn primary" id="eSave">Aggiungi</button></div>
+</dialog>
+
+<!-- opzioni evento -->
+<dialog id="evDlg">
+  <div class="dlg-h"><h3 id="evTitle"></h3><button class="btn icon ghost" data-close>✕</button></div>
+  <div class="dlg-b">
+    <div class="note" id="evWhen" style="margin:0 0 14px"></div>
+    <div class="field"><label>Importanza</label><div class="seg" id="evImp" style="display:inline-flex"><button type="button" data-imp="">Normale</button><button type="button" data-imp="media">Importante</button><button type="button" data-imp="alta">Molto importante</button></div></div>
+    <div class="row" id="evActs"></div>
+  </div>
 </dialog>
 
 <div class="toast" id="toast" role="status"><span id="toastTxt"></span><button id="toastAct" hidden></button></div>
@@ -565,7 +687,8 @@ const DEF = {
   mailQuery:'in:inbox newer_than:14d -category:promotions -category:social -from:me', maxMails:40,
   geminiKey:'', geminiModel:'gemini-flash-latest',
   autoDrafts:true, signature:'', voiceReplies:true, theme:'auto',
-  voiceEngine:'auto', gVoice:'Sulafat', bVoice:'', voiceRate:1.05
+  voiceEngine:'auto', gVoice:'Sulafat', bVoice:'', voiceRate:1.05,
+  notify:false, notifyLead:10, planToCal:false, lessonCal:'', calendars:null, u:0
 };
 let S = {...DEF, ...store.get('settings', {})};
 let mode = store.get('mode', 'demo');                 // 'demo' | 'google'
@@ -585,8 +708,15 @@ function loadLocal(){
   plans = plans || {};
   if (mode === 'demo' && !tasks) tasks = demoTasks();
   tasks = tasks || [];
+  habits = store.get(K('habits'), null) || defaultHabits();
+  habitLog = store.get(K('habitLog'), null) || (mode === 'demo' ? demoHabitLog() : {});
+  exams = store.get(K('exams'), null) || (mode === 'demo' ? demoExams() : []);
+  hiddenCourses = store.get(K('hidden'), {});
+  tombs = store.get(K('tombs'), {});
+  for (const [k, v] of Object.entries(eventImp)) if (v === null || typeof v !== 'object') eventImp[k] = {v};
+  resetShadows();
 }
-const saveTasks = () => store.set(K('tasks'), tasks);
+const saveTasks = () => { stampList('tasks', tasks, 'task:'); store.set(K('tasks'), tasks); saveTombs(); dirty(); };
 const saveDrafts = () => store.set(K('drafts'), drafts);
 function saveAnalysis(){
   const ids = Object.keys(analysis);
@@ -850,16 +980,16 @@ const IMP_HIGH = /\b(esam|prova|appell|scritt[oi]\b|oral[ei]\b|discussion|laurea
 const IMP_MED = /\b(ricevimento|riunion|incontr|appuntament|presentazion|seminari|call\b|medic|dentist|meeting|esercitazion|colloquio)/;
 const GCOLOR = {'11':'alta', '4':'alta', '6':'media', '5':'media'};   // colori impostati in Google Calendar: rosso/rosa, arancio/giallo
 function impOf(e){
-  if (eventImp[e.id] !== undefined) return eventImp[e.id];
+  const o = eventImp[e.id];
+  if (o !== undefined) return o.v ?? '';
   if (GCOLOR[e.colorId]) return GCOLOR[e.colorId];
   const n = norm(e.title);
   return IMP_HIGH.test(n) ? 'alta' : IMP_MED.test(n) ? 'media' : '';
 }
 const IMP_LBL = {alta:'Molto importante', media:'Importante', '':'Normale'};
-function cycleImp(e){
-  const nx = {'':'media', media:'alta', alta:''}[impOf(e)];
-  eventImp[e.id] = nx; store.set(K('eventImp'), eventImp);
-  renderAgenda(); renderRecap(); toast(`${e.title}: ${IMP_LBL[nx].toLowerCase()}`);
+function setImp(e, v){
+  eventImp[e.id] = {v}; saveImp();
+  renderAgenda(); renderRecap(); toast(`${e.title}: ${IMP_LBL[v].toLowerCase()}`);
 }
 
 /* =====================================================================
@@ -908,23 +1038,28 @@ let planDay = new Date().getHours() >= 19 ? 'tomorrow' : 'today', planEditing = 
 const planKey = day => ymd(day === 'tomorrow' ? addDays(new Date(), 1) : new Date());
 function savePlan(day, blocks){
   const k = planKey(day);
-  if (blocks.length) plans[k] = {blocks, at:Date.now()}; else delete plans[k];
-  const old = ymd(addDays(new Date(), -30));
+  if (blocks.length) plans[k] = {blocks:blocks.map(({s, e, t}) => ({s, e, t})), at:Date.now()}; else delete plans[k];
+  const old = ymd(addDays(new Date(), -120));          // tengo 4 mesi di storico per imparare la routine
   Object.keys(plans).forEach(x => { if (x < old) delete plans[x]; });
-  store.set(K('plans'), plans);
+  savePlans(); delete proposals[k];
   planDay = day; planEditing = false; renderPlan(); renderRecap();
+  syncPlanToCalendar(k).catch(err => console.warn(err));
 }
 function renderPlan(){
   document.querySelectorAll('#planTabs button').forEach(b => b.classList.toggle('on', b.dataset.pd === planDay));
-  const p = plans[planKey(planDay)], bl = p?.blocks || [];
+  const pk = planKey(planDay), p = plans[pk], bl = p?.blocks || [];
+  if (!proposals[pk] && !bl.length && planDay === 'tomorrow' && !propDismissed.has(pk)){
+    const auto = proposeDay(pk); if (auto.learned) proposals[pk] = auto;   // le prime volte non propongo niente
+  }
+  const propBox = proposals[pk] && !planEditing ? propHtml(pk, proposals[pk]) : '';
   if (planEditing || !bl.length){
     const evening = new Date().getHours() >= 18;
-    $('#planBody').innerHTML = `<div class="plan-edit">
+    $('#planBody').innerHTML = propBox + `<div class="plan-edit">
       <div class="note" style="margin:0 0 8px">${planDay === 'tomorrow' ? (evening ? '🌙 È sera: organizza la giornata di domani.' : 'Organizza la giornata di domani.') : 'Organizza la giornata di oggi.'}
         Un'attività per riga, oppure tutto di fila.</div>
       <label class="sr" for="planTxt">Programma</label>
       <textarea id="planTxt" placeholder="10-14 università&#10;15-17 palestra&#10;19-21 beach volley&#10;23-23:30 libro">${esc(planToText(bl))}</textarea>
-      <div class="row"><button class="btn primary sm" data-pa="save">Salva</button>${bl.length ? '<button class="btn sm" data-pa="cancel">Annulla</button><button class="btn sm danger" data-pa="clear">Svuota</button>' : ''}</div>
+      <div class="row"><button class="btn primary sm" data-pa="save">Salva</button>${bl.length ? '<button class="btn sm" data-pa="cancel">Annulla</button><button class="btn sm danger" data-pa="clear">Svuota</button>' : ''}${!propBox ? '<button class="btn sm" data-pa="propose">✨ Proponimi la giornata</button>' : ''}</div>
       <div class="note">🎙️ Oppure a voce: «programma domani dalle 10 alle 14 università, 15 17 palestra, 19 21 beach volley, 23 23:30 libro»</div></div>`;
     return;
   }
@@ -942,7 +1077,7 @@ function renderPlan(){
   const tot = bl.reduce((a, b) => a + b.e - b.s, 0);
   html += `<div class="row" style="justify-content:space-between;align-items:center"><span class="note" style="margin:0">${bl.length} attività · ${fmtDur(tot)} pianificate</span>
     <button class="btn sm" data-pa="edit">✎ Modifica</button></div>`;
-  $('#planBody').innerHTML = html;
+  $('#planBody').innerHTML = propBox + html;
 }
 
 /* =====================================================================
@@ -959,7 +1094,9 @@ function recapData(){
     openCount:open.length,
     unread:emails.filter(e => e.cls.type === 'direct' && e.unread),
     draftsReady:emails.filter(e => drafts[e.id]).length,
-    broadcast:emails.filter(e => e.cls.type === 'broadcast' && e.unread).length
+    broadcast:emails.filter(e => e.cls.type === 'broadcast' && e.unread).length,
+    exams:exams.filter(x => x.date >= today && dayDiff(now, fromYmd(x.date)) <= 30).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 2),
+    habitsLeft:habits.map(h => ({h, left:h.goal - weekCount(h, weekStart())})).filter(x => x.left > 0)
   };
 }
 const whenLbl = e => { const r = relDay(ymd(e.start)); return (r === 'oggi' ? '' : r + ' ') + (e.allDay ? '' : fmtTime(e.start)); };
@@ -969,6 +1106,7 @@ function recapSpeech(){
   if (ai?.d === ymd(new Date()) && ai.text) parts.push(ai.text);
   if (d.plan.length) parts.push('In programma: ' + d.plan.map(b => `${b.t} dalle ${fmtMin(b.s)} alle ${fmtMin(b.e)}`).join(', ') + '.');
   if (d.important.length) parts.push('Impegni importanti: ' + d.important.map(e => `${e.title} ${relDay(ymd(e.start))}${e.allDay ? '' : ' alle ' + fmtTime(e.start)}`).join(', ') + '.');
+  if (d.exams.length) parts.push('Prossimo esame: ' + d.exams.map(x => `${x.name} tra ${dayDiff(new Date(), fromYmd(x.date))} giorni`).join(', ') + '.');
   if (d.urgent.length) parts.push('Le cose più urgenti: ' + d.urgent.slice(0, 3).map(t => t.title + (t.due ? ' per ' + relDay(t.due) : '')).join(', ') + '.');
   parts.push(d.unread.length ? `Hai ${d.unread.length} email per te da leggere${d.draftsReady ? ` e ${d.draftsReady} bozze di risposta già pronte` : ''}.` : 'Nessuna email nuova per te.');
   return parts.join(' ');
@@ -984,8 +1122,9 @@ function renderRecap(){
   const nowM = new Date().getHours() * 60 + new Date().getMinutes();
   $('#recapGrid').innerHTML = `
     <div class="rc"><h4>🗓️ La tua giornata</h4>${d.plan.length ? '<ul>' + d.plan.map(b => li(fmtMin(b.s), (b.s <= nowM && nowM < b.e ? '▶ ' : '') + b.t)).join('') + '</ul>'
-      : none('Non hai ancora organizzato oggi. <a href="#planCard" data-recap-plan>Organizzala ora</a>')}</div>
-    <div class="rc"><h4>⭐ Impegni importanti</h4>${d.important.length ? '<ul>' + d.important.map(e => li(whenLbl(e) || 'oggi', e.title, impOf(e) === 'alta' ? 'var(--red)' : 'var(--amber)')).join('') + '</ul>'
+      : none('Non hai ancora organizzato oggi. <a href="#planCard" data-recap-plan>Organizzala ora</a>')}
+      ${d.habitsLeft.length ? `<div class="note">💪 Questa settimana ti manca: ${d.habitsLeft.map(x => `${esc(x.h.name)} ×${x.left}`).join(', ')}</div>` : ''}</div>
+    <div class="rc"><h4>⭐ Impegni importanti</h4>${d.important.length || d.exams.length ? '<ul>' + d.exams.map(x => li('⏳ ' + dayDiff(new Date(), fromYmd(x.date)) + ' gg', x.name)).join('') + d.important.map(e => li(whenLbl(e) || 'oggi', e.title, impOf(e) === 'alta' ? 'var(--red)' : 'var(--amber)')).join('') + '</ul>'
       : none(d.evToday.length ? `Niente di speciale: ${d.evToday.length} impegni normali oggi.` : 'Nessun impegno importante nei prossimi 3 giorni.')}</div>
     <div class="rc"><h4>🔥 Da fare</h4>${d.urgent.length ? '<ul>' + d.urgent.map(t => li(t.due ? relDay(t.due) : '', t.title)).join('') + '</ul>'
       : none(d.openCount ? `Niente di urgente (${d.openCount} cose in lista).` : 'Lista vuota 🎉')}</div>
@@ -1151,7 +1290,8 @@ async function autoDrafts(){
 /* =====================================================================
    Google: login, Gmail, Calendar
    ===================================================================== */
-const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/calendar.events';
+const SCOPES = ['gmail.modify', 'gmail.compose', 'calendar.events', 'calendar.calendarlist.readonly', 'drive.appdata'].map(x => 'https://www.googleapis.com/auth/' + x).join(' ');
+const hasScopes = () => !!token && SCOPES.split(' ').every(x => (token.scope || '').split(' ').includes(x));
 let token = store.get('token', null), tokenClient = null;
 class AuthError extends Error {}
 function loadGis(){
@@ -1169,7 +1309,7 @@ async function requestToken(prompt = ''){
       client_id:S.clientId.trim(), scope:SCOPES, login_hint:S.uniEmail || undefined,
       callback:r => {
         if (r.error) return rej(new Error(r.error_description || r.error));
-        token = {v:r.access_token, exp:Date.now() + (r.expires_in - 60) * 1000};
+        token = {v:r.access_token, exp:Date.now() + (r.expires_in - 60) * 1000, scope:r.scope || ''};
         store.set('token', token); res();
       },
       error_callback:e => rej(new Error(e.message || e.type || 'login annullato'))
@@ -1245,12 +1385,7 @@ async function fetchGoogle(){
     for (const id of Object.keys(drafts)) if (emails.some(e => e.id === id) && !Object.values(byThread).includes(drafts[id].id)) delete drafts[id];
     saveDrafts();
   }catch{}
-  const now = new Date();
-  const ev = await gapi(`https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime&maxResults=150&timeMin=${encodeURIComponent(sod(now).toISOString())}&timeMax=${encodeURIComponent(addDays(now, 21).toISOString())}`);
-  events = (ev.items || []).filter(x => x.status !== 'cancelled').map(x => ({
-    id:x.id, title:x.summary || '(senza titolo)', location:x.location || '', link:x.htmlLink, colorId:x.colorId,
-    allDay:!!x.start.date, start:x.start.date ? fromYmd(x.start.date) : new Date(x.start.dateTime),
-    end:x.end.date ? fromYmd(x.end.date) : new Date(x.end.dateTime)}));
+  await fetchCalendars();
 }
 function rawMessage({to, subject, body, inReplyTo}){
   const lines = [`To: ${to}`, `Subject: ${encHeader(subject)}`, 'MIME-Version: 1.0', 'Content-Type: text/plain; charset="UTF-8"', 'Content-Transfer-Encoding: base64'];
@@ -1273,9 +1408,9 @@ async function saveDraft(e, text, silent = false){
   if (!silent) toast(mode === 'demo' ? 'Bozza salvata (demo). Con l\'account collegato finisce nelle Bozze di Gmail.' : 'Bozza salvata nelle Bozze di Gmail. Non è stato inviato nulla.');
   renderMail(); renderStats();
 }
-async function sendEmail(to, subject, body){
+async function sendEmail(to, subject, body, re = null){
   if (mode === 'demo'){ toast(`(Demo) Email a ${to} "inviata". Collega l'account per inviarla davvero.`); return; }
-  await gapi(`${GM}/messages/send`, {method:'POST', body:JSON.stringify({raw:rawMessage({to, subject, body})})});
+  await gapi(`${GM}/messages/send`, {method:'POST', body:JSON.stringify({raw:rawMessage({to, subject, body, inReplyTo:re?.msgId}), threadId:re?.threadId})});
   toast(`Email inviata a ${to} ✓`);
 }
 async function draftNew(to, subject, body){
@@ -1289,17 +1424,18 @@ async function addEvent({title, date, time, hours = 1, imp}){
   const start = new Date(date); if (time) start.setHours(time[0], time[1], 0, 0);
   const end = allDay ? addDays(start, 1) : new Date(start.getTime() + hours * 36e5);
   if (mode === 'demo'){
-    const ev = {id:uid(), title, start, end, allDay, location:''};
-    id = ev.id; events.push(ev);
+    const ev = {id:uid(), title, start, end, allDay, location:'', calId:'demo-main', calName:'Personale', writable:true};
+    id = ev.id; allEvents.push(ev);
     const local = store.get('demo_extra_events', []); local.push({...ev, start:+start, end:+end}); store.set('demo_extra_events', local);
   } else {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const body = allDay ? {summary:title, start:{date:ymd(start)}, end:{date:ymd(end)}}
       : {summary:title, start:{dateTime:start.toISOString(), timeZone:tz}, end:{dateTime:end.toISOString(), timeZone:tz}};
     const x = await gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events', {method:'POST', body:JSON.stringify(body)});
-    id = x.id; events.push({id, title, start, end, allDay, location:'', link:x.htmlLink});
+    id = x.id; allEvents.push({id, title, start, end, allDay, location:'', link:x.htmlLink, calId:'primary', calName:'Principale', writable:true});
   }
-  if (imp !== undefined && imp !== null){ eventImp[id] = imp; store.set(K('eventImp'), eventImp); }
+  allEvents.sort((a, b) => a.start - b.start); refreshVisible();
+  if (imp !== undefined && imp !== null){ eventImp[id] = {v:imp}; saveImp(); }
   events.sort((a, b) => a.start - b.start);
   renderAgenda(); renderStats(); renderRecap();
 }
@@ -1331,7 +1467,10 @@ function resolveRecipient(str){
   }
   return best || {email:'', name:s};
 }
-function openCompose(to, subject, body){
+let composeCtx = null;
+function openCompose(to, subject, body, ctx = null){
+  composeCtx = ctx;
+  $('#cTitle').textContent = ctx?.replyTo ? '↩ Risposta a ' + ctx.replyTo.from.name : '✉️ Nuova email';
   $('#cTo').value = to || ''; $('#cSubj').value = subject || ''; $('#cBody').value = body || '';
   $('#composeDlg').showModal();
   (to ? $('#cBody') : $('#cTo')).focus();
@@ -1347,6 +1486,34 @@ function ruleParse(text){
   if (/^(aiuto|help|cosa (puoi|sai) fare|che comandi)/.test(n)) return {action:'help'};
   if (/^(aggiorna|ricarica|sincronizza|refresh)/.test(n)) return {action:'refresh'};
   if (/\b(recap|riepilogo|briefing|riassunto della giornata)\b|^buongiorno\b/.test(n)) return {action:'recap'};
+
+  // proposta della giornata ("organizzami domani")
+  if (/^(?:per favore )?(?:organizzami|proponimi|pianificami|suggeriscimi|preparami)\b|\bcosa mi (?:consigli|proponi) (?:di fare )?(?:per )?(?:oggi|domani)\b/.test(n)
+      || /^(?:per favore )?(?:programma|organizza|pianifica)(?:mi)?\s+(?:la )?(?:mia )?(?:giornata\s*)?(?:di |per )?(?:oggi|domani)\s*$/.test(n))
+    return {action:'propose_day', day:/\boggi\b/.test(n) ? 'today' : 'tomorrow'};
+  if (pendingProposal && /^(accetta|accetto|va bene|confermo|conferma|ok|perfetto|si|d'accordo)\b/.test(n)) return {action:'accept_proposal'};
+
+  // esami
+  if (/^(?:per favore )?(?:aggiungi|segna|metti|inserisci)\s+(?:l'|un |il |un'|nel countdown )?(?:esame|appello)\b/.test(n) && !/calendario/.test(n)){
+    c.cut(/^(?:per favore )?(?:aggiungi|segna|metti|inserisci)\s+(?:l'|un |il |un')?/); c.cut(/\b(?:al|nel) countdown(?: esami)?\b/);
+    const {date, time} = parseWhen(c);
+    return {action:'add_exam', name:cleanTitle(c.rest()), date:date ? ymd(date) : null, time:time ? `${String(time[0]).padStart(2, '0')}:${String(time[1]).padStart(2, '0')}` : null};
+  }
+  if (/\b(quanto manca|quando ho|quanti giorni)\b.*\b(esam|appell)|^(?:i )?(?:miei )?(?:prossimi )?esami\??$/.test(n)) return {action:'read_exams'};
+
+  // rispondere a un'email
+  if (/^(?:per favore )?rispondi(?:gli|le)?\b/.test(n)){
+    const rp = c.cut(/^(?:per favore )?rispondi(?:gli|le)?(?:\s+(?:a|al|alla|allo|ad|all'|ai|agli|alle)\s+(.+?))?\s*[,:]?\s+(?:che|dicendo(?:gli|le)?|scrivendo(?:gli|le)?)\s+(.+)$/d);
+    if (rp) return {action:'reply_email', who:rp.orig(1).trim(), body:rp.orig(2).trim()};
+  }
+  // archiviare / segnare come letta
+  if (/^(?:per favore )?archivia\b|^(?:per favore )?(?:segna|metti)\b.*\blett[ae]\b/.test(n)){
+    const arch = /^(?:per favore )?archivia/.test(n), all = /\btutt[ei]\b/.test(n), br = /\bbroadcast\b/.test(n);
+    c.cut(/^(?:per favore )?(?:archivia|segna|metti)\s*/); c.cut(/\b(?:come )?lett[ae]\b/);
+    c.cut(/\b(?:tutte |tutti )?(?:la |l'|le |i |gli )?(?:e-?mail|mail|messaggi|messaggio|broadcast)\b/); c.cut(/\btutt[ei]\b/);
+    c.cut(/^\s*(?:di|del|della|dello|dei|delle|da|dal|dalla|questa)?\s*/);
+    return {action:arch ? 'archive_email' : 'mark_read', who:(all || br) ? (br || arch ? '*broadcast' : '*all') : (/\bquesta\b/.test(n) ? '' : c.rest())};
+  }
 
   // programma della giornata
   const planStart = /^(?:per favore )?(?:programma|organizza|pianifica|imposta)(?:mi)?\b|^(?:la )?(?:mia )?giornata (?:di )?(?:oggi|domani)|^(?:oggi|domani) (?:faccio|ho)\b/;
@@ -1375,7 +1542,8 @@ function ruleParse(text){
   }
   if (/\b(cosa|che cosa|che) (devo|ho da|c'?e da|mi resta da|rimane da) fare\b|\b(leggi|elenca|dimmi|quali sono)\b.*\b(cose da fare|attivita|task|lista|priorita)\b|^(cose da fare|priorita)\??$/.test(n)) return {action:'read_tasks'};
 
-  // completare / eliminare
+  // completare / eliminare (anche abitudini: "sono andato in palestra")
+  if (/^(?:oggi |stamattina |stasera )?sono (?:andat[oa]|stat[oa])\b/.test(n)) return {action:'complete_task', query:text};
   if (/^(?:ok |allora |guarda )?(?:ho|abbiamo) (?:gia |appena |finalmente )?([a-z]+(?:ato|uto|ito)|fatto|letto|preso|scritto|messo|chiesto|risposto|visto|detto|speso|vinto|chiuso)\b/.test(n)
       || /^(fatto|finito|completato|segna (?:come )?(?:fatt[oa]|complet)|spunta)/.test(n)){
     c.cut(/^(?:ok |allora |guarda )?(?:ho|abbiamo) (?:gia |appena |finalmente )?/);
@@ -1418,7 +1586,11 @@ Trasforma il comando in UNA azione JSON. Azioni possibili:
 {"action":"delete_task","id":"<id>"}
 {"action":"add_event","title":"...","date":"YYYY-MM-DD","time":"HH:MM"|null,"hours":numero,"imp":"alta"|"media"|""}   (imp: importanza dell'evento, "" se normale)
 {"action":"plan_day","day":"today"|"tomorrow","blocks":[{"start":"HH:MM","end":"HH:MM","title":"..."}]}   (l'utente organizza la sua giornata a blocchi orari)
-{"action":"read_plan","day":"today"|"tomorrow"} {"action":"recap"}
+{"action":"read_plan","day":"today"|"tomorrow"} {"action":"recap"} {"action":"propose_day","day":"today"|"tomorrow"}   (l'utente chiede di organizzargli la giornata)
+{"action":"reply_email","who":"nome del mittente","body":"cosa vuole rispondere"}
+{"action":"mark_read","who":"nome del mittente"|"*broadcast"|"*all"} {"action":"archive_email","who":"nome del mittente"|"*broadcast"}
+{"action":"add_exam","name":"...","date":"YYYY-MM-DD","time":"HH:MM"|null} {"action":"read_exams"}
+{"action":"habit_done","name":"nome dell'abitudine"}   (abitudini: ${habits.map(h => h.name).join(', ') || 'nessuna'})
 {"action":"send_email","to":"indirizzo email o nome","subject":"...","body":"email completa, educata, in italiano, firmata '${S.signature || S.name || ''}'"}
 {"action":"read_tasks"} {"action":"read_emails"} {"action":"read_agenda","date":"YYYY-MM-DD"} {"action":"refresh"} {"action":"help"}
 ${composeOpen ? '{"action":"compose_send"} {"action":"compose_draft"} {"action":"compose_cancel"}  (c\'è una email aperta in attesa di conferma)\n' : ''}{"action":"unknown","reply":"risposta breve"}
@@ -1432,6 +1604,7 @@ Comando: "${text.replace(/"/g, "'")}"`;
     r.blocks = r.blocks.map(b => { const s = hm(b.start); let e = hm(b.end); if (e <= s) e += 1440; return {s, e, t:cap(String(b.title || ''))}; }).filter(b => b.t).sort((a, b) => a.s - b.s);
   }
   if (r.action === 'complete_task' || r.action === 'delete_task'){ r.task = tasks.find(t => t.id === r.id); if (!r.task) r.query = text; }
+  if (r.action === 'habit_done') Object.assign(r, {action:'complete_task', query:r.name || text, habitOnly:true});
   return r;
 }
 
@@ -1469,7 +1642,13 @@ async function runCommand(cmd, text){
     }
     case 'complete_task':
     case 'delete_task':{
-      const t = cmd.task || findTask(cmd.query || '');
+      const t = cmd.habitOnly ? null : (cmd.task || findTask(cmd.query || ''));
+      const h = !t && cmd.action === 'complete_task' && !/\b(e-?mail|mail|messaggi?o?)\b/.test(norm(text)) ? findHabit(cmd.query || text) || findHabit(text) : null;
+      if (h){
+        setHabit(h, ymd(new Date()), true);
+        const c = weekCount(h, weekStart());
+        return say(`Grande! Segnato: ${h.name} ✓ (${c} su ${h.goal} questa settimana${c >= h.goal ? ', obiettivo raggiunto! 🎉' : ''}).`);
+      }
       if (!t){
         if (cmd.action === 'complete_task' && cmd.query && cmd.query.split(' ').length > 1)
           return say(`Non trovo «${cmd.query}» nella lista. Bravo/a comunque! 🎉`);
@@ -1480,6 +1659,53 @@ async function runCommand(cmd, text){
       toast(`Completata: ${t.title}`, 'Annulla', () => completeTask(t, false));
       const left = tasks.filter(x => !x.done).length;
       return say(`Ottimo! Ho segnato come fatta «${t.title}». ${left ? `Ne restano ${left}.` : 'Hai finito tutto! 🎉'}`);
+    }
+    case 'propose_day':{
+      const day = cmd.day || 'tomorrow', k = planKey(day);
+      const p = proposals[k] = proposeDay(k);
+      planDay = day; planEditing = false; propDismissed.delete(k); renderPlan();
+      $('#planCard').scrollIntoView({behavior:'smooth', block:'center'});
+      if (!p.blocks.length){ delete proposals[k]; renderPlan(); return say('Non ho ancora abbastanza informazioni: dopo qualche settimana che organizzi le giornate imparo le tue abitudini. Intanto dimmi tu il programma.'); }
+      pendingProposal = k;
+      return say(`Ti propongo per ${day === 'today' ? 'oggi' : 'domani'}: ` + p.blocks.map(b => `${b.t} dalle ${fmtMin(b.s)} alle ${fmtMin(b.e)}`).join(', ') + '. Ti va bene? Di\' «accetta» per confermare.');
+    }
+    case 'accept_proposal':{
+      const k = pendingProposal; pendingProposal = null;
+      if (!proposals[k]) return say('Non c\'è nessuna proposta in attesa.');
+      savePlan(k === planKey('today') ? 'today' : 'tomorrow', proposals[k].blocks);
+      return say('Perfetto, giornata salvata!');
+    }
+    case 'add_exam':{
+      if (!cmd.name || !cmd.date) return say('Dimmi nome e data, per esempio «aggiungi esame di analisi il 15 gennaio».');
+      addExam(cmd.name, cmd.date, cmd.time);
+      if (!events.some(e => ymd(e.start) === cmd.date && simTitle(e.title, cmd.name) >= .5)){
+        try{ await addEvent({title:cap(cmd.name), date:fromYmd(cmd.date), time:cmd.time ? cmd.time.split(':').map(Number) : null, hours:3, imp:'alta'}); }catch(err){ console.warn(err); }
+      }
+      return say(`Aggiunto al countdown: ${cap(cmd.name)}, ${relDay(cmd.date)}. Mancano ${dayDiff(new Date(), fromYmd(cmd.date))} giorni.`);
+    }
+    case 'read_exams':{
+      const up = exams.filter(x => x.date >= ymd(new Date())).sort((a, b) => a.date.localeCompare(b.date));
+      if (!up.length) return say('Non hai esami nel countdown. Aggiungili con «aggiungi esame di… il…».');
+      return say('I tuoi prossimi esami: ' + up.slice(0, 4).map(x => { const d = dayDiff(new Date(), fromYmd(x.date)); return `${x.name} ${d === 0 ? 'oggi' : d === 1 ? 'domani' : 'tra ' + d + ' giorni'}`; }).join(', ') + '.');
+    }
+    case 'reply_email':{
+      const e = findEmailBy(cmd.who);
+      if (!e) return say(cmd.who ? `Non trovo un'email di «${cmd.who}».` : 'A quale email rispondo? Aprila oppure dimmi il nome di chi l\'ha mandata.');
+      let body = '';
+      if (aiOn()) try{ body = await aiReply(e, cmd.body); }catch(err){ console.warn(err); }
+      if (!body) body = templateReply(e, cmd.body);
+      openCompose(e.headers['reply-to'] || e.headers.from, /^re:/i.test(e.subject) ? e.subject : 'Re: ' + e.subject, body, {replyTo:e});
+      return say(`Ho scritto la risposta a ${e.from.name}. Controllala: di' «conferma» per inviarla oppure «salva» per lasciarla in bozza.`);
+    }
+    case 'mark_read':
+    case 'archive_email':{
+      let list = cmd.who === '*broadcast' ? emails.filter(e => e.cls.type === 'broadcast' && (cmd.action === 'archive_email' || e.unread))
+        : cmd.who === '*all' ? emails.filter(e => e.unread) : [findEmailBy(cmd.who)];
+      list = list.filter(Boolean);
+      if (!list.length) return say(cmd.who && !cmd.who.startsWith('*') ? `Non trovo un'email di «${cmd.who}».` : (cmd.who ? 'Non c\'è niente da segnare.' : 'Quale email? Aprila oppure dimmi il nome di chi l\'ha mandata.'));
+      if (cmd.action === 'archive_email'){ const k = await archiveEmails(list); return say(k === 1 ? `Archiviata: «${list[0].subject}».` : `Archiviate ${k} email.`); }
+      const k = await markRead(list);
+      return say(k === 1 ? `Segnata come letta: «${list[0].subject}».` : `Segnate come lette ${k} email.`);
     }
     case 'recap':
       showRecap(); $('#recap').scrollIntoView({behavior:'smooth', block:'start'}); return say(recapSpeech());
@@ -1569,6 +1795,9 @@ function showBanner(){
   } else if (!token){
     $('#bannerTxt').textContent = '🔒 La sessione Google è scaduta (dura un\'ora per sicurezza).';
     $('#bannerBtn').textContent = 'Riconnetti'; b.classList.add('on');
+  } else if (!hasScopes()){
+    $('#bannerTxt').textContent = '🆕 Nuove funzioni (sincronizzazione col telefono, tutti i calendari, archivia email): serve dare a Google un permesso in più.';
+    $('#bannerBtn').textContent = 'Dai il permesso'; b.classList.add('on');
   } else b.classList.remove('on');
   renderHeader();
 }
@@ -1592,7 +1821,7 @@ function renderMail(){
   document.querySelectorAll('#mailTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === mailTab));
   const list = mailTab === 'direct' ? direct : mailTab === 'broadcast' ? broad : withDraft;
   if (!analyzing) setSub(mailTab === 'direct' ? 'Email scritte proprio a te: qui trovi le bozze di risposta già pronte.'
-    : mailTab === 'broadcast' ? 'Comunicazioni inviate a tutto il corso, liste e newsletter.'
+    : mailTab === 'broadcast' ? 'Comunicazioni inviate a tutto il corso, liste e newsletter.' + (broad.some(e => e.unread) ? ' <button class="btn sm" id="readAllBtn" style="margin-left:4px">✓ Segna tutte come lette</button>' : '')
     : 'Bozze preparate dall\'assistente. Restano in Gmail finché non decidi tu di inviarle.');
   if (!emails.length){ $('#mailList').innerHTML = `<div class="empty"><span class="big">📭</span>${mode === 'google' && !token ? 'Riconnetti l\'account per vedere le email.' : 'Nessuna email.'}</div>`; return; }
   if (!list.length){ $('#mailList').innerHTML = `<div class="empty"><span class="big">${mailTab === 'drafts' ? '✍️' : '🎉'}</span>${mailTab === 'drafts' ? 'Nessuna bozza al momento.' : 'Niente qui. Tutto tranquillo!'}</div>`; return; }
@@ -1626,6 +1855,7 @@ function openEmail(id){
   const sugg = (an.attivita || []).filter(a => a && a.titolo);
   $('#dTitle').textContent = e.subject;
   $('#dBody').innerHTML = `
+    <div class="row" style="margin:0 0 12px">${e.unread ? '<button class="btn sm" id="markReadBtn">✓ Segna come letta</button>' : ''}<button class="btn sm" id="archiveBtn">📥 Archivia</button></div>
     <div class="meta-row">
       <span class="avatar" style="--h:${hueOf(e.from.email)}">${esc(initials(e.from.name))}</span>
       <div class="who"><b>${esc(e.from.name)}</b><span>${esc(e.from.email)} · ${esc(e.date.toLocaleString('it-IT', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}))}</span><br>
@@ -1664,6 +1894,8 @@ function openEmail(id){
     catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account.' : 'Errore: ' + err.message); }
     ev.target.disabled = false;
   };
+  if ($('#markReadBtn')) $('#markReadBtn').onclick = async ev => { try{ await markRead([e]); ev.target.remove(); }catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account.' : 'Errore: ' + err.message); } };
+  $('#archiveBtn').onclick = async () => { try{ await archiveEmails([e]); }catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account.' : 'Errore: ' + err.message); } };
   $('#copyDraftBtn').onclick = () => { navigator.clipboard?.writeText($('#draftTxt').value).then(() => toast('Bozza copiata')); };
   $('#taskFromMail').onclick = () => { const t = addTask((e.cls.type === 'direct' ? 'Rispondere a ' + e.from.name + ': ' : '') + e.subject.replace(/^(re|fwd?|r|i):\s*/i, ''), {source:'email', emailId:e.id, priority:an.urgenza}); toast(`Aggiunta: ${t.title}`); };
   if ($('#regenBtn')) $('#regenBtn').onclick = async ev => {
@@ -1697,7 +1929,7 @@ function renderAgenda(){
   renderWeek();
   const now = new Date(), items = [];
   events.forEach(e => { if (e.end > now || ymd(e.start) === ymd(now)){ const imp = impOf(e); items.push({k:ymd(e.start), t:e.allDay ? -1 : e.start.getHours() * 60 + e.start.getMinutes(), html:
-    `<div class="ev ${imp ? 'imp-' + imp : ''}" data-ev="${esc(e.id)}" title="Importanza: ${IMP_LBL[imp]} — tocca per cambiarla"><span class="bar"></span><span class="when">${e.allDay ? 'Tutto il<br>giorno' : fmtTime(e.start)}</span>
+    `<div class="ev ${imp ? 'imp-' + imp : ''}" data-ev="${esc(e.id)}" title="Importanza: ${IMP_LBL[imp]} — tocca per le opzioni"><span class="bar"></span><span class="when">${e.allDay ? 'Tutto il<br>giorno' : fmtTime(e.start)}</span>
      <span class="what"><b>${esc(e.title)}</b><span>${e.allDay ? '' : fmtTime(e.start) + '–' + fmtTime(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</span></span></div>`}); } });
   tasks.filter(t => !t.done && t.due).forEach(t => {
     const k = dayDiff(now, fromYmd(t.due)) < 0 ? ymd(now) : t.due;
@@ -1743,7 +1975,7 @@ function renderTodos(){
   if (done.length) html += `<details class="donebox"><summary class="group-h">✓ Completate <span class="n">${done.length}</span> <span class="n">▾</span></summary>${done.map(taskRow).join('')}</details>`;
   $('#todoList').innerHTML = html;
 }
-function renderAll(){ renderHeader(); renderStats(); renderMail(); renderPlan(); renderAgenda(); renderTodos(); renderRecap(); }
+function renderAll(){ renderHeader(); renderStats(); renderMail(); renderPlan(); renderAgenda(); renderTodos(); renderHabits(); renderUni(); renderRecap(); }
 
 /* =====================================================================
    Caricamento dati
@@ -1758,6 +1990,7 @@ async function refreshAll(){
       myAddrs = [S.uniEmail, ...S.aliases.split(',')].map(s => s.trim().toLowerCase()).filter(Boolean);
       setSub('<span class="spin"></span> Carico email e calendario…');
       await fetchGoogle();
+      syncNow();
     }
     showBanner(); renderAll();
     maybeAutoRecap();
@@ -1775,7 +2008,7 @@ async function connect(){
   if (location.protocol === 'file:'){ toast('Il login Google non funziona aprendo il file dal disco: usa GitHub Pages o un server locale (vedi README).', null, null, 8000); return; }
   try{
     await requestToken(mode === 'google' ? '' : 'consent');
-    if (mode !== 'google'){ mode = 'google'; store.set('mode', mode); loadLocal(); emails = []; events = []; }
+    if (mode !== 'google'){ mode = 'google'; store.set('mode', mode); loadLocal(); emails = []; events = []; allEvents = []; }
     await refreshAll();
     say(`Collegato! Ho letto ${emails.length} email: ${emails.filter(e => e.cls.type === 'direct').length} sono per te.`);
   }catch(err){
@@ -1799,7 +2032,16 @@ function demoTasks(){
   ];
 }
 function demoPlans(){
-  return {[ymd(new Date())]:{at:Date.now(), blocks:parsePlan('9-11 lezione di analisi\n11:30-13 biblioteca\n14-16:30 laboratorio basi di dati\n19-20 palestra\n21:30-22 serie tv\n23-23:30 libro')}};
+  const t = addDays(new Date(), 1), out = {[ymd(new Date())]:{at:Date.now(), blocks:parsePlan('9-11 lezione di analisi\n11:30-13 biblioteca\n14-16:30 laboratorio basi di dati\n19-20 palestra\n21:30-22 serie tv\n23-23:30 libro')}};
+  // due settimane di storico per lo stesso giorno di domani: così la dashboard ha "imparato" la routine
+  out[ymd(addDays(t, -7))] = {at:Date.now(), blocks:parsePlan('10-13 biblioteca\n15-17 palestra\n19-21 beach volley\n23-23:30 libro')};
+  out[ymd(addDays(t, -14))] = {at:Date.now(), blocks:parsePlan('10-12:30 biblioteca\n15-16:30 palestra\n19:30-21 beach volley\n23-23:30 libro')};
+  return out;
+}
+function demoExams(){
+  const n = new Date();
+  return [['Prova in itinere di Chimica', 4, '09:00'], ['Analisi 2', 23, '09:00'], ['Fisica', 41, '14:00'], ['Basi di Dati', 58, null]]
+    .map(([name, d, time]) => ({id:uid(), name, date:ymd(addDays(n, d)), time, createdAt:Date.now()}));
 }
 function loadDemo(){
   const me = S.uniEmail || 'mario.rossi@studenti.uni.it';
@@ -1837,16 +2079,29 @@ function loadDemo(){
   emails = groupThreads(emails);
   contacts['luca.neri@studenti.uni.it'] = 'Luca Neri';
   const at = (d, hh, mm = 0) => { const x = addDays(n, d); x.setHours(hh, mm, 0, 0); return x; };
-  events = [
-    {id:'e1', title:'Lezione di Analisi 2', location:'Aula 3', start:at(0, 9), end:at(0, 11), allDay:false},
-    {id:'e2', title:'Laboratorio di Basi di Dati', location:'Lab B', start:at(0, 14), end:at(0, 16, 30), allDay:false},
-    {id:'e3', title:'Palestra', location:'', start:at(0, 19), end:at(0, 20), allDay:false},
-    {id:'e4', title:'Lezione di Fisica', location:'Aula Magna', start:at(1, 11), end:at(1, 13), allDay:false},
-    {id:'e5', title:'Ricevimento prof. Bianchi', location:'Stanza 204', start:at(2, 11), end:at(2, 11, 30), allDay:false},
-    {id:'e6', title:'Prova in itinere di Chimica', location:'Aula 7', start:at(4, 9), end:at(4, 12), allDay:false},
-    {id:'e7', title:'Cena con amici', location:'', start:at(5, 20, 30), end:at(5, 23), allDay:false}
+  const ws = weekStart(n), mine = {calId:'demo-main', calName:'Personale', writable:true, allDay:false};
+  const L = (title, location, wdays, h1, m1, h2, m2) => {     // lezioni settimanali per 4 settimane
+    const out = [];
+    for (let w = 0; w < 4; w++) for (const wd of wdays){
+      const s = addDays(ws, w * 7 + wd), e = new Date(s); s.setHours(h1, m1, 0, 0); e.setHours(h2, m2, 0, 0);
+      out.push({id:`L-${title}-${w}-${wd}`, title, location, start:s, end:e, allDay:false, lesson:true, calId:'demo-lez', calName:'Lezioni', writable:false});
+    }
+    return out;
+  };
+  calendars = [{id:'demo-main', summary:'Personale', primary:true, accessRole:'owner', color:'#5a56e0'}, {id:'demo-lez', summary:'Lezioni', accessRole:'reader', color:'#15975a'}];
+  allEvents = [
+    ...L('Lezione di Analisi 2', 'Aula 3', [0, 2], 9, 0, 11, 0),
+    ...L('Laboratorio di Basi di Dati', 'Lab B', [2], 14, 0, 16, 30),
+    ...L('Lezione di Fisica', 'Aula Magna', [1, 3], 11, 0, 13, 0),
+    ...L('Lezione di Economia Aziendale', 'Aula 5', [0, 3], 14, 0, 16, 0),
+    ...L('Lezione di Statistica', 'Aula 12', [4], 10, 0, 12, 0),
+    {...mine, id:'e3', title:'Palestra', location:'', start:at(0, 19), end:at(0, 20)},
+    {...mine, id:'e5', title:'Ricevimento prof. Bianchi', location:'Stanza 204', start:at(2, 11, 30), end:at(2, 12)},
+    {...mine, id:'e6', title:'Prova in itinere di Chimica', location:'Aula 7', start:at(4, 9), end:at(4, 12)},
+    {...mine, id:'e7', title:'Cena con amici', location:'', start:at(5, 20, 30), end:at(5, 23)}
   ].concat(store.get('demo_extra_events', []).map(e => ({...e, start:new Date(e.start), end:new Date(e.end)})))
    .sort((a, b) => a.start - b.start);
+  refreshVisible();
 }
 
 /* =====================================================================
@@ -1864,22 +2119,36 @@ function openSettings(){
     [!!S.clientId, 'Client ID Google', 'per leggere email e calendario'],
     [mode === 'google' && !!token, 'Account collegato', mode === 'google' && token ? (myAddrs[0] || '') : 'dopo aver salvato, premi «Collega account»']
   ];
+  const on = c => S.calendars?.[c.id] ?? (c.primary || c.selected || c.id === S.lessonCal);
+  $('#calSettings').innerHTML = calendars.length ? '<div class="field"><label>Calendari da mostrare</label>' + calendars.map(c =>
+    `<label class="switch"><input type="checkbox" data-calid="${esc(c.id)}" ${on(c) ? 'checked' : ''}><span style="width:10px;height:10px;border-radius:50%;flex:none;background:${esc(c.color || 'var(--accent)')}"></span>${esc(c.summary)}</label>`).join('') + '</div>'
+    : '<div class="note" style="margin-bottom:10px">Collega l\'account per scegliere i calendari.</div>';
+  $('#sLessonCal').innerHTML = '<option value="">— nessuno: riconosco le lezioni dal titolo —</option>' + calendars.map(c => `<option value="${esc(c.id)}">${esc(c.summary)}</option>`).join('');
+  $('#sLessonCal').value = S.lessonCal || '';
+  renderHiddenSettings();
+  $('#sNotify').checked = !!S.notify && 'Notification' in window && Notification.permission === 'granted';
+  $('#sLead').value = String(S.notifyLead || 10); $('#sPlanCal').checked = !!S.planToCal;
+  $('#syncLbl').innerHTML = mode === 'google' ? (syncState || 'Non ancora sincronizzato.') : 'Disponibile dopo aver collegato l\'account.';
   $('#setupSteps').innerHTML = steps.map(([ok, t, d], i) => `<div class="step ${ok ? 'ok' : ''}"><b>${ok ? '✓' : i + 1}</b><span><strong>${t}</strong> — ${esc(d)}</span></div>`).join('');
   $('#settingsDlg').showModal();
 }
 function saveSettings(){
-  const before = JSON.stringify([S.uniEmail, S.aliases, S.mailQuery, S.maxMails, S.geminiKey]);
+  const before = JSON.stringify([S.uniEmail, S.aliases, S.mailQuery, S.maxMails, S.geminiKey, S.calendars, S.lessonCal]);
+  const cals = {}; document.querySelectorAll('[data-calid]').forEach(x => cals[x.dataset.calid] = x.checked);
   Object.assign(S, {
     name:$('#sName').value.trim(), uniEmail:$('#sUni').value.trim(), aliases:$('#sAliases').value.trim(), clientId:$('#sClient').value.trim(),
     mailQuery:$('#sQuery').value.trim() || DEF.mailQuery, maxMails:Math.max(5, Math.min(100, +$('#sMax').value || 40)),
     geminiKey:$('#sGemini').value.trim(), geminiModel:$('#sModel').value.trim() || DEF.geminiModel,
     autoDrafts:$('#sAuto').checked, signature:$('#sSign').value.trim(), voiceReplies:$('#sVoice').checked, theme:$('#sTheme').value,
-    voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1
+    voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1,
+    calendars:calendars.length ? cals : S.calendars, lessonCal:$('#sLessonCal').value, notify:$('#sNotify').checked, notifyLead:+$('#sLead').value || 10,
+    planToCal:$('#sPlanCal').checked, u:Date.now()
   });
-  store.set('settings', S); applyTheme(); $('#settingsDlg').close();
+  store.set('settings', S); applyTheme(); $('#settingsDlg').close(); dirty();
   Object.keys(ruleCache).forEach(k => delete ruleCache[k]);
   renderAll();
-  if (before !== JSON.stringify([S.uniEmail, S.aliases, S.mailQuery, S.maxMails, S.geminiKey]) && (mode === 'demo' || token)) refreshAll();
+  if (before !== JSON.stringify([S.uniEmail, S.aliases, S.mailQuery, S.maxMails, S.geminiKey, S.calendars, S.lessonCal]) && (mode === 'demo' || token)) refreshAll();
+  if (S.planToCal) syncPlanToCalendar(planKey('today')).then(() => syncPlanToCalendar(planKey('tomorrow'))).catch(err => console.warn(err));
   toast('Impostazioni salvate');
 }
 
@@ -1900,7 +2169,7 @@ $('#mailTabs').onclick = e => { const b = e.target.closest('button'); if (b){ ma
 $('#mailList').onclick = e => { const b = e.target.closest('.mail'); if (b) openEmail(b.dataset.id); };
 $('#dClose').onclick = closeDrawer; $('#scrim').onclick = closeDrawer;
 
-$('#agenda').onclick = e => { const x = e.target.closest('[data-ev]'); const ev = x && events.find(v => v.id === x.dataset.ev); if (ev) cycleImp(ev); };
+$('#agenda').onclick = e => { const x = e.target.closest('[data-ev]'); const ev = x && events.find(v => v.id === x.dataset.ev); if (ev) openEvDlg(ev); };
 $('#planTabs').onclick = e => { const b = e.target.closest('button'); if (b){ planDay = b.dataset.pd; planEditing = false; renderPlan(); } };
 $('#planBody').onclick = e => {
   const b = e.target.closest('[data-pa]'); if (!b) return;
@@ -1908,6 +2177,18 @@ $('#planBody').onclick = e => {
   if (a === 'edit'){ planEditing = true; renderPlan(); $('#planTxt').focus(); }
   else if (a === 'cancel'){ planEditing = false; renderPlan(); }
   else if (a === 'clear'){ savePlan(planDay, []); }
+  else if (a === 'propose'){
+    const k = planKey(planDay), pr = proposeDay(k);
+    if (!pr.blocks.length) return toast('Non ho ancora abbastanza informazioni: dopo qualche settimana imparo le tue abitudini.', null, null, 6000);
+    proposals[k] = pr; propDismissed.delete(k); renderPlan();
+  }
+  else if (a === 'accept'){ const k = planKey(planDay); if (proposals[k]) savePlan(planDay, proposals[k].blocks); toast('Giornata salvata ✓'); }
+  else if (a === 'tweak'){ const k = planKey(planDay), txt = planToText(proposals[k]?.blocks || []); delete proposals[k]; propDismissed.add(k); planEditing = true; renderPlan(); $('#planTxt').value = txt; $('#planTxt').focus(); }
+  else if (a === 'dismiss'){ const k = planKey(planDay); delete proposals[k]; propDismissed.add(k); renderPlan(); }
+  else if (a === 'aiprop'){
+    b.disabled = true; b.innerHTML = '<span class="spin"></span> Ci penso…';
+    improveProposalAI(planKey(planDay)).catch(err => toast('AI: ' + err.message)).finally(() => renderPlan());
+  }
   else if (a === 'save'){
     const bl = parsePlan($('#planTxt').value);
     if (!bl.length && $('#planTxt').value.trim()) return toast('Non trovo gli orari: scrivi ad esempio «10-14 università».');
@@ -1952,12 +2233,16 @@ $('#cSend').onclick = async () => {
   const to = $('#cTo').value.trim(), subj = $('#cSubj').value.trim(), body = $('#cBody').value;
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to.replace(/^.*<|>$/g, ''))){ $('#cTo').focus(); return say('Manca un indirizzo email valido nel campo «A».'); }
   $('#cSend').disabled = true;
-  try{ await sendEmail(to, subj || '(senza oggetto)', body); $('#composeDlg').close(); say('Email inviata.'); }
+  try{ await sendEmail(to, subj || '(senza oggetto)', body, composeCtx?.replyTo); $('#composeDlg').close(); say('Email inviata.'); }
   catch(err){ say(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account e riprova.' : 'Invio non riuscito: ' + err.message); }
   $('#cSend').disabled = false;
 };
 $('#cDraft').onclick = async () => {
-  try{ await draftNew($('#cTo').value.trim(), $('#cSubj').value.trim(), $('#cBody').value); $('#composeDlg').close(); say('Salvata come bozza, non ho inviato niente.'); }
+  try{
+    if (composeCtx?.replyTo) await saveDraft(composeCtx.replyTo, $('#cBody').value, true);
+    else await draftNew($('#cTo').value.trim(), $('#cSubj').value.trim(), $('#cBody').value);
+    $('#composeDlg').close(); say('Salvata come bozza, non ho inviato niente.');
+  }
   catch(err){ say('Non sono riuscito a salvare la bozza: ' + err.message); }
 };
 
@@ -1965,7 +2250,7 @@ document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.close
 $('#settingsBtn').onclick = openSettings;
 $('#saveSettings').onclick = saveSettings;
 $('#connectBtn').onclick = connect;
-$('#bannerBtn').onclick = connect;
+$('#bannerBtn').onclick = () => (mode === 'google' && token && !hasScopes()) ? upgradeScopes() : connect();
 $('#refreshBtn').onclick = () => (mode === 'google' && !token) ? connect() : refreshAll();
 $('#themeBtn').onclick = () => {
   const dark = S.theme === 'dark' || (S.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -2017,6 +2302,538 @@ $('#testVoice').onclick = async () => {
   if ($('#sEngine').value !== 'browser' && !usedGemini) toast('La voce Gemini non è disponibile ora: uso la migliore voce del browser.', null, null, 6000);
 };
 setInterval(() => { renderHeader(); renderStats(); if (!planEditing) renderPlan(); }, 60e3);
+
+/* =====================================================================
+   Calendari, lezioni e corsi nascosti
+   ===================================================================== */
+let calendars = [], allEvents = [];
+function weekStart(d = new Date()){ const x = sod(d); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; }
+// stessa "chiave" per tutte le lezioni di un corso: «Lezione di Analisi 2 (Aula 3)» → «analisi 2»
+const courseKey = e => norm(e.title).replace(/\(.*?\)|\[.*?\]/g, ' ')
+  .replace(/\b(lezione|lezioni|lab|laboratorio|esercitazione|esercitazioni|aula\s*\S+|turno\s*\S+|di|del|della|dello)\b/g, ' ')
+  .replace(/[^a-z0-9]+/g, ' ').trim() || norm(e.title);
+const courseLabel = e => e.title.replace(/^(lezione|lezioni)\s+(di\s+)?/i, '').replace(/\s*[-–]\s*(lezione|lab\w*|esercitazion\w*)$/i, '') || e.title;
+function refreshVisible(){ events = allEvents.filter(e => !hiddenCourses[courseKey(e)]); }
+
+async function fetchCalendars(){
+  const now = new Date(), from = new Date(Math.min(+sod(now), +weekStart(now))), to = addDays(now, 70);
+  let cals = [{id:'primary', summary:'Principale', primary:true, accessRole:'owner', selected:true}];
+  try{
+    const cl = await gapi('https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=100');
+    if (cl.items?.length) cals = cl.items.filter(c => !c.deleted && !c.hidden).map(c => ({id:c.id, summary:c.summaryOverride || c.summary || c.id,
+      primary:!!c.primary, accessRole:c.accessRole, selected:c.selected !== false, color:c.backgroundColor}));
+  }catch(err){ console.warn(err); }     // senza il nuovo permesso leggo solo il calendario principale
+  calendars = cals;
+  if (!S.lessonCal){
+    const g = cals.find(c => !c.primary && /lezion|orari|unimib|corsi|timetable|easy|lesson|universit|didattica/i.test(c.summary));
+    if (g){ S.lessonCal = g.id; store.set('settings', S); }
+  }
+  const on = cals.filter(c => S.calendars?.[c.id] ?? (c.primary || c.selected || c.id === S.lessonCal));
+  const lists = await pool(on, 4, c => gapi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(c.id)}/events?singleEvents=true&orderBy=startTime&maxResults=2500&timeMin=${encodeURIComponent(from.toISOString())}&timeMax=${encodeURIComponent(to.toISOString())}`)
+    .then(r => (r.items || []).filter(x => x.status !== 'cancelled' && x.extendedProperties?.private?.ldPlan !== '1').map(x => ({
+      id:x.id, calId:c.id, calName:c.summary, writable:/owner|writer/.test(c.accessRole),
+      lesson:c.id === S.lessonCal || (!S.lessonCal && /\blezion|\blaboratorio\b|\besercitazion/i.test(x.summary || '')),
+      title:x.summary || '(senza titolo)', location:x.location || '', link:x.htmlLink, colorId:x.colorId,
+      allDay:!!x.start.date, start:x.start.date ? fromYmd(x.start.date) : new Date(x.start.dateTime),
+      end:x.end.date ? fromYmd(x.end.date) : new Date(x.end.dateTime)})))
+    .catch(err => { console.warn(err); return []; }));
+  allEvents = lists.flat().sort((a, b) => a.start - b.start);
+  refreshVisible();
+}
+
+let evCur = null;
+function openEvDlg(e){
+  evCur = e;
+  $('#evTitle').textContent = e.title;
+  $('#evWhen').textContent = cap(e.start.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'}))
+    + (e.allDay ? ' · tutto il giorno' : ` · ${fmtTime(e.start)}–${fmtTime(e.end)}`) + (e.location ? ' · ' + e.location : '') + (e.calName ? ' · 📅 ' + e.calName : '');
+  const imp = impOf(e);
+  document.querySelectorAll('#evImp button').forEach(b => b.classList.toggle('on', b.dataset.imp === imp));
+  const k = courseKey(e), same = allEvents.filter(x => courseKey(x) === k);
+  const acts = [`<button class="btn sm" data-eva="hide">🙈 ${e.lesson ? 'Non seguo questo corso: nascondi' : 'Nascondi'} tutti gli eventi «${esc(courseLabel(e))}» (${same.length})</button>`];
+  if (/\b(esam|appell|prova|scritto|orale|parzial)/.test(norm(e.title)) && !exams.some(x => x.eventId === e.id)) acts.push('<button class="btn sm" data-eva="exam">⏳ Aggiungi al countdown esami</button>');
+  if (e.writable){
+    acts.push('<button class="btn sm danger" data-eva="del">🗑 Elimina questo evento dal calendario</button>');
+    if (same.filter(x => x.writable).length > 1) acts.push(`<button class="btn sm danger" data-eva="delall">🗑 Elimina tutti i «${esc(courseLabel(e))}» dal calendario (${same.filter(x => x.writable).length})</button>`);
+  }
+  if (e.link) acts.push(`<a class="btn sm ghost" href="${esc(e.link)}" target="_blank" rel="noopener">Apri in Google Calendar ↗</a>`);
+  $('#evActs').innerHTML = acts.join('');
+  $('#evDlg').showModal();
+}
+function afterEventsChange(){ refreshVisible(); renderAgenda(); renderUni(); renderStats(); renderRecap(); }
+function hideCourse(e){
+  const k = courseKey(e), n = allEvents.filter(x => courseKey(x) === k).length;
+  hiddenCourses[k] = {title:courseLabel(e)}; saveHidden(); afterEventsChange();
+  toast(`Nascosti ${n} eventi «${courseLabel(e)}»`, 'Annulla', () => { delete hiddenCourses[k]; saveHidden(); afterEventsChange(); }, 7000);
+}
+async function deleteEvents(list){
+  if (mode === 'google') await pool(list, 4, e => gapi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(e.calId || 'primary')}/events/${encodeURIComponent(e.id)}`, {method:'DELETE'}).catch(err => { if (!/410|404/.test(err.message)) throw err; }));
+  else store.set('demo_extra_events', store.get('demo_extra_events', []).filter(x => !list.some(e => e.id === x.id)));
+  const ids = new Set(list.map(e => e.id));
+  allEvents = allEvents.filter(x => !ids.has(x.id)); afterEventsChange();
+}
+function renderHiddenSettings(){
+  const hid = Object.entries(hiddenCourses);
+  $('#hiddenSettings').innerHTML = hid.length ? '<div class="field"><label>Corsi nascosti</label>' + hid.map(([k, v]) =>
+    `<div class="sugg"><span>🙈 ${esc(v.title || k)}</span><button class="btn sm" type="button" data-unhide="${esc(k)}">Mostra di nuovo</button></div>`).join('') + '</div>' : '';
+}
+
+/* =====================================================================
+   Università: orario delle lezioni e countdown esami
+   ===================================================================== */
+let wkOffset = 0;
+function renderUni(){
+  const now = new Date(), weekend = now.getDay() === 0 || now.getDay() === 6;
+  const ws = addDays(weekStart(now), 7 * (wkOffset + (weekend ? 1 : 0)));
+  $('#wkLbl').textContent = `${ws.getDate()} ${MONTHS[ws.getMonth()].slice(0, 3)} – ${addDays(ws, 4).getDate()} ${MONTHS[addDays(ws, 4).getMonth()].slice(0, 3)}`;
+  let any = false;
+  const cols = [0, 1, 2, 3, 4].map(i => {
+    const d = addDays(ws, i), k = ymd(d);
+    const ls = events.filter(e => e.lesson && !e.allDay && ymd(e.start) === k).sort((a, b) => a.start - b.start);
+    if (ls.length) any = true;
+    return `<div class="ttd ${k === ymd(now) ? 'today' : ''} ${ls.length ? '' : 'empty-day'}"><h5>${esc(d.toLocaleDateString('it-IT', {weekday:'short', day:'numeric'}))}</h5>`
+      + (ls.map(e => `<button class="les" data-les="${esc(e.id)}" style="--h:${hueOf(courseKey(e))}" title="${esc(e.title)}"><b>${esc(courseLabel(e))}</b>${fmtTime(e.start)}–${fmtTime(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</button>`).join('') || '<div class="none">Nessuna lezione</div>') + '</div>';
+  });
+  $('#timetable').innerHTML = any ? cols.join('')
+    : `<div class="empty" style="grid-column:1/-1"><span class="big">🎓</span>Nessuna lezione in questa settimana.<br>Importa l'orario dell'università in Google Calendar e sceglilo in ⚙️ Impostazioni → «Calendario delle lezioni».</div>`;
+  const nh = Object.keys(hiddenCourses).length;
+  $('#uniNote').textContent = (any ? 'Tocca una lezione per nasconderla o per le altre opzioni. ' : '') + (nh ? `🙈 ${nh} ${nh === 1 ? 'corso nascosto' : 'corsi nascosti'} (gestiscili in ⚙️ Impostazioni).` : '');
+  renderExams();
+}
+function addExam(name, date, time = null, eventId = null){
+  exams.push({id:uid(), name:cap(String(name).trim()), date, time, eventId, createdAt:Date.now()});
+  saveExams(); renderExams(); renderRecap();
+}
+function renderExams(){
+  const now = new Date(), today = ymd(now);
+  const up = exams.filter(x => x.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+  const past = exams.filter(x => x.date < today).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
+  const row = x => {
+    const d = dayDiff(now, fromYmd(x.date)), cls = d < 0 ? '' : d <= 3 ? 'red' : d <= 14 ? 'amber' : '';
+    const big = d < 0 ? '✓' : d === 0 ? 'Oggi' : d, lbl = d < 0 ? 'fatto' : d === 0 ? '' : d === 1 ? 'giorno' : 'giorni';
+    return `<div class="exam ${d < 0 ? 'past' : ''}" data-exam="${esc(x.id)}"><div class="ed ${cls}"><b>${big}</b><span>${lbl}</span></div>
+      <div class="en"><b>${esc(x.name)}</b><span>${esc(fromYmd(x.date).toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'long'}))}${x.time ? ' · ' + esc(x.time) : ''}</span></div>
+      <button class="ibtn" data-exdel title="Elimina">✕</button></div>`;
+  };
+  $('#examList').innerHTML = (up.map(row).join('') || '<div class="empty" style="padding:16px 8px"><span class="big">⏳</span>Aggiungi i tuoi esami per vedere quanti giorni mancano.</div>')
+    + (past.length ? `<details class="donebox"><summary class="group-h">✓ Già passati <span class="n">${past.length}</span></summary>${past.map(row).join('')}</details>` : '');
+  const sugg = events.filter(e => /\b(esam|appell|prova in itinere|scritto|orale|parzial)/.test(norm(e.title)) && ymd(e.start) >= today
+    && !exams.some(x => x.eventId === e.id || (x.date === ymd(e.start) && simTitle(x.name, e.title) >= .5))).slice(0, 4);
+  $('#examSugg').innerHTML = sugg.length ? '<div class="uni-note">Trovati nel calendario:</div>' + sugg.map(e => `<button class="chip sugg-chip" type="button" data-exsugg="${esc(e.id)}">+ ${esc(e.title)} · ${esc(relDay(ymd(e.start)))}</button>`).join('') : '';
+}
+
+/* =====================================================================
+   Abitudini e sport
+   ===================================================================== */
+const HAB_ICONS = [[/palestr|gym|pesi/, '🏋️'], [/volley|pallavol|beach/, '🏐'], [/cors|running|correre/, '🏃'], [/nuot|piscin/, '🏊'], [/lett|libr|legg/, '📖'],
+  [/studi|ripass/, '📚'], [/medit|yoga/, '🧘'], [/acqua|bere/, '💧'], [/dorm|sonno/, '😴'], [/calc/, '⚽'], [/bici/, '🚴'], [/padel|tennis/, '🎾'], [/cammin|passegg/, '🚶'], [/cucin/, '🍳']];
+const habIcon = n => (HAB_ICONS.find(([re]) => re.test(norm(n))) || [0, '✅'])[1];
+function defaultHabits(){   // id fissi: così PC e telefono non creano doppioni
+  return [['Palestra', 3], ['Beach volley', 2], ['Lettura', 5]].map(([name, goal]) => ({id:'h-' + norm(name).replace(/[^a-z]+/g, '-'), name, goal, createdAt:0}));
+}
+function demoHabitLog(){
+  const log = {}, ws = weekStart(), td = (new Date().getDay() + 6) % 7;
+  habits.forEach((h, j) => {
+    for (let w = 1; w <= 3; w++) for (let i = 0; i < h.goal; i++) log[h.id + '|' + ymd(addDays(ws, -7 * w + (i * 2) % 7))] = {v:1};
+    [[0, 2], [], [0, 1, 2, 3]][j]?.forEach(i => { if (i <= td) log[h.id + '|' + ymd(addDays(ws, i))] = {v:1}; });
+  });
+  return log;
+}
+const hKey = (h, k) => h.id + '|' + k;
+const habitDone = (h, k) => !!habitLog[hKey(h, k)];
+function weekCount(h, ws){ let n = 0; for (let i = 0; i < 7; i++) if (habitDone(h, ymd(addDays(ws, i)))) n++; return n; }
+function habitStreak(h){   // settimane di fila in cui hai raggiunto l'obiettivo
+  let ws = weekStart(), n = weekCount(h, ws) >= h.goal ? 1 : 0;
+  ws = addDays(ws, -7);
+  while (n < 200 && weekCount(h, ws) >= h.goal){ n++; ws = addDays(ws, -7); }
+  return n;
+}
+function setHabit(h, k, v){ if (v) habitLog[hKey(h, k)] = {v:1}; else delete habitLog[hKey(h, k)]; saveHabitLog(); renderHabits(); renderRecap(); }
+function findHabit(q){
+  const qs = stems(q); let best = null, bs = 0;
+  for (const h of habits){ const hs = stems(h.name); if (!hs.length) continue; const sc = hs.filter(w => qs.includes(w)).length / hs.length; if (sc > bs){ bs = sc; best = h; } }
+  return bs >= .5 ? best : null;
+}
+function renderHabits(){
+  const ws = weekStart(), today = ymd(new Date()), L = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+  let done = 0, goal = 0;
+  $('#habitList').innerHTML = habits.map(h => {
+    const c = weekCount(h, ws), st = habitStreak(h); done += Math.min(c, h.goal); goal += h.goal;
+    const days = L.map((l, i) => { const k = ymd(addDays(ws, i)); return `<button class="hd ${habitDone(h, k) ? 'on' : ''} ${k === today ? 'today' : ''}" data-hk="${k}" ${k > today ? 'disabled' : ''} title="${esc(fromYmd(k).toLocaleDateString('it-IT', {weekday:'long', day:'numeric'}))}">${l}</button>`; }).join('');
+    return `<div class="hab" data-hab="${esc(h.id)}"><span class="hi">${habIcon(h.name)}</span>
+      <div class="hn"><b>${esc(h.name)}</b><span title="${c} su ${h.goal} questa settimana${st ? `, obiettivo raggiunto ${st} settimane di fila` : ''}">${c}/${h.goal} sett.${st ? ` · 🔥 ${st}` : ''}</span><div class="hbar"><i style="width:${Math.min(100, c / h.goal * 100)}%"></i></div></div>
+      <div class="hdays">${days}</div><button class="ibtn" data-hdel title="Elimina abitudine">✕</button></div>`;
+  }).join('') || '<div class="empty"><span class="big">💪</span>Aggiungi un\'abitudine qui sotto.</div>';
+  $('#habitSum').textContent = goal ? `${done}/${goal} questa sett.` : '';
+}
+
+/* =====================================================================
+   «Organizzami domani»: impara la routine dai giorni passati
+   ===================================================================== */
+const SRC_LBL = {abitudine:'🔁 di solito', lezione:'🎓 lezione', impegno:'📅 calendario', urgente:'⏰ urgente', ai:'✨ AI'};
+const proposals = {}, propDismissed = new Set();
+let pendingProposal = null;
+const overlap = (a, b) => Math.max(0, Math.min(a.e, b.e) - Math.max(a.s, b.s));
+const median = a => { const x = [...a].sort((p, q) => p - q); return x[x.length >> 1]; };
+function simTitle(a, b){
+  const x = stems(a), y = stems(b);
+  if (!x.length || !y.length) return norm(a) === norm(b) ? 1 : 0;
+  return x.filter(w => y.includes(w)).length / Math.max(x.length, y.length);
+}
+function routineFor(k){
+  const d = fromYmd(k), wd = d.getDay();
+  const past = Object.keys(plans).filter(x => x < k && fromYmd(x).getDay() === wd && dayDiff(fromYmd(x), d) <= 63).sort().reverse().slice(0, 6);
+  if (past.length < 2) return {blocks:[], pastCount:past.length};       // le prime volte non propongo niente
+  const clusters = [];
+  past.forEach((pk, pi) => (plans[pk].blocks || []).forEach(b => {
+    let c = clusters.find(c => Math.abs(c.s - b.s) <= 90 && simTitle(c.t, b.t) >= .5);
+    if (!c){ c = {t:b.t, s:b.s, items:[], days:new Set()}; clusters.push(c); }
+    c.items.push(b); c.days.add(pi);
+  }));
+  const blocks = clusters.filter(c => c.days.size >= 2 && c.days.size >= past.length / 2).map(c => {
+    const cnt = {}; c.items.forEach(i => cnt[i.t] = (cnt[i.t] || 0) + 1);
+    return {s:median(c.items.map(i => i.s)), e:median(c.items.map(i => i.e)), t:Object.entries(cnt).sort((a, b) => b[1] - a[1])[0][0], src:'abitudine'};
+  });
+  return {blocks, pastCount:past.length};
+}
+function proposeDay(k){
+  const d = fromYmd(k);
+  const fixed = events.filter(e => !e.allDay && ymd(e.start) === k).map(e => ({s:e.start.getHours() * 60 + e.start.getMinutes(),
+    e:ymd(e.end) !== k ? 1440 : e.end.getHours() * 60 + e.end.getMinutes(), t:e.title, src:e.lesson ? 'lezione' : 'impegno'}));
+  const r = routineFor(k), lessons = fixed.filter(f => f.src === 'lezione');
+  const routine = r.blocks.filter(b => !fixed.some(f => overlap(f, b) >= (b.e - b.s) / 2)
+    && !(catOf(b.t)[0] === 'studio' && lessons.some(f => overlap(f, b) > 0)));
+  const blocks = [...fixed, ...routine].sort((a, b) => a.s - b.s);
+  // la cosa più urgente in un buco libero di almeno un'ora tra le 9 e le 20
+  const urgent = tasks.filter(t => !t.done && (bucket(score(t)) === 'urgent' || (t.due && t.due <= ymd(addDays(d, 1))))).sort((a, b) => score(b) - score(a))[0];
+  if (urgent && blocks.length){
+    let cur = 9 * 60;
+    for (const b of [...blocks, {s:20 * 60, e:20 * 60}]){
+      if (b.s - cur >= 60){ blocks.push({s:cur, e:cur + Math.min(90, b.s - cur), t:urgent.title, src:'urgente'}); break; }
+      cur = Math.max(cur, b.e);
+    }
+    blocks.sort((a, b) => a.s - b.s);
+  }
+  const wdName = d.toLocaleDateString('it-IT', {weekday:'long'});
+  return {blocks, learned:routine.length > 0, pastCount:r.pastCount,
+    note:routine.length ? `in base ai tuoi ultimi ${r.pastCount} ${wdName}` : 'dal calendario e dalle cose urgenti'};
+}
+function propHtml(k, p){
+  const d = fromYmd(k);
+  return `<div class="prop"><div class="prop-h">✨ Proposta per ${esc(d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric'}))}<span>${esc(p.note || '')}</span></div>`
+    + p.blocks.map(b => { const [cat, ico] = catOf(b.t); return `<div class="blk c-${cat}"><span class="ic">${ico}</span><span class="tm">${fmtMin(b.s)} – ${fmtMin(b.e)}</span>
+      <span class="tt"><b>${esc(b.t)}</b><span>${fmtDur(b.e - b.s)}${b.src ? `<span class="src">${SRC_LBL[b.src] || ''}</span>` : ''}</span></span></div>`; }).join('')
+    + `<div class="row"><button class="btn primary sm" data-pa="accept">✓ Va bene così</button><button class="btn sm" data-pa="tweak">✎ Modifica</button>`
+    + (aiOn() ? '<button class="btn sm" data-pa="aiprop">✨ Migliora con AI</button>' : '') + '<button class="btn sm ghost" data-pa="dismiss">✕</button></div></div>';
+}
+async function improveProposalAI(k){
+  const p = proposals[k] || proposeDay(k), d = fromYmd(k), today = ymd(new Date());
+  const fixed = p.blocks.filter(b => b.src === 'lezione' || b.src === 'impegno');
+  const urgent = tasks.filter(t => !t.done).sort((a, b) => score(b) - score(a)).slice(0, 4);
+  const r = await gemini(`Sei l'assistente di ${S.name || 'uno studente universitario'}. Organizza la giornata di ${d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'})} in blocchi orari realistici.
+Impegni fissi (non spostarli): ${fixed.map(b => `${fmtMin(b.s)}-${fmtMin(b.e)} ${b.t}`).join('; ') || 'nessuno'}
+Cosa fa di solito questo giorno della settimana: ${routineFor(k).blocks.map(b => `${fmtMin(b.s)}-${fmtMin(b.e)} ${b.t}`).join('; ') || 'non lo so ancora'}
+Cose da fare più importanti: ${urgent.map(t => t.title + (t.due ? ` (scadenza ${t.due})` : '')).join('; ') || 'nessuna'}
+Abitudini settimanali ancora da fare: ${habits.map(h => ({h, left:h.goal - weekCount(h, weekStart())})).filter(x => x.left > 0).map(x => `${x.h.name} ×${x.left}`).join(', ') || 'nessuna'}
+Esami vicini: ${exams.filter(x => x.date >= today).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 3).map(x => `${x.name} il ${x.date}`).join('; ') || 'nessuno'}
+Lascia il tempo per pranzo e cena, non andare oltre mezzanotte, titoli brevi in italiano.
+Rispondi solo con JSON: {"blocks":[{"start":"HH:MM","end":"HH:MM","title":"..."}],"nota":"una frase su come hai organizzato la giornata"}`);
+  const hm = x => { const [h, m] = String(x || '').split(':').map(Number); return toMin(h || 0, m || 0); };
+  const blocks = (r.blocks || []).map(b => { const s = hm(b.start); let e = hm(b.end); if (e <= s) e = Math.min(1440, s + 60);
+    const t = cap(String(b.title || '').trim()); return {s, e, t, src:fixed.some(f => f.s === s && simTitle(f.t, t) >= .5) ? fixed.find(f => f.s === s).src : 'ai'}; })
+    .filter(b => b.t).sort((a, b) => a.s - b.s);
+  if (!blocks.length) throw new Error('nessuna proposta');
+  proposals[k] = {blocks, learned:true, pastCount:p.pastCount, note:r.nota ? '✨ ' + r.nota : 'riorganizzata dall\'AI'};
+}
+
+/* =====================================================================
+   Email: rispondere a voce, archiviare, segnare come lette
+   ===================================================================== */
+function findEmailBy(who){
+  const w = norm(who || '').trim();
+  if (!w || /^(questa|questo|lei|lui|quest'ultima|l'ultima)$/.test(w)) return openEmailId ? emails.find(e => e.id === openEmailId) : null;
+  const q = stems(w.replace(/\b(prof\.?|professor[ea]?|professoressa|dott\.?|dottor(essa)?|la|il|mail|email|e-mail)\b/g, ' '));
+  if (!q.length) return null;
+  let best = null, bs = 0;
+  for (const e of emails){
+    const ts = stems(e.from.name + ' ' + e.from.email.split('@')[0].replace(/[._-]/g, ' ') + ' ' + e.subject);
+    const sc = q.filter(x => ts.includes(x)).length / q.length + (e.cls.type === 'direct' ? .05 : 0) + (e.unread ? .02 : 0);
+    if (sc > bs){ bs = sc; best = e; }
+  }
+  return bs >= .5 ? best : null;
+}
+function templateReply(e, text){
+  const formal = isProf(e);
+  let t = cap(String(text).trim()); if (!/[.!?]$/.test(t)) t += '.';
+  return `${formal ? `Gentile Prof. ${lastName(e) || firstName(e)},` : `Ciao ${cap(firstName(e))},`}\n\n${t}\n\n${formal ? 'Cordiali saluti,' : 'A presto,'}\n${S.signature || S.name || ''}`.trim();
+}
+async function aiReply(e, intent){
+  const r = await gemini(`Scrivi la risposta a questa email per conto di ${S.name || 'uno studente universitario'}. Cosa vuole rispondere: "${String(intent).replace(/"/g, "'")}".
+Italiano, ${isProf(e) ? 'tono formale (è un docente o un ufficio)' : 'tono adeguato al mittente'}, breve, senza oggetto, firmata '${S.signature || S.name || ''}'. Non inventare informazioni che non ti ho dato.
+Rispondi solo con JSON: {"testo": "..."}
+
+DA: ${e.from.name} <${e.from.email}>
+OGGETTO: ${e.subject}
+
+${e.body.slice(0, 4000)}`);
+  return String(r.testo || '');
+}
+async function modifyThreads(list, add, remove){
+  if (mode === 'google') await pool(list, 4, e => gapi(`${GM}/threads/${e.threadId}/modify`, {method:'POST', body:JSON.stringify({addLabelIds:add, removeLabelIds:remove})}));
+}
+async function markRead(list){
+  list = list.filter(Boolean); if (!list.length) return 0;
+  await modifyThreads(list, [], ['UNREAD']);
+  list.forEach(e => { e.unread = false; (e.thread || []).forEach(m => m.unread = false); });
+  renderMail(); renderStats(); renderRecap();
+  return list.length;
+}
+async function archiveEmails(list){
+  list = list.filter(Boolean); if (!list.length) return 0;
+  await modifyThreads(list, [], ['INBOX']);
+  const ids = new Set(list.map(e => e.id)), before = emails.slice();
+  emails = emails.filter(e => !ids.has(e.id));
+  if (ids.has(openEmailId)) closeDrawer();
+  renderMail(); renderStats(); renderRecap();
+  toast(list.length === 1 ? `Archiviata: ${list[0].subject}` : `Archiviate ${list.length} email`, 'Annulla', async () => {
+    try{ await modifyThreads(list, ['INBOX'], []); emails = before; renderMail(); renderStats(); }catch(err){ toast('Errore: ' + err.message); }
+  }, 7000);
+  return list.length;
+}
+
+/* =====================================================================
+   Notifiche promemoria
+   ===================================================================== */
+let swReg = null;
+async function enableNotify(){
+  if (!('Notification' in window)){ toast('Questo browser non supporta le notifiche.'); return false; }
+  const p = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+  if (p !== 'granted'){ toast('Notifiche bloccate: abilitale dalle impostazioni del sito (icona del lucchetto accanto all\'indirizzo).', null, null, 8000); return false; }
+  return true;
+}
+function notify(title, body, tag){
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const o = {body, tag, icon:'icon-192.png', badge:'icon-192.png'};
+  try{ if (swReg) swReg.showNotification(title, o); else new Notification(title, o); }catch(err){ console.warn(err); }
+}
+const notified = new Set(store.get('notified', []));
+function checkReminders(){
+  if (!S.notify) return;
+  const now = Date.now(), lead = (+S.notifyLead || 10) * 60e3, today = ymd(new Date()), items = [];
+  events.forEach(e => { if (!e.allDay) items.push({key:`ev:${e.id}:${+e.start}`, at:+e.start,
+    title:(impOf(e) === 'alta' ? '🔴 ' : impOf(e) === 'media' ? '🟡 ' : '') + e.title, body:fmtTime(e.start) + (e.location ? ' · ' + e.location : '')}); });
+  if (!(S.planToCal && mode === 'google'))      // se la giornata è su Google Calendar avvisa già lui
+    (plans[today]?.blocks || []).forEach(b => items.push({key:`pl:${today}:${b.s}:${b.t}`, at:+sod(new Date()) + b.s * 60e3, title:b.t, body:`${fmtMin(b.s)} – ${fmtMin(b.e)} · La mia giornata`}));
+  let changed = false;
+  for (const it of items){
+    const dt = it.at - now;
+    if (dt > 0 && dt <= lead && !notified.has(it.key)){ notified.add(it.key); changed = true; notify(`Tra ${Math.max(1, Math.round(dt / 60e3))} min: ${it.title}`, it.body, it.key); }
+  }
+  const tk = ymd(addDays(new Date(), 1)), h = new Date().getHours();
+  if (h >= 21 && h < 23 && !plans[tk] && !notified.has('eve:' + tk)){
+    notified.add('eve:' + tk); changed = true;
+    notify('🌙 Organizza domani', proposeDay(tk).learned ? 'Ho già pronta una proposta in base alle tue abitudini.' : 'Scrivi o di\' il programma di domani.', 'eve');
+  }
+  if (changed) store.set('notified', [...notified].slice(-400));
+}
+// «La mia giornata» copiata su Google Calendar: il telefono avvisa anche a dashboard chiusa
+async function syncPlanToCalendar(k){
+  if (!S.planToCal || mode !== 'google' || !token) return;
+  const base = 'https://www.googleapis.com/calendar/v3/calendars/primary/events', d = fromYmd(k), tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const ex = await gapi(`${base}?privateExtendedProperty=${encodeURIComponent('ldPlan=1')}&singleEvents=true&maxResults=100&timeMin=${encodeURIComponent(d.toISOString())}&timeMax=${encodeURIComponent(addDays(d, 1).toISOString())}`);
+  await pool(ex.items || [], 4, x => gapi(`${base}/${x.id}`, {method:'DELETE'}).catch(() => {}));
+  await pool(plans[k]?.blocks || [], 3, b => gapi(base, {method:'POST', body:JSON.stringify({
+    summary:b.t, colorId:'8', description:'Da «La mia giornata» della tua dashboard',
+    start:{dateTime:new Date(+d + b.s * 60e3).toISOString(), timeZone:tz}, end:{dateTime:new Date(+d + b.e * 60e3).toISOString(), timeZone:tz},
+    extendedProperties:{private:{ldPlan:'1'}}, reminders:{useDefault:false, overrides:[{method:'popup', minutes:+S.notifyLead || 10}]}})}));
+}
+
+/* =====================================================================
+   Sincronizzazione PC ↔ telefono (cartella nascosta dell'app su Google Drive)
+   ===================================================================== */
+let tombs = {}, habits = [], habitLog = {}, exams = [], hiddenCourses = {};
+const shadows = {}, DEL = '\u0000';
+// segna come modificati (u = adesso) gli elementi cambiati dall'ultimo salvataggio, e lascia una "lapide" per quelli eliminati
+function stampList(name, arr, prefix){
+  const sh = shadows[name] ||= {}, now = Date.now(), seen = new Set();
+  for (const x of arr){
+    const {u, ...rest} = x, j = JSON.stringify(rest);
+    if (sh[x.id] !== j){ if (sh[x.id] !== undefined || !x.u) x.u = now; sh[x.id] = j; }
+    seen.add(x.id);
+  }
+  for (const id of Object.keys(sh)) if (!seen.has(id) && sh[id] !== DEL){ tombs[prefix + id] = now; sh[id] = DEL; }
+}
+function stampMap(name, obj, prefix){
+  const sh = shadows[name] ||= {}, now = Date.now();
+  for (const [k, v] of Object.entries(obj)){
+    const {u, ...rest} = v, j = JSON.stringify(rest);
+    if (sh[k] !== j){ if (sh[k] !== undefined || !v.u) v.u = now; sh[k] = j; }
+  }
+  for (const k of Object.keys(sh)) if (!(k in obj) && sh[k] !== DEL){ tombs[prefix + k] = now; sh[k] = DEL; }
+}
+function resetShadows(){
+  const L = (n, arr) => { shadows[n] = {}; arr.forEach(x => { const {u, ...r} = x; shadows[n][x.id] = JSON.stringify(r); }); };
+  const M = (n, obj) => { shadows[n] = {}; for (const [k, v] of Object.entries(obj)){ const {u, ...r} = v; shadows[n][k] = JSON.stringify(r); } };
+  L('tasks', tasks); L('habits', habits); L('exams', exams); M('plans', plans); M('log', habitLog); M('hidden', hiddenCourses); M('imp', eventImp);
+}
+const saveTombs = () => { const old = Date.now() - 90 * DAY; for (const k in tombs) if (tombs[k] < old) delete tombs[k]; store.set(K('tombs'), tombs); };
+const saveWith = (fn) => () => { fn(); saveTombs(); dirty(); };
+const savePlans = saveWith(() => { stampMap('plans', plans, 'plan:'); store.set(K('plans'), plans); });
+const saveImp = saveWith(() => { stampMap('imp', eventImp, 'imp:'); store.set(K('eventImp'), eventImp); });
+const saveHabits = saveWith(() => { stampList('habits', habits, 'habit:'); store.set(K('habits'), habits); });
+const saveHabitLog = saveWith(() => { stampMap('log', habitLog, 'log:'); store.set(K('habitLog'), habitLog); });
+const saveExams = saveWith(() => { stampList('exams', exams, 'exam:'); store.set(K('exams'), exams); });
+const saveHidden = saveWith(() => { stampMap('hidden', hiddenCourses, 'hide:'); store.set(K('hidden'), hiddenCourses); });
+
+const SYNC_KEYS = ['name', 'uniEmail', 'aliases', 'signature', 'geminiKey', 'geminiModel', 'autoDrafts', 'voiceReplies', 'voiceEngine', 'gVoice', 'voiceRate',
+  'theme', 'notifyLead', 'planToCal', 'lessonCal', 'calendars', 'mailQuery', 'maxMails'];
+function localDoc(){
+  return {v:1, tasks, plans, habits, habitLog, exams, hiddenCourses, eventImp, tombs,
+    settings:{u:S.u || 0, data:Object.fromEntries(SYNC_KEYS.map(k => [k, S[k]]))}};
+}
+function mergeDocs(a, b){
+  const T = {...(a.tombs || {})};
+  for (const [k, v] of Object.entries(b.tombs || {})) T[k] = Math.max(T[k] || 0, v);
+  const L = (x = [], y = [], p) => {
+    const m = new Map();
+    for (const it of [...x, ...y]){ const o = m.get(it.id); if (!o || (it.u || 0) > (o.u || 0)) m.set(it.id, it); }
+    return [...m.values()].filter(it => !((T[p + it.id] || 0) > (it.u || 0)));
+  };
+  const M = (x = {}, y = {}, p) => {
+    const r = {};
+    for (const [k, v] of [...Object.entries(x), ...Object.entries(y)]) if (!r[k] || (v.u || 0) > (r[k].u || 0)) r[k] = v;
+    for (const k of Object.keys(r)) if ((T[p + k] || 0) > (r[k].u || 0)) delete r[k];
+    return r;
+  };
+  return {v:1, tombs:T, tasks:L(a.tasks, b.tasks, 'task:'), habits:L(a.habits, b.habits, 'habit:'), exams:L(a.exams, b.exams, 'exam:'),
+    plans:M(a.plans, b.plans, 'plan:'), habitLog:M(a.habitLog, b.habitLog, 'log:'), hiddenCourses:M(a.hiddenCourses, b.hiddenCourses, 'hide:'),
+    eventImp:M(a.eventImp, b.eventImp, 'imp:'), settings:(b.settings?.u || 0) > (a.settings?.u || 0) ? b.settings : a.settings};
+}
+function applyDoc(d){
+  ({tasks, plans, habits, habitLog, exams, hiddenCourses, eventImp, tombs} = d);
+  if (d.settings && (d.settings.u || 0) > (S.u || 0)){ Object.assign(S, d.settings.data, {u:d.settings.u}); store.set('settings', S); applyTheme(); }
+  [['tasks', tasks], ['plans', plans], ['habits', habits], ['habitLog', habitLog], ['exams', exams], ['hidden', hiddenCourses], ['eventImp', eventImp], ['tombs', tombs]]
+    .forEach(([k, v]) => store.set(K(k), v));
+  resetShadows(); refreshVisible();
+  renderHeader(); renderStats(); renderAgenda(); renderTodos(); renderHabits(); renderUni(); renderRecap();
+  if (!planEditing) renderPlan();
+}
+const DRIVE = 'https://www.googleapis.com/drive/v3/files', DRIVE_UP = 'https://www.googleapis.com/upload/drive/v3/files';
+let syncFileId = store.get('syncFileId', null), syncTimer = null, syncing = false, syncAgain = false, syncState = '';
+function setSync(html){ syncState = html; if ($('#settingsDlg').open) $('#syncLbl').innerHTML = html; $('#modePill').title = html.replace(/<[^>]+>/g, ''); }
+function dirty(){ if (mode !== 'google' || !token) return; clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 2500); }
+async function syncNow(){
+  if (mode !== 'google' || !token || !hasScopes()) return;
+  if (syncing){ syncAgain = true; return; }
+  syncing = true; setSync('⏳ Sincronizzo…');
+  try{
+    if (!syncFileId){
+      const l = await gapi(`${DRIVE}?spaces=appDataFolder&q=${encodeURIComponent("name='dashboard.json'")}&fields=files(id)`);
+      syncFileId = l.files?.[0]?.id || null; store.set('syncFileId', syncFileId);
+    }
+    let remote = null;
+    if (syncFileId){
+      try{ remote = await gapi(`${DRIVE}/${syncFileId}?alt=media`); }
+      catch(err){ if (/ 404/.test(err.message)){ syncFileId = null; store.del('syncFileId'); } else throw err; }
+    }
+    const merged = remote ? mergeDocs(localDoc(), remote) : localDoc();
+    if (remote) applyDoc(merged);
+    const body = JSON.stringify(merged);
+    if (syncFileId) await gapi(`${DRIVE_UP}/${syncFileId}?uploadType=media`, {method:'PATCH', body});
+    else {
+      const bd = 'ld' + uid();
+      const mp = `--${bd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name:'dashboard.json', parents:['appDataFolder']})}\r\n--${bd}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${bd}--`;
+      const f = await gapi(`${DRIVE_UP}?uploadType=multipart&fields=id`, {method:'POST', headers:{'Content-Type':'multipart/related; boundary=' + bd}, body:mp});
+      syncFileId = f.id; store.set('syncFileId', syncFileId);
+    }
+    setSync('☁️ Sincronizzato alle ' + fmtTime(new Date()));
+  }catch(err){
+    console.warn(err);
+    setSync(/has not been used|accessNotConfigured|SERVICE_DISABLED|disabled/i.test(err.message)
+      ? '⚠️ Va abilitata la «Google Drive API» nel tuo progetto Google Cloud: <a href="https://console.cloud.google.com/apis/library/drive.googleapis.com" target="_blank" rel="noopener">abilitala qui</a>, poi premi «Sincronizza ora».'
+      : '⚠️ Sincronizzazione non riuscita: ' + esc(err.message.slice(0, 120)));
+  }finally{
+    syncing = false;
+    if (syncAgain){ syncAgain = false; dirty(); }
+  }
+}
+async function upgradeScopes(){
+  try{ await requestToken('consent'); showBanner(); await refreshAll(); toast('Permessi aggiornati ✓'); }
+  catch(err){ toast('Non riuscito: ' + err.message, null, null, 8000); }
+}
+
+/* =====================================================================
+   App installabile (PWA)
+   ===================================================================== */
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').then(r => swReg = r).catch(err => console.warn(err));
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('#installBtn').hidden = false; });
+$('#installBtn').onclick = async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; $('#installBtn').hidden = true; };
+
+/* ---------- eventi UI delle nuove sezioni ---------- */
+$('#evImp').onclick = ev => {
+  const b = ev.target.closest('button'); if (!b || !evCur) return;
+  setImp(evCur, b.dataset.imp); renderUni();
+  document.querySelectorAll('#evImp button').forEach(x => x.classList.toggle('on', x === b));
+};
+$('#evActs').onclick = async ev => {
+  const b = ev.target.closest('[data-eva]'); if (!b || !evCur) return;
+  const e = evCur, a = b.dataset.eva;
+  try{
+    if (a === 'hide'){ $('#evDlg').close(); hideCourse(e); }
+    else if (a === 'exam'){ addExam(e.title, ymd(e.start), e.allDay ? null : fmtTime(e.start), e.id); $('#evDlg').close(); toast('Aggiunto al countdown ⏳'); }
+    else if (a === 'del'){ if (!confirm(`Eliminare «${e.title}» dal calendario?`)) return; await deleteEvents([e]); $('#evDlg').close(); toast('Evento eliminato'); }
+    else if (a === 'delall'){
+      const list = allEvents.filter(x => x.writable && courseKey(x) === courseKey(e));
+      if (!confirm(`Eliminare definitivamente ${list.length} eventi «${courseLabel(e)}» dal calendario?`)) return;
+      b.innerHTML = '<span class="spin"></span> Elimino…'; await deleteEvents(list); $('#evDlg').close(); toast(`Eliminati ${list.length} eventi`);
+    }
+  }catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account.' : 'Errore: ' + err.message); }
+};
+$('#timetable').onclick = e => { const b = e.target.closest('[data-les]'); const ev = b && events.find(x => x.id === b.dataset.les); if (ev) openEvDlg(ev); };
+document.querySelector('#uniCard .wknav').onclick = e => { const b = e.target.closest('[data-wk]'); if (b){ wkOffset = Math.max(-4, Math.min(8, wkOffset + +b.dataset.wk)); renderUni(); } };
+$('#examForm').onsubmit = e => {
+  e.preventDefault();
+  const n = $('#examName').value.trim(), d = $('#examDate').value;
+  if (!n) return $('#examName').focus();
+  if (!d) return $('#examDate').focus();
+  addExam(n, d); $('#examName').value = ''; $('#examDate').value = ''; toast('Esame aggiunto ⏳');
+};
+$('#examList').onclick = e => {
+  const row = e.target.closest('[data-exam]'); if (!row || !e.target.closest('[data-exdel]')) return;
+  const x = exams.find(y => y.id === row.dataset.exam); if (!x) return;
+  exams = exams.filter(y => y !== x); saveExams(); renderExams(); renderRecap();
+  toast(`Eliminato: ${x.name}`, 'Annulla', () => { exams.push(x); saveExams(); renderExams(); renderRecap(); });
+};
+$('#examSugg').onclick = e => { const b = e.target.closest('[data-exsugg]'); const ev = b && events.find(x => x.id === b.dataset.exsugg); if (ev){ addExam(ev.title, ymd(ev.start), ev.allDay ? null : fmtTime(ev.start), ev.id); toast('Aggiunto al countdown ⏳'); } };
+$('#habitGoal').innerHTML = [1, 2, 3, 4, 5, 6, 7].map(i => `<option value="${i}" ${i === 3 ? 'selected' : ''}>${i}×/sett.</option>`).join('');
+$('#habitList').onclick = e => {
+  const row = e.target.closest('[data-hab]'); if (!row) return;
+  const h = habits.find(x => x.id === row.dataset.hab); if (!h) return;
+  const d = e.target.closest('[data-hk]');
+  if (d){ setHabit(h, d.dataset.hk, !habitDone(h, d.dataset.hk)); return; }
+  if (e.target.closest('[data-hdel]') && confirm(`Eliminare l'abitudine «${h.name}»?`)){ habits = habits.filter(x => x !== h); saveHabits(); renderHabits(); renderRecap(); }
+};
+$('#habitForm').onsubmit = e => {
+  e.preventDefault(); const n = $('#habitName').value.trim(); if (!n) return;
+  habits.push({id:uid(), name:cap(n), goal:+$('#habitGoal').value || 3, createdAt:Date.now()});
+  saveHabits(); $('#habitName').value = ''; renderHabits();
+};
+$('#mailSub').onclick = async e => {
+  if (!e.target.closest('#readAllBtn')) return;
+  try{ const n = await markRead(emails.filter(x => x.cls.type === 'broadcast' && x.unread)); toast(`Segnate come lette ${n} email`); }
+  catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account.' : 'Errore: ' + err.message); }
+};
+$('#hiddenSettings').onclick = e => {
+  const b = e.target.closest('[data-unhide]'); if (!b) return;
+  delete hiddenCourses[b.dataset.unhide]; saveHidden(); afterEventsChange(); renderHiddenSettings();
+};
+$('#sNotify').onchange = async e => { if (e.target.checked && !(await enableNotify())) e.target.checked = false; };
+$('#testNotify').onclick = async () => { if (await enableNotify()) notify('🔔 Funziona!', 'Ti avviserò prima di impegni e attività della giornata.', 'test'); };
+$('#syncBtn').onclick = () => { if (mode !== 'google' || !token) return toast('Prima collega l\'account.'); if (!hasScopes()) return upgradeScopes(); syncNow(); };
+setInterval(checkReminders, 30e3);
+setInterval(() => { if (document.visibilityState === 'visible') syncNow(); }, 5 * 60e3);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible'){ checkReminders(); syncNow(); } });
 
 /* ---------- avvio ---------- */
 applyTheme();
