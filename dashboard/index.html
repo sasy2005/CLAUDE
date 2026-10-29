@@ -577,10 +577,6 @@
     <div id="calSettings"></div>
     <div class="field"><label for="sLessonCal">Calendario delle lezioni</label><select id="sLessonCal"></select>
       <div class="hint">Le lezioni di questo calendario finiscono nell'orario 🎓. Come importare l'orario dell'università: vedi il README.</div></div>
-    <div class="field"><button class="btn sm" type="button" id="dedupeBtn">🧹 Togli dal calendario principale le lezioni importate per errore</button>
-      <div class="hint">Elimina dal calendario principale (quello col tuo nome) solo gli eventi identici a quelli del calendario delle lezioni. Le lezioni restano nel loro calendario e i tuoi impegni non vengono toccati.</div>
-      <label class="btn sm" style="margin-top:8px;cursor:pointer">📄 Oppure usa il file .ics scaricato<input type="file" id="icsInp" accept=".ics,text/calendar" hidden></label>
-      <div class="hint">Elimina dal calendario principale solo gli eventi che vengono da quel file.</div></div>
     <div id="hiddenSettings"></div>
 
     <div class="sec">Notifiche</div>
@@ -2385,74 +2381,6 @@ async function deleteEvents(list){
   const ids = new Set(list.map(e => e.id));
   allEvents = allEvents.filter(x => !ids.has(x.id)); afterEventsChange();
 }
-function parseIcs(text){
-  const lines = String(text).replace(/\r?\n[ \t]/g, '').split(/\r?\n/), out = [];
-  let cur = null;
-  const unesc = v => v.replace(/\\n/gi, ' ').replace(/\\([,;\\])/g, '$1').trim();
-  const toMs = (params, v) => {
-    const m = v.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/); if (!m) return NaN;
-    if (!m[4]) return +new Date(+m[1], m[2] - 1, +m[3]);
-    return m[7] ? Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)) : +new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
-  };
-  for (const ln of lines){
-    if (ln === 'BEGIN:VEVENT') cur = {};
-    else if (ln === 'END:VEVENT'){ if (cur) out.push(cur); cur = null; }
-    else if (cur){
-      const i = ln.indexOf(':'); if (i < 0) continue;
-      const [name, ...params] = ln.slice(0, i).split(';'), val = ln.slice(i + 1);
-      if (name === 'UID') cur.uid = val.trim();
-      else if (name === 'SUMMARY') cur.summary = unesc(val);
-      else if (name === 'DTSTART') cur.start = toMs(params, val.trim());
-    }
-  }
-  return out;
-}
-async function primaryEvents(){
-  const from = encodeURIComponent(addDays(new Date(), -240).toISOString()), to = encodeURIComponent(addDays(new Date(), 400).toISOString());
-  const items = []; let pt = '';
-  do {
-    const r = await gapi(`https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&maxResults=2500&timeMin=${from}&timeMax=${to}${pt ? '&pageToken=' + encodeURIComponent(pt) : ''}`);
-    items.push(...(r.items || [])); pt = r.nextPageToken || '';
-  } while (pt);
-  return items.filter(x => x.status !== 'cancelled');
-}
-// tra gli eventi del principale tengo quelli che corrispondono ai riferimenti (stesso evento del file, o stesso titolo e orario)
-function matchRefs(prim, refs){
-  const key = (t, ms) => String(t || '').trim().toLowerCase() + '|' + ms;
-  const uids = new Set(refs.map(r => r.uid).filter(Boolean)), keys = new Set(refs.map(r => key(r.summary, r.start)));
-  const seen = new Set(), out = [];
-  for (const x of prim){
-    if (!(uids.has(x.iCalUID) || keys.has(key(x.summary, +new Date(x.start.dateTime || x.start.date))))) continue;
-    const id = x.recurringEventId || x.id;      // per gli eventi ricorrenti basta eliminare la serie una volta sola
-    if (!seen.has(id)){ seen.add(id); out.push({id, summary:x.summary}); }
-  }
-  return out;
-}
-async function deleteFromPrimary(list, b){
-  const primName = calendars.find(c => c.primary)?.summary || 'principale';
-  if (!list.length){ toast(`Nessuna lezione trovata nel calendario «${primName}» 👍`, null, null, 7000); return; }
-  if (!confirm(`Ho trovato ${list.length} lezioni nel calendario «${primName}».\nLe elimino da lì? I tuoi altri impegni non vengono toccati.`)) return;
-  let done = 0;
-  await pool(list, 4, async x => {
-    await gapi(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(x.id)}`, {method:'DELETE'}).catch(err => { if (!/410|404/.test(err.message)) throw err; });
-    b.innerHTML = `<span class="spin"></span> Elimino… ${++done}/${list.length}`;
-  });
-  toast(`Fatto: tolte ${list.length} lezioni dal calendario «${primName}» ✓`, null, null, 7000);
-  refreshAll();
-}
-// Lezioni importate per sbaglio anche nel calendario principale: trova i doppioni esatti (stesso evento del file o
-// stesso titolo e orario di una lezione) e li elimina solo dal principale.
-async function findMisimported(){
-  if (mode !== 'google' || !token) throw new Error('prima collega l\'account');
-  const lc = S.lessonCal;
-  if (!lc || lc === 'primary' || calendars.find(c => c.id === lc)?.primary) throw new Error('scegli prima qui sopra il calendario delle lezioni (es. «Lezioni») e premi Salva');
-  const les = allEvents.filter(e => e.calId === lc);
-  if (!les.length) throw new Error('il calendario delle lezioni è vuoto: usa il pulsante «Oppure usa il file .ics scaricato»');
-  const from = addDays(new Date(), -240), to = addDays(new Date(), 400);
-  const r = await gapi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(lc)}/events?singleEvents=true&maxResults=2500&timeMin=${encodeURIComponent(from.toISOString())}&timeMax=${encodeURIComponent(to.toISOString())}`);
-  const refs = (r.items || []).map(x => ({uid:x.iCalUID, summary:x.summary, start:+new Date(x.start.dateTime || x.start.date)}));
-  return matchRefs(await primaryEvents(), refs);
-}
 function renderHiddenSettings(){
   const hid = Object.entries(hiddenCourses);
   $('#hiddenSettings').innerHTML = hid.length ? '<div class="field"><label>Corsi nascosti</label>' + hid.map(([k, v]) =>
@@ -2942,26 +2870,6 @@ $('#hiddenSettings').onclick = e => {
   const b = e.target.closest('[data-unhide]'); if (!b) return;
   delete hiddenCourses[b.dataset.unhide]; saveHidden(); afterEventsChange(); renderHiddenSettings();
 };
-$('#dedupeBtn').onclick = async () => {
-  const b = $('#dedupeBtn'), label = b.textContent;
-  try{
-    b.disabled = true; b.innerHTML = '<span class="spin"></span> Cerco i doppioni…';
-    await deleteFromPrimary(await findMisimported(), b);
-  }catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: tocca la pagina per rinnovarla e riprova.' : 'Non riuscito: ' + err.message, null, null, 9000); }
-  finally{ b.disabled = false; b.textContent = label; }
-};
-$('#icsInp').onchange = async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  const b = $('#dedupeBtn'), label = b.textContent;
-  try{
-    if (mode !== 'google' || !token) throw new Error('prima collega l\'account');
-    const refs = parseIcs(await f.text()).filter(r => r.summary && !isNaN(r.start));
-    if (!refs.length) throw new Error('nel file non ho trovato lezioni (è un file .ics?)');
-    b.disabled = true; b.innerHTML = `<span class="spin"></span> Cerco le ${refs.length} lezioni del file…`;
-    await deleteFromPrimary(matchRefs(await primaryEvents(), refs), b);
-  }catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: tocca la pagina per rinnovarla e riprova.' : 'Non riuscito: ' + err.message, null, null, 9000); }
-  finally{ b.disabled = false; b.textContent = label; }
-};
 $('#sNotify').onchange = async e => { if (e.target.checked && !(await enableNotify())) e.target.checked = false; };
 $('#testNotify').onclick = async () => { if (await enableNotify()) notify('🔔 Funziona!', 'Ti avviserò prima di impegni e attività della giornata.', 'test'); };
 $('#syncBtn').onclick = () => { if (mode !== 'google' || !token) return toast('Prima collega l\'account.'); if (!hasScopes()) return upgradeScopes(); syncNow(); };
@@ -2989,7 +2897,7 @@ document.addEventListener('keydown', maybeRenew, true);
 $('#setupSteps').onclick = e => { if (e.target.closest('#permBtn')){ $('#settingsDlg').close(); upgradeScopes(); } };
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 7';
+const APP_VERSION = '29 ottobre · 8';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
