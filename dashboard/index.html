@@ -600,6 +600,16 @@
       <div class="field"><label for="sModel">Modello</label><input type="text" id="sModel"></div>
       <div class="field"><label>&nbsp;</label><button class="btn" id="testAiBtn" type="button" style="width:100%">Prova la chiave</button></div>
     </div>
+    <div class="field"><label>Riserve gratuite, se Gemini finisce la quota del giorno</label>
+      <div class="hint" style="margin:0 0 8px">Quando un'AI esaurisce i limiti gratuiti la dashboard passa da sola alla successiva: Gemini (più modelli) → Groq → OpenRouter. Le quote si azzerano ogni mattina verso le 9.</div></div>
+    <div class="two">
+      <div class="field"><label for="sGroq">Chiave Groq (gratis)</label><input type="password" id="sGroq" placeholder="gsk_…">
+        <div class="hint">Crea la chiave su <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a></div></div>
+      <div class="field"><label for="sOr">Chiave OpenRouter (gratis)</label><input type="password" id="sOr" placeholder="sk-or-…">
+        <div class="hint">Crea la chiave su <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener">openrouter.ai</a> (circa 50 richieste gratis al giorno)</div></div>
+    </div>
+    <div class="row" style="margin:0 0 10px;align-items:center"><button class="btn sm" type="button" id="testChainBtn">🔎 Controlla tutte le AI</button><span class="note" id="chainLbl" style="margin:0"></span></div>
+    <label class="switch"><input type="checkbox" id="sAiEmails"> Usa l'AI anche per riassumere le email (consuma più quota: se la togli, i comandi vocali durano di più)</label>
 
     <div class="sec">Bozze di risposta</div>
     <label class="switch"><input type="checkbox" id="sAuto"> Crea automaticamente le bozze in Gmail per le email dirette a me (non invia mai nulla)</label>
@@ -796,7 +806,7 @@ function saveAnalysis(){
   if (ids.length > 300) ids.slice(0, ids.length - 300).forEach(id => delete analysis[id]);
   store.set('analysis', analysis);
 }
-const aiOn = () => !!S.geminiKey;
+const aiOn = () => !!(S.geminiKey || S.groqKey || S.orKey);
 
 function applyTheme(){
   if (S.theme === 'auto') document.documentElement.removeAttribute('data-theme');
@@ -908,10 +918,10 @@ async function speakText(text){
   const clean = String(text).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/[•«»]/g, '').replace(/\n+/g, '. ').replace(/\.\s*\./g, '.').trim();
   if (!clean) return;
   stopSpeaking(); const seq = speakSeq;
-  const engine = S.voiceEngine === 'auto' ? (aiOn() ? 'gemini' : 'browser') : S.voiceEngine;
-  if (engine === 'gemini' && aiOn() && Date.now() > ttsCooldown){
+  const engine = S.voiceEngine === 'auto' ? (S.geminiKey ? 'gemini' : 'browser') : S.voiceEngine;
+  if (engine === 'gemini' && S.geminiKey && Date.now() > ttsCooldown){
     try{ const a = await geminiTTS(clean); if (seq === speakSeq) playPcm(a); return; }
-    catch(err){ console.warn(err); ttsCooldown = Date.now() + 5 * 60e3; }   // per 5 minuti uso la voce del browser
+    catch(err){ console.warn(err); ttsCooldown = /429/.test(err.message) ? nextReset() : Date.now() + 5 * 60e3; }   // quota finita: voce del browser fino a domattina
   }
   if (seq === speakSeq) browserSpeak(clean);
 }
@@ -1358,21 +1368,74 @@ function groupThreads(list){
 const getAnalysis = e => analysis[e.id] || (ruleCache[e.id] ||= ruleAnalyze(e));
 
 /* ---------- AI (Google Gemini, piano gratuito) ---------- */
-let lastAi = 0, aiCooldown = 0;
-async function gemini(prompt, urgent = false){
-  if (Date.now() < aiCooldown) throw new Error('limite gratuito momentaneamente raggiunto');
-  const wait = lastAi + 4500 - Date.now(); if (wait > 0 && !urgent) await sleep(wait);   // resta nei limiti del piano gratuito (i comandi passano avanti)
-  lastAi = Date.now();
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(S.geminiModel || DEF.geminiModel)}:generateContent?key=${encodeURIComponent(S.geminiKey)}`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:{responseMimeType:'application/json', temperature:0.4}})
-  });
-  if (r.status === 429){ aiCooldown = Date.now() + 60e3; throw new Error('limite gratuito momentaneamente raggiunto'); }
-  if (!r.ok) throw new Error(`Gemini ${r.status}: ${(await r.text()).slice(0, 160)}`);
-  const j = await r.json();
-  const txt = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
-  return JSON.parse(txt.replace(/^\s*```(?:json)?|```\s*$/g, ''));
+/* ---------- catena di AI gratuite: quando una finisce la quota passa alla successiva ---------- */
+let lastAi = 0, lastEngine = '';
+const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+const GROQ_MODELS = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'llama-3.1-8b-instant'];
+let aiCool = store.get('aiCool', {});                 // motore → fino a quando è in pausa
+function nextReset(){                                 // le quote giornaliere ripartono a mezzanotte del Pacifico (le 9 in Italia)
+  const now = new Date(), pt = new Date(now.toLocaleString('en-US', {timeZone:'America/Los_Angeles'}));
+  const mid = new Date(pt); mid.setHours(24, 0, 30, 0);
+  return now.getTime() + (mid - pt);
 }
+function aiEngines(){
+  const L = [];
+  if (S.geminiKey) [S.geminiModel || DEF.geminiModel, ...GEMINI_MODELS].filter((m, i, a) => m && a.indexOf(m) === i)
+    .forEach(m => L.push({id:'gemini:' + m, kind:'gemini', model:m, key:S.geminiKey, label:'Gemini'}));
+  if (S.groqKey) [S.groqModel, ...GROQ_MODELS].filter((m, i, a) => m && a.indexOf(m) === i)
+    .forEach(m => L.push({id:'groq:' + m, kind:'openai', url:'https://api.groq.com/openai/v1/chat/completions', model:m, key:S.groqKey, label:'Groq'}));
+  if (S.orKey) L.push({id:'openrouter:' + (S.orModel || 'free'), kind:'openai', url:'https://openrouter.ai/api/v1/chat/completions', model:S.orModel || 'meta-llama/llama-3.3-70b-instruct:free', key:S.orKey, label:'OpenRouter'});
+  return L;
+}
+const parseJsonLoose = txt => {
+  const t = String(txt || '').replace(/^\s*```(?:json)?|```\s*$/g, '').trim();
+  try{ return JSON.parse(t); }catch{ const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a >= 0 && b > a) return JSON.parse(t.slice(a, b + 1)); throw new Error('risposta non valida'); }
+};
+async function callEngine(en, prompt){
+  let r;
+  if (en.kind === 'gemini'){
+    r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(en.model)}:generateContent?key=${encodeURIComponent(en.key)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:{responseMimeType:'application/json', temperature:0.4}})});
+  } else {
+    const body = {model:en.model, temperature:0.4, response_format:{type:'json_object'},
+      messages:[{role:'system', content:'Rispondi sempre e solo con JSON valido, in italiano.'}, {role:'user', content:prompt}]};
+    const headers = {'Content-Type':'application/json', Authorization:'Bearer ' + en.key};
+    if (en.label === 'OpenRouter') Object.assign(headers, {'HTTP-Referer':location.origin, 'X-Title':'La mia Dashboard'});
+    r = await fetch(en.url, {method:'POST', headers, body:JSON.stringify(body)});
+    if (r.status === 400){ delete body.response_format; r = await fetch(en.url, {method:'POST', headers, body:JSON.stringify(body)}); }   // modelli senza «modalità JSON»
+  }
+  if (!r.ok){ const e = new Error(`${en.label} ${r.status}: ${(await r.text()).slice(0, 200)}`); e.status = r.status; throw e; }
+  const j = await r.json();
+  const txt = en.kind === 'gemini' ? (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('') : j.choices?.[0]?.message?.content;
+  return parseJsonLoose(txt);
+}
+async function gemini(prompt, urgent = false){
+  const wait = lastAi + 4500 - Date.now(); if (wait > 0 && !urgent) await sleep(wait);   // resta nei limiti dei piani gratuiti (i comandi passano avanti)
+  lastAi = Date.now();
+  let lastErr = null, tried = 0;
+  for (const en of aiEngines()){
+    if ((aiCool[en.id] || 0) > Date.now()) continue;
+    tried++;
+    try{
+      const out = await callEngine(en, prompt);
+      if (lastEngine !== en.label){ lastEngine = en.label; renderHeader(); }
+      return out;
+    }catch(err){
+      lastErr = err;
+      if (err.status === 429 || (err.status === 403 && /quota|limit|exceed/i.test(err.message)))
+        aiCool[en.id] = /day|daily|per ?day|PerDay|quota/i.test(err.message) ? nextReset() : Date.now() + 60e3;    // quota del giorno finita → fino a domattina
+      else if (err.status === 404 || (err.status === 400 && /model|not found|decommission/i.test(err.message)))
+        aiCool[en.id] = Date.now() + 7 * 864e5;                                       // modello non disponibile
+      else if (err.status === 401 || err.status === 403) aiCool[en.id] = Date.now() + 10 * 60e3;   // chiave sbagliata
+      store.set('aiCool', aiCool);
+    }
+  }
+  renderHeader();
+  if (!tried) throw new Error(`tutte le AI gratuite sono esaurite fino alle ${fmtTime(new Date(Math.min(...aiEngines().map(e => aiCool[e.id] || Infinity))))}`);
+  throw new Error(lastErr ? lastErr.message.slice(0, 120) : 'nessuna AI disponibile');
+}
+const aiAvailable = () => aiEngines().some(e => (aiCool[e.id] || 0) <= Date.now());
 async function aiAnalyze(e){
   const formal = isProf(e);
   const prompt = `Sei l'assistente personale di ${S.name || 'uno studente universitario'} (email: ${myAddrs[0] || 'n/d'}). Oggi è ${new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}.
@@ -1398,7 +1461,7 @@ let analyzing = false;
 async function analyzeAll(){
   if (analyzing) return; analyzing = true;
   try{
-    if (aiOn()){
+    if (aiOn() && S.aiEmails !== false && aiAvailable()){
       const todo = emails.filter(e => !analysis[e.id]?.ai && (e.cls.type === 'direct' || DEADLINE_WORDS.test(norm(e.subject + ' ' + e.body)))).slice(0, 8);      // poche per volta: la quota gratuita serve anche ai comandi vocali
       for (const [i, e] of todo.entries()){
         setSub(`<span class="spin"></span> Leggo le email con l'AI… ${i + 1}/${todo.length}`);
@@ -2184,7 +2247,8 @@ function renderHeader(){
   mp.lastElementChild.textContent = mode === 'demo' ? 'Dati di esempio' : (token ? (myAddrs[0] || 'Collegato') : 'Da riconnettere');
   const ap = $('#aiPill');
   ap.className = 'pill ' + (aiOn() ? 'ok' : '');
-  ap.lastElementChild.textContent = aiOn() ? 'AI Gemini attiva' : 'Regole base (senza AI)';
+  ap.lastElementChild.textContent = !aiOn() ? 'Regole base (senza AI)' : aiAvailable() ? `AI ${lastEngine || 'attiva'}` : 'AI in pausa fino alle 9';
+  if (aiOn() && !aiAvailable()) ap.className = 'pill warn';
   $('#connectBtn').textContent = mode === 'google' ? (token ? 'Collegato ✓' : 'Riconnetti') : 'Collega account';
   $('#connectBtn').classList.toggle('primary', !(mode === 'google' && token));
 }
@@ -2520,6 +2584,7 @@ function loadDemo(){
 function openSettings(){
   $('#sName').value = S.name; $('#sUni').value = S.uniEmail; $('#sAliases').value = S.aliases; $('#sClient').value = S.clientId;
   $('#sQuery').value = S.mailQuery; $('#sMax').value = S.maxMails; $('#sGemini').value = S.geminiKey; $('#sModel').value = S.geminiModel;
+  $('#sGroq').value = S.groqKey || ''; $('#sOr').value = S.orKey || ''; $('#sAiEmails').checked = S.aiEmails !== false; renderChainLbl();
   $('#sAuto').checked = S.autoDrafts; $('#sSign').value = S.signature; $('#sVoice').checked = S.voiceReplies; $('#sTheme').value = S.theme;
   $('#sPause').value = String(S.voicePause || 3);
   $('#sVol').value = S.voiceVolume ?? 1; $('#volLbl').textContent = Math.round((S.voiceVolume ?? 1) * 100) + '%';
@@ -2555,6 +2620,7 @@ function saveSettings(){
     name:$('#sName').value.trim(), uniEmail:$('#sUni').value.trim(), aliases:$('#sAliases').value.trim(), clientId:$('#sClient').value.trim(),
     mailQuery:$('#sQuery').value.trim() || DEF.mailQuery, maxMails:Math.max(5, Math.min(100, +$('#sMax').value || 40)),
     geminiKey:$('#sGemini').value.trim(), geminiModel:$('#sModel').value.trim() || DEF.geminiModel,
+    groqKey:$('#sGroq').value.trim(), orKey:$('#sOr').value.trim(), aiEmails:$('#sAiEmails').checked,
     autoDrafts:$('#sAuto').checked, signature:$('#sSign').value.trim(), voiceReplies:$('#sVoice').checked, theme:$('#sTheme').value,
     voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1,
     voicePause:+$('#sPause').value || 3, voiceVolume:+$('#sVol').value,
@@ -2674,6 +2740,28 @@ $('#refreshBtn').onclick = () => (mode === 'google' && !token) ? connect() : ref
 $('#themeBtn').onclick = () => {
   const dark = S.theme === 'dark' || (S.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
   S.theme = dark ? 'light' : 'dark'; store.set('settings', S); applyTheme();
+};
+function renderChainLbl(){
+  const by = {};
+  for (const e of aiEngines()){ const c = aiCool[e.id] || 0; (by[e.label] ||= []).push(c > Date.now() ? c : 0); }
+  $('#chainLbl').textContent = Object.entries(by).map(([l, cs]) => cs.some(c => !c) ? `✅ ${l}` : `⏸ ${l} fino alle ${fmtTime(new Date(Math.min(...cs)))}`).join(' · ') || 'Nessuna chiave inserita.';
+}
+$('#testChainBtn').onclick = async () => {
+  const old = {...S}; Object.assign(S, {geminiKey:$('#sGemini').value.trim(), groqKey:$('#sGroq').value.trim(), orKey:$('#sOr').value.trim()});
+  $('#chainLbl').innerHTML = '<span class="spin"></span> Controllo…';
+  const res = [];
+  const seen = new Set();
+  for (const en of aiEngines()){
+    if (seen.has(en.label) && res.find(r => r.l === en.label && r.ok)) continue;
+    try{ const r = await callEngine(en, 'Rispondi solo con il JSON {"ok": true}'); delete aiCool[en.id]; res.push({l:en.label, ok:!!r.ok, m:en.model}); }
+    catch(err){ if (err.status === 429) aiCool[en.id] = /day|PerDay|quota/i.test(err.message) ? nextReset() : Date.now() + 60e3; res.push({l:en.label, ok:false, m:en.model, err:err.status === 429 ? 'quota finita' : err.status === 401 || err.status === 403 ? 'chiave non valida' : 'non disponibile'}); }
+    seen.add(en.label);
+  }
+  store.set('aiCool', aiCool);
+  Object.assign(S, {geminiKey:old.geminiKey, groqKey:old.groqKey, orKey:old.orKey});
+  const by = {}; res.forEach(r => (by[r.l] ||= []).push(r));
+  $('#chainLbl').textContent = Object.entries(by).map(([l, rs]) => rs.some(r => r.ok) ? `✅ ${l} (${rs.find(r => r.ok).m})` : `❌ ${l}: ${rs[rs.length - 1].err}`).join(' · ') || 'Nessuna chiave inserita.';
+  renderHeader();
 };
 $('#testAiBtn').onclick = async () => {
   const old = {...S}; S.geminiKey = $('#sGemini').value.trim(); S.geminiModel = $('#sModel').value.trim() || DEF.geminiModel;
@@ -3122,7 +3210,7 @@ const saveHabitLog = saveWith(() => { stampMap('log', habitLog, 'log:'); store.s
 const saveExams = saveWith(() => { stampList('exams', exams, 'exam:'); store.set(K('exams'), exams); });
 const saveHidden = saveWith(() => { stampMap('hidden', hiddenCourses, 'hide:'); store.set(K('hidden'), hiddenCourses); });
 
-const SYNC_KEYS = ['name', 'uniEmail', 'aliases', 'signature', 'geminiKey', 'geminiModel', 'autoDrafts', 'voiceReplies', 'voiceEngine', 'gVoice', 'voiceRate', 'voicePause', 'voiceVolume',
+const SYNC_KEYS = ['name', 'uniEmail', 'aliases', 'signature', 'geminiKey', 'geminiModel', 'groqKey', 'orKey', 'aiEmails', 'autoDrafts', 'voiceReplies', 'voiceEngine', 'gVoice', 'voiceRate', 'voicePause', 'voiceVolume',
   'theme', 'notifyLead', 'planToCal', 'lessonCal', 'calendars', 'mailQuery', 'maxMails'];
 function localDoc(){
   return {v:1, tasks, plans, habits, habitLog, exams, hiddenCourses, eventImp, tombs,
@@ -3335,7 +3423,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 17';
+const APP_VERSION = '29 ottobre · 18';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();

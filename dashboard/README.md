@@ -104,6 +104,8 @@ Con una chiave **Google Gemini** (piano gratuito) diventa più intelligente:
 - comandi vocali più liberi (es. «scrivi al prof Bianchi che domani arrivo 10 minuti in ritardo» → email completa ed educata)
 
 Come fare: crea la chiave su [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → incollala in **⚙️ Impostazioni → Chiave API Google Gemini** → «Prova la chiave».
+
+**Quando finisce la quota gratuita:** la dashboard passa da sola alla prossima AI gratuita disponibile, nell'ordine Gemini (più modelli, ognuno con la sua quota) → **Groq** → **OpenRouter**. Basta aggiungere le chiavi gratuite in ⚙️ Impostazioni ([console.groq.com/keys](https://console.groq.com/keys), [openrouter.ai](https://openrouter.ai/settings/keys)); «🔎 Controlla tutte le AI» mostra quali sono attive. Le quote giornaliere ripartono ogni mattina verso le 9. Togliendo «Usa l'AI anche per riassumere le email» la quota dura molto di più.
 La dashboard rispetta i limiti del piano gratuito (una richiesta ogni ~5 secondi, massimo 15 email analizzate per aggiornamento; i risultati restano in memoria).
 
 > Nota privacy: con la chiave attiva il testo delle email viene inviato a Google Gemini per l'analisi. Nel piano gratuito Google può usare questi dati per migliorare i suoi servizi. Se non vuoi, lascia il campo vuoto e usa le regole base.
