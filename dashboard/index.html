@@ -264,6 +264,13 @@
   textarea:focus{border-color:var(--accent)}
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .note{font-size:.76rem;color:var(--muted);margin-top:8px}
+  .cnt{font-size:.72rem;font-weight:600;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);border-radius:99px;padding:0 6px;margin-left:2px}
+  details.older{border-top:1px solid var(--border);padding:8px 0}
+  details.older:first-of-type{border-top:0}
+  details.older summary{cursor:pointer;font-size:.86rem;list-style:none}
+  details.older summary::-webkit-details-marker{display:none}
+  details.older summary span{display:block;color:var(--muted);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  details.older .body{margin-top:8px}
   .sugg{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;font-size:.88rem}
 
   /* ---------- dialogs ---------- */
@@ -1065,6 +1072,18 @@ function templateDraft(e){
   const close = formal ? 'Cordiali saluti,' : 'A presto,';
   return `${greet}\n\n${core}\n\n${close}\n${S.signature || S.name || ''}`.trim();
 }
+// Una sola riga per conversazione (come Gmail): resta l'ultimo messaggio, con il conteggio e i precedenti.
+function groupThreads(list){
+  const map = new Map();
+  for (const e of [...list].sort((a, b) => b.date - a.date)){
+    const g = map.get(e.threadId);
+    if (!g){ e.count = 1; e.thread = [e]; map.set(e.threadId, e); continue; }
+    g.count++; g.thread.push(e);
+    if (e.unread) g.unread = true;
+    if (e.cls.type === 'direct' && g.cls.type !== 'direct') g.cls = e.cls;   // se almeno un messaggio era per te, la conversazione è per te
+  }
+  return [...map.values()];
+}
 const getAnalysis = e => analysis[e.id] || (ruleCache[e.id] ||= ruleAnalyze(e));
 
 /* ---------- AI (Google Gemini, piano gratuito) ---------- */
@@ -1214,8 +1233,9 @@ async function fetchGoogle(){
   if (!S.name) $('#greet').textContent = greeting() + ' 👋';
   const list = await gapi(`${GM}/messages?maxResults=${Math.min(100, +S.maxMails || 40)}&q=${encodeURIComponent(S.mailQuery)}`);
   const msgs = await pool(list.messages || [], 6, m => gapi(`${GM}/messages/${m.id}?format=full`).catch(() => null));
-  emails = msgs.filter(Boolean).map(toEmail).sort((a, b) => b.date - a.date);
-  emails.forEach(e => { if (e.cls.type === 'direct' && e.from.email) contacts[e.from.email] = e.from.name; });
+  const all = msgs.filter(Boolean).map(toEmail);
+  all.forEach(e => { if (e.cls.type === 'direct' && e.from.email) contacts[e.from.email] = e.from.name; });
+  emails = groupThreads(all);
   store.set(K('contacts'), contacts);
   // bozze già esistenti in Gmail (anche quelle create prima da qui)
   try{
@@ -1588,7 +1608,7 @@ function renderMail(){
     return `<button class="mail ${e.unread ? 'unread' : ''} ${openEmailId === e.id ? 'sel' : ''}" data-id="${esc(e.id)}">
       <span class="avatar" style="--h:${hueOf(e.from.email)}">${esc(initials(e.from.name))}</span>
       <span class="mail-main">
-        <span class="mail-top"><b>${esc(e.from.name)}</b><time>${esc(fmtMailDate(e.date))}</time></span>
+        <span class="mail-top"><b>${esc(e.from.name)}${e.count > 1 ? ` <span class="cnt">${e.count}</span>` : ''}</b><time>${esc(fmtMailDate(e.date))}</time></span>
         <span class="mail-subj">${esc(e.subject)}</span>
         <span class="mail-snip">${an.ai ? '✨ ' : ''}${esc(an.riassunto || e.snippet)}</span>
         ${tags.length ? `<span class="tags">${tags.join('')}</span>` : ''}
@@ -1631,7 +1651,10 @@ function openEmail(id){
       </div>
       <div class="note">🔒 Nessuna email viene inviata automaticamente: la bozza resta in Gmail finché non la invii tu.</div>
     </div>
-    <div class="box"><h4>Messaggio</h4><div class="body">${esc(e.body.slice(0, 12000) || e.snippet)}</div></div>`;
+    <div class="box"><h4>${e.count > 1 ? 'Ultimo messaggio' : 'Messaggio'}</h4><div class="body">${esc(e.body.slice(0, 12000) || e.snippet)}</div></div>
+    ${e.count > 1 ? `<div class="box"><h4>Messaggi precedenti (${e.count - 1})</h4>${e.thread.slice(1).map(m => `
+      <details class="older"><summary><b>${esc(m.from.name)}</b> · ${esc(m.date.toLocaleString('it-IT', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}))}<span>${esc((m.snippet || '').slice(0, 90))}</span></summary>
+      <div class="body">${esc(m.body.slice(0, 8000) || m.snippet)}</div></details>`).join('')}</div>` : ''}`;
   $('#drawer').classList.add('on'); $('#scrim').classList.add('on');
   renderMail();
 
@@ -1783,7 +1806,7 @@ function loadDemo(){
   myAddrs = [me.toLowerCase()];
   const n = new Date(), h = x => new Date(Date.now() - x * 3600e3);
   const mk = (id, from, to, subject, body, date, unread, extra = {}) => {
-    const e = {id, threadId:id, from:parseAddrs(from)[0], to:parseAddrs(to), cc:parseAddrs(extra.cc || ''), subject, body, date, unread,
+    const e = {id, threadId:extra.thread || id, from:parseAddrs(from)[0], to:parseAddrs(to), cc:parseAddrs(extra.cc || ''), subject, body, date, unread,
       snippet:body.replace(/\s+/g, ' ').slice(0, 140), headers:{from, to, ...(extra.headers || {})}, msgId:'<' + id + '@demo>'};
     e.cls = classify(e); return e;
   };
@@ -1791,6 +1814,8 @@ function loadDemo(){
   emails = [
     mk('d1', 'Prof. Laura Bianchi <laura.bianchi@uni.it>', me, 'Ricevimento per la tesi',
       `Gentile Mario,\n\nho letto la bozza del primo capitolo che mi ha inviato. Nel complesso va bene, ma vorrei discutere con lei la struttura del secondo capitolo.\n\nSarebbe disponibile per un ricevimento giovedì alle 11 nel mio studio (stanza 204)? Mi faccia sapere.\n\nCordiali saluti,\nLaura Bianchi`, h(2), true),
+    mk('d1b', 'Prof. Laura Bianchi <laura.bianchi@uni.it>', me, 'Ricevimento per la tesi',
+      'Gentile Mario,\n\nho ricevuto il primo capitolo, grazie. Lo leggo nei prossimi giorni e le faccio sapere.\n\nCordiali saluti,\nLaura Bianchi', h(70), false, {thread:'d1'}),
     mk('d2', 'Giulia Verdi <giulia.verdi@studenti.uni.it>', `${me}, luca.neri@studenti.uni.it`, 'Progetto di gruppo – slide',
       `Ciao Mario!\n\nho finito la mia parte delle slide del progetto di Basi di Dati. Riesci a mandarmi la tua entro ${vf} sera così le uniamo? Ti va di vederci in biblioteca venerdì pomeriggio per provare la presentazione?\n\nGiulia`, h(5), true),
     mk('b1', 'Segreteria Studenti <noreply@uni.it>', 'studenti-ingegneria@liste.uni.it', 'Apertura iscrizioni appelli sessione invernale',
@@ -1809,6 +1834,7 @@ function loadDemo(){
       'Ecco il menù della settimana: lunedì pasta al pomodoro, martedì risotto ai funghi…', h(50), false)
   ];
   contacts = {}; emails.forEach(e => contacts[e.from.email] = e.from.name);
+  emails = groupThreads(emails);
   contacts['luca.neri@studenti.uni.it'] = 'Luca Neri';
   const at = (d, hh, mm = 0) => { const x = addDays(n, d); x.setHours(hh, mm, 0, 0); return x; };
   events = [
