@@ -1439,6 +1439,7 @@ async function gemini(prompt, urgent = false){
   }
   renderHeader();
   if (!tried) throw new Error(`tutte le AI gratuite sono esaurite fino alle ${fmtTime(new Date(Math.min(...aiEngines().map(e => aiCool[e.id] || Infinity))))}`);
+  if (lastErr?.status === 429 || lastErr?.status === 403) throw new Error('le AI gratuite hanno finito la quota per ora');
   throw new Error(lastErr ? lastErr.message.slice(0, 120) : 'nessuna AI disponibile');
 }
 const aiAvailable = () => aiEngines().some(e => (aiCool[e.id] || 0) <= Date.now());
