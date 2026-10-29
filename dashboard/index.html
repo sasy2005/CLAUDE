@@ -624,6 +624,9 @@
       <div class="field"><label for="sRate">Velocità: <span id="rateLbl"></span></label><input type="range" id="sRate" min="0.8" max="1.4" step="0.05"></div>
     </div>
     <button class="btn sm" type="button" id="testVoice" style="margin-bottom:12px">▶ Prova la voce</button>
+    <div class="field"><label for="sPause">Quando parli, invia il comando dopo una pausa di</label><select id="sPause">
+      <option value="2">2 secondi</option><option value="3">3 secondi</option><option value="4">4 secondi</option><option value="5">5 secondi</option></select>
+      <div class="hint">Puoi anche toccare di nuovo il microfono per inviare subito.</div></div>
     <div class="field"><label for="sTheme">Tema</label><select id="sTheme"><option value="auto">Automatico</option><option value="light">Chiaro</option><option value="dark">Scuro</option></select></div>
 
     <div class="sec">Calendari e lezioni</div>
@@ -744,7 +747,7 @@ const DEF = {
   mailQuery:'in:inbox newer_than:14d -category:promotions -category:social -from:me', maxMails:40,
   geminiKey:'', geminiModel:'gemini-flash-latest',
   autoDrafts:true, signature:'', voiceReplies:true, theme:'auto',
-  voiceEngine:'auto', gVoice:'Sulafat', bVoice:'', voiceRate:1.05,
+  voiceEngine:'auto', gVoice:'Sulafat', bVoice:'', voiceRate:1.05, voicePause:3,
   notify:false, notifyLead:10, planToCal:false, lessonCal:'', calendars:null, u:0
 };
 let S = {...DEF, ...store.get('settings', {})};
@@ -875,28 +878,58 @@ async function speakText(text){
 }
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null, listening = false;
-function toggleMic(){
-  if (listening){ rec && rec.stop(); return; }
-  if (!SR){ say('Il riconoscimento vocale funziona su Chrome, Edge o Safari. Intanto puoi scrivere il comando qui sopra.', false); return; }
+let rec = null, listening = false, silenceTimer = null, heard = '', base = '';
+// unisce i pezzi riconosciuti; su Android Chrome ripete il testo precedente, quindi tengo solo la versione più lunga
+function joinResults(results){
+  const parts = [];
+  for (const r of results){
+    const t = r[0].transcript.trim(); if (!t) continue;
+    const last = parts[parts.length - 1];
+    if (last && t.toLowerCase().startsWith(last.toLowerCase())) parts[parts.length - 1] = t; else parts.push(t);
+  }
+  return parts.join(' ');
+}
+const pauseMs = () => (+S.voicePause || 3) * 1000;
+function armSilence(ms){ clearTimeout(silenceTimer); silenceTimer = setTimeout(finishListening, ms); }
+// fine dell'ascolto: dopo qualche secondo di silenzio, o quando tocchi di nuovo il microfono
+function finishListening(){
+  clearTimeout(silenceTimer);
+  if (!listening) return;
+  listening = false;
+  if (rec){ rec.onend = null; rec.onresult = null; try{ rec.stop(); }catch{} }
+  $('#micBtn').classList.remove('on');
+  $('#cmdInput').placeholder = 'Parla o scrivi un comando…';
+  const t = heard.trim(); heard = ''; base = '';
+  $('#cmdInput').value = '';
+  if (t) handleCommand(t); else say('Non ho sentito niente. Tocca il microfono e riprova.', false);
+}
+function startRec(){
   rec = new SR();
-  rec.lang = 'it-IT'; rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
-  let finalTxt = '';
+  rec.lang = 'it-IT'; rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = true;
   rec.onresult = e => {
-    let txt = '';
-    for (const r of e.results){ txt += r[0].transcript; if (r.isFinal) finalTxt = txt; }
-    $('#cmdInput').value = txt;
+    heard = (base + ' ' + joinResults(e.results)).trim();
+    $('#cmdInput').value = heard;
+    say('🎙️ ' + heard + ' …', false);
+    armSilence(pauseMs());                 // aspetto che tu finisca la frase
   };
-  rec.onerror = e => { if (e.error === 'not-allowed') say('Devo avere il permesso di usare il microfono: controlla le impostazioni del browser.', false); };
-  rec.onend = () => {
-    listening = false; $('#micBtn').classList.remove('on');
-    const t = (finalTxt || $('#cmdInput').value).trim();
-    if (t){ $('#cmdInput').value = ''; handleCommand(t); }
+  rec.onerror = e => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){ listening = false; $('#micBtn').classList.remove('on'); say('Devo avere il permesso di usare il microfono: controlla le impostazioni del browser.', false); }
+    else if (e.error === 'network'){ listening = false; $('#micBtn').classList.remove('on'); say('Il riconoscimento vocale ha bisogno di internet: controlla la connessione.', false); }
   };
+  // il browser a volte chiude l'ascolto da solo durante una pausa: se non hai finito, riparto e continuo la frase
+  rec.onend = () => { if (listening){ base = heard; try{ startRec(); }catch{ finishListening(); } } };
+  rec.start();
+}
+function toggleMic(){
+  if (listening){ finishListening(); return; }   // secondo tocco = invia subito
+  if (!SR){ say('Il riconoscimento vocale funziona su Chrome, Edge o Safari. Intanto puoi scrivere il comando qui sopra.', false); return; }
   unlockAudio(); stopSpeaking();
-  rec.start(); listening = true; $('#micBtn').classList.add('on');
-  $('#cmdInput').value = ''; $('#cmdInput').placeholder = 'Ti ascolto…';
-  setTimeout(() => $('#cmdInput').placeholder = 'Parla o scrivi un comando…', 4000);
+  heard = ''; base = ''; listening = true;
+  $('#micBtn').classList.add('on');
+  $('#cmdInput').value = ''; $('#cmdInput').placeholder = 'Ti ascolto… (tocca di nuovo il microfono per inviare subito)';
+  say('🎙️ Ti ascolto…', false);
+  armSilence(8000);                        // se non dici niente per 8 secondi, smetto
+  try{ startRec(); }catch(err){ listening = false; $('#micBtn').classList.remove('on'); say('Non riesco ad avviare il microfono: ' + err.message, false); }
 }
 
 /* =====================================================================
@@ -2180,6 +2213,7 @@ function openSettings(){
   $('#sName').value = S.name; $('#sUni').value = S.uniEmail; $('#sAliases').value = S.aliases; $('#sClient').value = S.clientId;
   $('#sQuery').value = S.mailQuery; $('#sMax').value = S.maxMails; $('#sGemini').value = S.geminiKey; $('#sModel').value = S.geminiModel;
   $('#sAuto').checked = S.autoDrafts; $('#sSign').value = S.signature; $('#sVoice').checked = S.voiceReplies; $('#sTheme').value = S.theme;
+  $('#sPause').value = String(S.voicePause || 3);
   $('#sEngine').value = S.voiceEngine; $('#sGVoice').value = S.gVoice; $('#sRate').value = S.voiceRate; $('#rateLbl').textContent = (+S.voiceRate).toFixed(2) + '×';
   fillBrowserVoices();
   $('#originLbl').textContent = location.protocol === 'file:' ? '(apri la pagina da GitHub Pages)' : location.origin;
@@ -2213,6 +2247,7 @@ function saveSettings(){
     geminiKey:$('#sGemini').value.trim(), geminiModel:$('#sModel').value.trim() || DEF.geminiModel,
     autoDrafts:$('#sAuto').checked, signature:$('#sSign').value.trim(), voiceReplies:$('#sVoice').checked, theme:$('#sTheme').value,
     voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1,
+    voicePause:+$('#sPause').value || 3,
     calendars:calendars.length ? cals : S.calendars, lessonCal:$('#sLessonCal').value, notify:$('#sNotify').checked, notifyLead:+$('#sLead').value || 10,
     planToCal:$('#sPlanCal').checked
   });
@@ -2775,7 +2810,7 @@ const saveHabitLog = saveWith(() => { stampMap('log', habitLog, 'log:'); store.s
 const saveExams = saveWith(() => { stampList('exams', exams, 'exam:'); store.set(K('exams'), exams); });
 const saveHidden = saveWith(() => { stampMap('hidden', hiddenCourses, 'hide:'); store.set(K('hidden'), hiddenCourses); });
 
-const SYNC_KEYS = ['name', 'uniEmail', 'aliases', 'signature', 'geminiKey', 'geminiModel', 'autoDrafts', 'voiceReplies', 'voiceEngine', 'gVoice', 'voiceRate',
+const SYNC_KEYS = ['name', 'uniEmail', 'aliases', 'signature', 'geminiKey', 'geminiModel', 'autoDrafts', 'voiceReplies', 'voiceEngine', 'gVoice', 'voiceRate', 'voicePause',
   'theme', 'notifyLead', 'planToCal', 'lessonCal', 'calendars', 'mailQuery', 'maxMails'];
 function localDoc(){
   return {v:1, tasks, plans, habits, habitLog, exams, hiddenCourses, eventImp, tombs,
@@ -2988,7 +3023,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 10';
+const APP_VERSION = '29 ottobre · 11';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
