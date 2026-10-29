@@ -577,6 +577,8 @@
     <div id="calSettings"></div>
     <div class="field"><label for="sLessonCal">Calendario delle lezioni</label><select id="sLessonCal"></select>
       <div class="hint">Le lezioni di questo calendario finiscono nell'orario 🎓. Come importare l'orario dell'università: vedi il README.</div></div>
+    <div class="field"><button class="btn sm" type="button" id="dedupeBtn">🧹 Togli dal calendario principale le lezioni importate per errore</button>
+      <div class="hint">Elimina dal calendario principale (quello col tuo nome) solo gli eventi identici a quelli del calendario delle lezioni. Le lezioni restano nel loro calendario e i tuoi impegni non vengono toccati.</div></div>
     <div id="hiddenSettings"></div>
 
     <div class="sec">Notifiche</div>
@@ -2380,6 +2382,30 @@ async function deleteEvents(list){
   const ids = new Set(list.map(e => e.id));
   allEvents = allEvents.filter(x => !ids.has(x.id)); afterEventsChange();
 }
+// Lezioni importate per sbaglio anche nel calendario principale: trova i doppioni esatti (stesso evento del file o
+// stesso titolo e orario di una lezione) e li elimina solo dal principale.
+async function findMisimported(){
+  if (mode !== 'google' || !token) throw new Error('prima collega l\'account');
+  const lc = S.lessonCal;
+  if (!lc || lc === 'primary' || calendars.find(c => c.id === lc)?.primary) throw new Error('scegli prima qui sopra il calendario delle lezioni (es. «Lezioni») e premi Salva');
+  const from = encodeURIComponent(addDays(new Date(), -240).toISOString()), to = encodeURIComponent(addDays(new Date(), 400).toISOString());
+  const all = async cal => {
+    const items = []; let pt = '';
+    do {
+      const r = await gapi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal)}/events?singleEvents=true&maxResults=2500&timeMin=${from}&timeMax=${to}${pt ? '&pageToken=' + encodeURIComponent(pt) : ''}`);
+      items.push(...(r.items || [])); pt = r.nextPageToken || '';
+    } while (pt);
+    return items.filter(x => x.status !== 'cancelled');
+  };
+  const [les, prim] = await Promise.all([all(lc), all('primary')]);
+  const key = x => (x.summary || '').trim().toLowerCase() + '|' + +new Date(x.start.dateTime || x.start.date);
+  const uids = new Set(les.map(x => x.iCalUID).filter(Boolean)), keys = new Set(les.map(key));
+  const dup = prim.filter(x => uids.has(x.iCalUID) || keys.has(key(x)));
+  // per gli eventi ricorrenti basta eliminare la serie una volta sola
+  const seen = new Set(), out = [];
+  for (const x of dup){ const id = x.recurringEventId || x.id; if (!seen.has(id)){ seen.add(id); out.push({id, summary:x.summary}); } }
+  return out;
+}
 function renderHiddenSettings(){
   const hid = Object.entries(hiddenCourses);
   $('#hiddenSettings').innerHTML = hid.length ? '<div class="field"><label>Corsi nascosti</label>' + hid.map(([k, v]) =>
@@ -2868,6 +2894,24 @@ $('#mailSub').onclick = async e => {
 $('#hiddenSettings').onclick = e => {
   const b = e.target.closest('[data-unhide]'); if (!b) return;
   delete hiddenCourses[b.dataset.unhide]; saveHidden(); afterEventsChange(); renderHiddenSettings();
+};
+$('#dedupeBtn').onclick = async () => {
+  const b = $('#dedupeBtn'), label = b.textContent;
+  try{
+    b.disabled = true; b.innerHTML = '<span class="spin"></span> Cerco i doppioni…';
+    const list = await findMisimported();
+    const primName = calendars.find(c => c.primary)?.summary || 'principale';
+    if (!list.length){ toast(`Nessuna lezione copiata nel calendario «${primName}» 👍`); return; }
+    if (!confirm(`Ho trovato ${list.length} lezioni copiate nel calendario «${primName}».\nLe elimino da lì? Restano nel calendario delle lezioni.`)) return;
+    let done = 0;
+    await pool(list, 4, async x => {
+      await gapi(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(x.id)}`, {method:'DELETE'}).catch(err => { if (!/410|404/.test(err.message)) throw err; });
+      b.innerHTML = `<span class="spin"></span> Elimino… ${++done}/${list.length}`;
+    });
+    toast(`Fatto: tolte ${list.length} lezioni dal calendario «${primName}» ✓`, null, null, 7000);
+    refreshAll();
+  }catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: tocca la pagina per rinnovarla e riprova.' : 'Non riuscito: ' + err.message, null, null, 9000); }
+  finally{ b.disabled = false; b.textContent = label; }
 };
 $('#sNotify').onchange = async e => { if (e.target.checked && !(await enableNotify())) e.target.checked = false; };
 $('#testNotify').onclick = async () => { if (await enableNotify()) notify('🔔 Funziona!', 'Ti avviserò prima di impegni e attività della giornata.', 'test'); };
