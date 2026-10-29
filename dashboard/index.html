@@ -814,7 +814,9 @@ function spokenName(name, formal = false){
   if (prof) return 'il prof ' + w[w.length - 1];
   return /^(ufficio|segreteria|biblioteca|servizio|area|centro)/i.test(w[0]) ? w.slice(0, 2).join(' ') : w[0];
 }
+let sayCollect = null;
 function say(text, speak = true, voice = null){   // a schermo il messaggio completo, a voce (se c'è) la versione breve
+  if (sayCollect && speak){ sayCollect.push({text, voice}); return; }
   $('#replyTxt').textContent = text;
   $('#reply').classList.add('on');
   if (speak && S.voiceReplies) speakText(voice || text);
@@ -1333,9 +1335,9 @@ const getAnalysis = e => analysis[e.id] || (ruleCache[e.id] ||= ruleAnalyze(e));
 
 /* ---------- AI (Google Gemini, piano gratuito) ---------- */
 let lastAi = 0, aiCooldown = 0;
-async function gemini(prompt){
+async function gemini(prompt, urgent = false){
   if (Date.now() < aiCooldown) throw new Error('limite gratuito momentaneamente raggiunto');
-  const wait = lastAi + 4500 - Date.now(); if (wait > 0) await sleep(wait);   // resta nei limiti del piano gratuito
+  const wait = lastAi + 4500 - Date.now(); if (wait > 0 && !urgent) await sleep(wait);   // resta nei limiti del piano gratuito (i comandi passano avanti)
   lastAi = Date.now();
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(S.geminiModel || DEF.geminiModel)}:generateContent?key=${encodeURIComponent(S.geminiKey)}`, {
     method:'POST', headers:{'Content-Type':'application/json'},
@@ -1651,8 +1653,41 @@ function openEventDlg(pre = {}){
   $('#eDur').value = pre.hours || 1; $('#eventDlg').showModal(); $('#eTitle').focus();
 }
 
+// «metti il 10 novembre alle 9:45 colloquio e il 23 novembre consegna azienda e diritto» → due eventi
+const DATE_HINT = new RegExp('\\b(?:(?:\\d{1,2}|primo) (?:' + MONTHS.join('|') + ')|lunedi|martedi|mercoledi|giovedi|venerdi|sabato|domenica|dopodomani|domani|\\d{1,2}/\\d{1,2})\\b');
+function multiItems(text){
+  const lead = /^(?:per favore |puoi )?(?:aggiungi|aggiungere|metti|mettimi|segna|segnami|inserisci|fissa|crea|ricordami(?: di)?)\b/;
+  if (!lead.test(norm(text)) || /^(?:per favore )?segna\b.*\blett[ae]\b/.test(norm(text))) return null;
+  const c0 = cutter(text);
+  c0.cut(/^(?:per favore |puoi )?(?:aggiungi|aggiungere|metti|mettimi|segna|segnami|inserisci|fissa|crea|ricordami(?: di)?)\s*(?:(?:al|nel|sul|in|a) calendario\s*)?(?:che\s+)?/);
+  c0.cut(/\b(?:al|nel|sul|in) calendario\b/);
+  const chunks = c0.rest().split(/\s*[,;]\s*|\s+(?:e poi|poi|e invece|invece|mentre|e)\s+/i).filter(Boolean);
+  const items = []; let lastMonth = null;
+  for (let ch of chunks){
+    let nn = norm(ch);
+    const mo = nn.match(new RegExp('\\b(' + MONTHS.join('|') + ')\\b'));
+    if (mo) lastMonth = mo[1];
+    else if (lastMonth && /^(?:il |l')?\d{1,2}\b/.test(nn) && !/^\d{1,2}[:.]\d/.test(nn)){   // «il 23 consegna» dopo «il 10 novembre»
+      ch = ch.replace(/^((?:il |l')?\d{1,2})\b/i, `$1 ${lastMonth}`); nn = norm(ch);
+    }
+    if (DATE_HINT.test(nn) || !items.length) items.push(ch);
+    else items[items.length - 1] += ' e ' + ch;          // pezzo senza data: fa parte del titolo precedente
+  }
+  if (items.filter(x => DATE_HINT.test(norm(x))).length < 2) return null;
+  const asTask = /^(?:per favore )?(?:ricordami|devo)\b/.test(norm(text));
+  return items.map(it => {
+    const c = cutter(it), pr = parsePriority(c), deadline = /\bentro\b/.test(c.n);
+    const {date, time} = parseWhen(c);
+    const title = cleanTitle(c.rest().replace(/^(?:che|di|il|la|lo)\s+/i, ''));
+    if (asTask || deadline || !date) return {action:'add_task', title, due:date ? ymd(date) : null, priority:pr};
+    return {action:'add_event', title, date:ymd(date), time:time ? `${time[0]}:${String(time[1]).padStart(2, '0')}` : null, hours:1,
+      imp:pr === 'alta' ? 'alta' : pr === 'media' ? 'media' : undefined};
+  });
+}
 function ruleParse(text){
   const c = cutter(text), n = c.n.trim();
+  const multi = multiItems(text);
+  if (multi) return {action:'multi', actions:multi};
   if (/^(aiuto|help|cosa (puoi|sai) fare|che comandi)/.test(n)) return {action:'help'};
   if (/^(aggiorna|ricarica|sincronizza|refresh)/.test(n)) return {action:'refresh'};
   if (/\b(recap|riepilogo|briefing|riassunto della giornata)\b|^buongiorno\b/.test(n)) return {action:'recap'};
@@ -1728,7 +1763,10 @@ function ruleParse(text){
   // evento in calendario
   const calWords = /\b(calendario|evento|appuntamento|riunione|ricevimento|incontro|lezione|call|colloquio|visita)\b/;
   const startsAdd = /^(per favore |puoi )?(aggiungi|metti|segna|inserisci|fissa|crea|programma|prenota|nuovo evento)/.test(n);
-  if ((startsAdd && /\b(calendario|evento|appuntamento)\b/.test(n)) || /^(fissa|programma)\b/.test(n) || (startsAdd && calWords.test(n) && /\b(alle|ore|all')\b/.test(n))){
+  const preciseDay = new RegExp('\\b(?:il |l\'|lunedi|martedi|mercoledi|giovedi|venerdi|sabato|domenica|dopodomani)\\b.*?|\\b\\d{1,2} (?:' + MONTHS.join('|') + ')\\b').test(n) && !/\bentro\b/.test(n);
+  const hasTime = /\b(alle|ore|all')\s*\d/.test(n);
+  if ((startsAdd && /\b(calendario|evento|appuntamento)\b/.test(n)) || /^(fissa|programma)\b/.test(n) || (startsAdd && calWords.test(n) && hasTime)
+      || (/^(?:per favore |puoi )?(?:metti|mettimi|segna|segnami|inserisci|aggiungi)\b/.test(n) && !/^(?:per favore )?ricordami/.test(n) && preciseDay && (hasTime || new RegExp('\\b\\d{1,2} (?:' + MONTHS.join('|') + ')\\b').test(n)))){
     c.cut(/^(?:per favore |puoi )?(?:aggiungi|metti|segna|inserisci|fissa|crea|programma|prenota)(?:mi)?\s+/);
     c.cut(/\b(?:al|nel|sul|in|a) calendario\b/); c.cut(/^\s*(?:un |una |l')?(?:nuovo )?(?:evento|appuntamento|impegno)\s*(?::|di|per)?\s*/);
     let hours = 1; const d = c.cut(/\b(?:per|di|da) (\d+(?:[.,]5)?|un'?|una|due|tre|quattro|mezz'?) or[ae]\b/);
@@ -1749,33 +1787,50 @@ async function aiParse(text){
   const open = tasks.filter(t => !t.done).slice(0, 40).map(t => ({id:t.id, titolo:t.title, scadenza:t.due}));
   const cont = Object.entries(contacts).slice(0, 60).map(([e, n]) => `${n} <${e}>`).join('; ');
   const composeOpen = $('#composeDlg').open;
-  const prompt = `Sei l'assistente vocale della dashboard di ${S.name || 'uno studente'}. Oggi è ${new Date().toLocaleString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'})}.
-Trasforma il comando in UNA azione JSON. Azioni possibili:
+  const now = new Date();
+  const days = Array.from({length:21}, (_, i) => { const d = addDays(now, i); return `${d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'})} = ${ymd(d)}${i === 0 ? ' (oggi)' : i === 1 ? ' (domani)' : ''}`; }).join('; ');
+  const prompt = `Sei l'assistente vocale della dashboard di ${S.name || 'uno studente'}. Adesso sono le ${fmtTime(now)} di ${now.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}.
+Calendario dei prossimi giorni (usalo per convertire le date): ${days}.
+Le date senza anno sono la prossima occorrenza futura.
+
+Trasforma il comando in un JSON {"actions":[...]} con UNA O PIÙ azioni, nell'ordine in cui le dice l'utente. Azioni possibili:
+{"action":"add_event","title":"...","date":"YYYY-MM-DD","time":"HH:MM"|null,"hours":numero,"imp":"alta"|"media"|""}
 {"action":"add_task","title":"...","due":"YYYY-MM-DD"|null,"priority":"alta"|"media"|"bassa"}
 {"action":"complete_task","id":"<id della lista>"}   (l'utente dice di aver fatto qualcosa)
 {"action":"delete_task","id":"<id>"}
-{"action":"add_event","title":"...","date":"YYYY-MM-DD","time":"HH:MM"|null,"hours":numero,"imp":"alta"|"media"|""}   (imp: importanza dell'evento, "" se normale)
-{"action":"plan_day","day":"today"|"tomorrow","blocks":[{"start":"HH:MM","end":"HH:MM","title":"..."}]}   (l'utente organizza la sua giornata a blocchi orari)
-{"action":"read_plan","day":"today"|"tomorrow"} {"action":"recap"} {"action":"propose_day","day":"today"|"tomorrow"}   (l'utente chiede di organizzargli la giornata)
+{"action":"plan_day","day":"today"|"tomorrow","blocks":[{"start":"HH:MM","end":"HH:MM","title":"..."}]}   (organizza la SUA giornata di oggi/domani a blocchi orari)
+{"action":"read_plan","day":"today"|"tomorrow"} {"action":"recap"} {"action":"propose_day","day":"today"|"tomorrow"}   (chiede a te di organizzargli la giornata)
 {"action":"reply_email","who":"nome del mittente","body":"cosa vuole rispondere"}
 {"action":"mark_read","who":"nome del mittente"|"*broadcast"|"*all"} {"action":"archive_email","who":"nome del mittente"|"*broadcast"}
 {"action":"add_exam","name":"...","date":"YYYY-MM-DD","time":"HH:MM"|null} {"action":"read_exams"}
 {"action":"habit_done","name":"nome dell'abitudine"}   (abitudini: ${habits.map(h => h.name).join(', ') || 'nessuna'})
-{"action":"send_email","to":"indirizzo email o nome","subject":"...","body":"email completa, educata, in italiano, firmata '${S.signature || S.name || ''}'"}
+{"action":"send_email","to":"indirizzo email, nome della persona o «prof di <corso>»","subject":"...","body":"email completa, educata, in italiano, firmata '${S.signature || S.name || ''}'"}
 {"action":"read_tasks"} {"action":"read_emails"} {"action":"read_agenda","date":"YYYY-MM-DD"} {"action":"refresh"} {"action":"help"}
-${composeOpen ? '{"action":"compose_send"} {"action":"compose_draft"} {"action":"compose_cancel"}  (c\'è una email aperta in attesa di conferma)\n' : ''}{"action":"unknown","reply":"risposta breve"}
+${composeOpen ? '{"action":"compose_send"} {"action":"compose_draft"} {"action":"compose_cancel"}  (c\'è una email aperta in attesa di conferma)\n' : ''}{"action":"unknown","reply":"risposta brevissima"}
+
+Regole importanti:
+- Se l'utente vuole mettere/segnare/aggiungere qualcosa in un GIORNO PRECISO (es. «il 10 novembre alle 9:45 …», «venerdì alle 15 …», «il 23 novembre …») è un add_event in calendario in quel giorno; con l'ora → "time", senza ora → "time": null (tutto il giorno).
+- add_task solo per cose da fare senza un giorno preciso, o con «entro» (allora "due" è la scadenza).
+- Esami e appelli con una data → add_exam.
+- Più cose nella stessa frase → più azioni, ciascuna con la SUA data e il SUO titolo.
+- Il titolo è breve, con l'iniziale maiuscola, e NON contiene date, orari né parole come «metti», «segna», «calendario».
+Esempio: «metti il 10 novembre alle 9:45 colloquio Erasmus e il 23 novembre consegna azienda e diritto» →
+{"actions":[{"action":"add_event","title":"Colloquio Erasmus","date":"<10 novembre>","time":"09:45","hours":1,"imp":""},{"action":"add_event","title":"Consegna azienda e diritto","date":"<23 novembre>","time":null,"hours":1,"imp":""}]}
 Per complete_task/delete_task scegli l'id più simile; se nessuno corrisponde usa unknown.
 Lista attuale cose da fare: ${JSON.stringify(open)}
 Contatti noti: ${cont || 'nessuno'}
 Comando: "${text.replace(/"/g, "'")}"`;
-  const r = await gemini(prompt);
-  if (r.action === 'plan_day' && Array.isArray(r.blocks)){
-    const hm = x => { const [h, m] = String(x || '').split(':').map(Number); return toMin(h || 0, m || 0); };
-    r.blocks = r.blocks.map(b => { const s = hm(b.start); let e = hm(b.end); if (e <= s) e += 1440; return {s, e, t:cap(String(b.title || ''))}; }).filter(b => b.t).sort((a, b) => a.s - b.s);
+  const r = await gemini(prompt, true);
+  const list = Array.isArray(r.actions) ? r.actions : (r.action ? [r] : []);
+  const hm = x => { const [h, m] = String(x || '').split(':').map(Number); return toMin(h || 0, m || 0); };
+  for (const a of list){
+    if (a.action === 'plan_day' && Array.isArray(a.blocks))
+      a.blocks = a.blocks.map(b => { const s = hm(b.start); let e = hm(b.end); if (e <= s) e += 1440; return {s, e, t:cap(String(b.title || ''))}; }).filter(b => b.t).sort((x, y) => x.s - y.s);
+    if (a.action === 'complete_task' || a.action === 'delete_task'){ a.task = tasks.find(t => t.id === a.id); if (!a.task) a.query = text; }
+    if (a.action === 'habit_done') Object.assign(a, {action:'complete_task', query:a.name || text, habitOnly:true});
+    if (a.action === 'add_event' && a.title) a.title = cap(String(a.title).trim());
   }
-  if (r.action === 'complete_task' || r.action === 'delete_task'){ r.task = tasks.find(t => t.id === r.id); if (!r.task) r.query = text; }
-  if (r.action === 'habit_done') Object.assign(r, {action:'complete_task', query:r.name || text, habitOnly:true});
-  return r;
+  return list;
 }
 
 async function handleCommand(text){
@@ -1789,8 +1844,16 @@ async function handleCommand(text){
     if (/^(annulla|no|lascia stare|chiudi)\b/.test(n)){ $('#composeDlg').close(); return say('Ok, email annullata.', true, 'Annullata.'); }
   }
   let cmd = ruleParse(text);
-  if (aiOn() && (cmd.action === 'unknown' || cmd.action === 'send_email')){
-    try{ cmd = await aiParse(text); }catch(err){ console.warn(err); }
+  // con Gemini l'AI capisce per prima i comandi che aggiungono o scrivono qualcosa; le regole restano come riserva
+  const AI_FIRST = ['unknown', 'send_email', 'add_task', 'add_event', 'plan_day', 'multi', 'add_exam', 'reply_email'];
+  if (aiOn() && AI_FIRST.includes(cmd.action)){
+    try{
+      say('✨ Ci penso…', false);
+      const acts = await aiParse(text);
+      const useful = acts.filter(a => a.action && a.action !== 'unknown');
+      if (useful.length) cmd = useful.length === 1 ? useful[0] : {action:'multi', actions:useful};
+      else if (cmd.action === 'unknown' && acts[0]) cmd = acts[0];
+    }catch(err){ console.warn(err); }
   }
   try{ await runCommand(cmd, text); }
   catch(err){
@@ -1799,8 +1862,18 @@ async function handleCommand(text){
   }
 }
 
+async function runActions(list, text){
+  if (list.length === 1) return runCommand(list[0], text);
+  sayCollect = [];
+  try{ for (const a of list) await runCommand(a, text); }
+  finally{
+    const out = sayCollect; sayCollect = null;
+    say(out.map(o => o.text).join('\n'), true, `Fatto, ${list.length} cose sistemate.`);
+  }
+}
 async function runCommand(cmd, text){
   switch (cmd.action){
+    case 'multi': return runActions(cmd.actions, text);
     case 'help':
       return say('Puoi dirmi per esempio:\n• ' + HELP.join('\n• '), false);
     case 'refresh':
@@ -3107,7 +3180,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 14';
+const APP_VERSION = '29 ottobre · 15';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
