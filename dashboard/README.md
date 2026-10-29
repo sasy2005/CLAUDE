@@ -147,7 +147,7 @@ Dopo le 19 la sezione si apre direttamente su **Domani**. Gli orari dopo mezzano
 4. La dashboard trova da sola il calendario «Lezioni» (o sceglilo in ⚙️ Impostazioni → Calendario delle lezioni)
 
 Il file è una copia: se l'orario cambia, elimina il calendario «Lezioni» e ripeti l'importazione.
-Siccome le lezioni stanno in un calendario tuo, dalla dashboard puoi anche **eliminarle davvero** («Elimina tutti i …») oppure solo **nasconderle** («Non seguo questo corso»).
+Le lezioni che non segui: **toccale** nell'orario → **«Non seguo questo corso»** e spariscono tutte. Non vengono cancellate: sotto l'orario compare **«🙈 corsi nascosti»** con il pulsante **«👁 Mostra di nuovo»** per farle ricomparire quando vuoi.
 
 **Altre università:** se il sito dell'orario dà un **link** iCal invece di un file, usa in Google Calendar **Altri calendari → + → Da URL**.
 

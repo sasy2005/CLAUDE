@@ -333,6 +333,9 @@
   select.mini,input.mini{border:1px solid var(--border);background:var(--surface-2);border-radius:11px;padding:8px;outline:none;color:var(--fg);min-width:0}
   .sugg-chip{margin:8px 6px 0 0}
   .uni-note{font-size:.75rem;color:var(--muted);margin-top:8px}
+  .hidbox{margin-top:8px;background:var(--surface-2);border-radius:12px;padding:8px 12px}
+  .hidbox summary{cursor:pointer;font-weight:600;color:var(--fg);font-size:.82rem}
+  .hidbox .sugg{font-size:.85rem;color:var(--fg)}
   /* ---------- abitudini ---------- */
   .hab{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:12px}
   .hab:hover{background:var(--surface-2)}
@@ -2354,7 +2357,7 @@ function openEvDlg(e){
   const k = courseKey(e), same = allEvents.filter(x => courseKey(x) === k);
   const acts = [`<button class="btn sm" data-eva="hide">🙈 ${e.lesson ? 'Non seguo questo corso: nascondi' : 'Nascondi'} tutti gli eventi «${esc(courseLabel(e))}» (${same.length})</button>`];
   if (/\b(esam|appell|prova|scritto|orale|parzial)/.test(norm(e.title)) && !exams.some(x => x.eventId === e.id)) acts.push('<button class="btn sm" data-eva="exam">⏳ Aggiungi al countdown esami</button>');
-  if (e.writable){
+  if (e.writable && !e.lesson){          // le lezioni si nascondono soltanto, non si eliminano
     acts.push('<button class="btn sm danger" data-eva="del">🗑 Elimina questo evento dal calendario</button>');
     if (same.filter(x => x.writable).length > 1) acts.push(`<button class="btn sm danger" data-eva="delall">🗑 Elimina tutti i «${esc(courseLabel(e))}» dal calendario (${same.filter(x => x.writable).length})</button>`);
   }
@@ -2383,7 +2386,7 @@ function renderHiddenSettings(){
 /* =====================================================================
    Università: orario delle lezioni e countdown esami
    ===================================================================== */
-let wkOffset = 0;
+let wkOffset = 0, hiddenOpen = false;
 function renderUni(){
   const now = new Date(), weekend = now.getDay() === 0 || now.getDay() === 6;
   const ws = addDays(weekStart(now), 7 * (wkOffset + (weekend ? 1 : 0)));
@@ -2399,7 +2402,10 @@ function renderUni(){
   $('#timetable').innerHTML = any ? cols.join('')
     : `<div class="empty" style="grid-column:1/-1"><span class="big">🎓</span>Nessuna lezione in questa settimana.<br>Importa l'orario dell'università in Google Calendar e sceglilo in ⚙️ Impostazioni → «Calendario delle lezioni».</div>`;
   const nh = Object.keys(hiddenCourses).length;
-  $('#uniNote').textContent = (any ? 'Tocca una lezione per nasconderla o per le altre opzioni. ' : '') + (nh ? `🙈 ${nh} ${nh === 1 ? 'corso nascosto' : 'corsi nascosti'} (gestiscili in ⚙️ Impostazioni).` : '');
+  $('#uniNote').innerHTML = (any ? '<div>Tocca una lezione che non segui per nasconderla.</div>' : '')
+    + (nh ? `<details class="hidbox" ${hiddenOpen ? 'open' : ''}><summary>🙈 ${nh} ${nh === 1 ? 'corso nascosto' : 'corsi nascosti'} · tocca per rivederli</summary>`
+      + Object.entries(hiddenCourses).map(([k, v]) => `<div class="sugg"><span>${esc(v.title || k)}</span><button class="btn sm" type="button" data-unhide="${esc(k)}">👁 Mostra di nuovo</button></div>`).join('')
+      + '</details>' : '');
   renderExams();
 }
 function addExam(name, date, time = null, eventId = null){
@@ -2795,6 +2801,13 @@ $('#evActs').onclick = async ev => {
     }
   }catch(err){ toast(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account.' : 'Errore: ' + err.message); }
 };
+$('#uniNote').onclick = e => {
+  const b = e.target.closest('[data-unhide]'); if (!b) return;
+  const t = hiddenCourses[b.dataset.unhide]?.title || '';
+  delete hiddenCourses[b.dataset.unhide]; saveHidden(); hiddenOpen = Object.keys(hiddenCourses).length > 0; afterEventsChange();
+  toast(`Di nuovo visibile: ${t}`);
+};
+$('#uniNote').addEventListener('toggle', e => { if (e.target.matches('.hidbox')) hiddenOpen = e.target.open; }, true);
 $('#timetable').onclick = e => { const b = e.target.closest('[data-les]'); const ev = b && events.find(x => x.id === b.dataset.les); if (ev) openEvDlg(ev); };
 document.querySelector('#uniCard .wknav').onclick = e => { const b = e.target.closest('[data-wk]'); if (b){ wkOffset = Math.max(-4, Math.min(8, wkOffset + +b.dataset.wk)); renderUni(); } };
 $('#examForm').onsubmit = e => {
