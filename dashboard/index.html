@@ -602,6 +602,7 @@
       <button class="btn sm danger" type="button" id="disconnectBtn">Scollega Google</button>
     </div>
     <div class="note">Niente server e niente abbonamenti: i dati restano nel tuo browser e nel tuo Google Drive.</div>
+    <div class="note">Versione della dashboard: <b id="appVer"></b></div>
   </div>
   <div class="dlg-f"><button class="btn" data-close>Annulla</button><button class="btn primary" id="saveSettings">Salva</button></div>
 </dialog>
@@ -2988,6 +2989,8 @@ document.addEventListener('keydown', maybeRenew, true);
 $('#setupSteps').onclick = e => { if (e.target.closest('#permBtn')){ $('#settingsDlg').close(); upgradeScopes(); } };
 
 /* ---------- avvio ---------- */
+const APP_VERSION = '29 ottobre · 7';
+$('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
 if (token && Date.now() > token.exp){ token = null; store.del('token'); }
