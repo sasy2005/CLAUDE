@@ -302,6 +302,11 @@
   .dlg-f{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 18px}
 
   [hidden]{display:none!important}
+  .flash{animation:flash 2.2s ease}
+  @keyframes flash{0%,40%{box-shadow:0 0 0 3px var(--accent);background:var(--accent-soft)}100%{box-shadow:0 0 0 0 transparent}}
+  .logbox{max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:4px 10px;margin-bottom:6px}
+  .logrow{padding:8px 0;border-bottom:1px solid var(--border);font-size:.82rem} .logrow:last-child{border-bottom:0}
+  .logrow .lt{color:var(--muted);font-size:.76rem}
   /* PC: la colonna delle email arriva fino in fondo e scorre al suo interno, niente buchi vuoti */
   @media(min-width:761px){
     #mailCard{height:0;min-height:max(100%, 600px)}
@@ -650,6 +655,10 @@
     <div class="sec">Sincronizzazione PC ↔ telefono</div>
     <div class="row" style="margin-top:0;align-items:center"><span class="note" id="syncLbl" style="margin:0;flex:1"></span><button class="btn sm" type="button" id="syncBtn">☁️ Sincronizza ora</button></div>
     <div class="note">Cose da fare, giornata, abitudini, esami e impostazioni vengono salvati in una cartella nascosta del tuo Google Drive, che vede solo questa app.</div>
+
+    <div class="sec">🕘 Ultimi comandi</div>
+    <div class="note" style="margin:0 0 8px">Cosa ha sentito l'assistente, cosa ha capito e cosa ha fatto. Utile se qualcosa non va.</div>
+    <div id="cmdLogBox" class="logbox"></div>
 
     <div class="sec">Dati</div>
     <div class="row" style="margin-top:0">
@@ -1024,7 +1033,7 @@ function parsePriority(c){
   if (c.cut(/\b(?:e |con )?(?:priorita media|(?:e )?importante)\b/)) return 'media';
   return null;
 }
-const cleanTitle = s => cap(s.replace(/^[\s,:;.\-–]+|[\s,:;.\-–]+$/g, '').replace(/\s+(?:e|di|per|a|alle|il|la|entro|da)$/i, '').trim());
+const cleanTitle = s => { let t = String(s).replace(/^[\s,:;.\-–]+|[\s,:;.\-–]+$/g, ''); for (let i = 0; i < 3; i++) t = t.replace(/\s+(?:e|di|per|a|alle|il|la|entro|da|che|che è|che e|che c'è|ed è|sarà|che sarà|è)$/i, '').trim(); return cap(t); };
 
 /* =====================================================================
    Cose da fare: punteggio di importanza
@@ -1375,7 +1384,7 @@ async function analyzeAll(){
   if (analyzing) return; analyzing = true;
   try{
     if (aiOn()){
-      const todo = emails.filter(e => !analysis[e.id]?.ai && (e.cls.type === 'direct' || DEADLINE_WORDS.test(norm(e.subject + ' ' + e.body)))).slice(0, 15);
+      const todo = emails.filter(e => !analysis[e.id]?.ai && (e.cls.type === 'direct' || DEADLINE_WORDS.test(norm(e.subject + ' ' + e.body)))).slice(0, 8);      // poche per volta: la quota gratuita serve anche ai comandi vocali
       for (const [i, e] of todo.entries()){
         setSub(`<span class="spin"></span> Leggo le email con l'AI… ${i + 1}/${todo.length}`);
         try{ analysis[e.id] = await aiAnalyze(e); saveAnalysis(); renderMail(); }
@@ -1529,6 +1538,7 @@ async function draftNew(to, subject, body){
   await gapi(`${GM}/drafts`, {method:'POST', body:JSON.stringify({message:{raw:rawMessage({to, subject, body})}})});
   toast('Bozza salvata in Gmail ✓');
 }
+let lastEventId = null;
 async function addEvent({title, date, time, hours = 1, imp}){
   let id;
   const allDay = !time;
@@ -1546,6 +1556,7 @@ async function addEvent({title, date, time, hours = 1, imp}){
     id = x.id; allEvents.push({id, title, start, end, allDay, location:'', link:x.htmlLink, calId:'primary', calName:'Principale', writable:true});
   }
   allEvents.sort((a, b) => a.start - b.start); refreshVisible();
+  lastEventId = id;
   if (imp !== undefined && imp !== null){ eventImp[id] = {v:imp}; saveImp(); }
   events.sort((a, b) => a.start - b.start);
   renderAgenda(); renderStats(); renderRecap();
@@ -1783,54 +1794,84 @@ function ruleParse(text){
   return {action:'unknown'};
 }
 
+function dashboardSnapshot(){
+  const now = new Date(), today = ymd(now), lim = ymd(addDays(now, 45));
+  return {
+    cose_da_fare:tasks.filter(t => !t.done).slice(0, 50).map(t => ({id:t.id, titolo:t.title, scadenza:t.due, priorita:t.priority})),
+    completate_di_recente:tasks.filter(t => t.done).sort((a, b) => b.doneAt - a.doneAt).slice(0, 8).map(t => ({id:t.id, titolo:t.title})),
+    eventi_calendario:events.filter(e => !e.lesson && ymd(e.end) >= today && ymd(e.start) <= lim).slice(0, 50)
+      .map(e => ({id:e.id, titolo:e.title, giorno:ymd(e.start), ora:e.allDay ? null : fmtTime(e.start), fine:e.allDay ? null : fmtTime(e.end), importanza:impOf(e) || 'normale', modificabile:!!e.writable || mode === 'demo'})),
+    corsi_che_seguo:[...new Set(events.filter(e => e.lesson).map(courseLabel))],
+    corsi_nascosti:Object.values(hiddenCourses).map(v => v.title),
+    lezioni_oggi_e_domani:events.filter(e => e.lesson && !e.allDay && [today, ymd(addDays(now, 1))].includes(ymd(e.start))).map(e => `${ymd(e.start)} ${fmtTime(e.start)} ${courseLabel(e)} ${roomOf(e)}`),
+    esami:exams.map(x => ({id:x.id, nome:x.name, giorno:x.date, ora:x.time, giorni_mancanti:dayDiff(now, fromYmd(x.date))})),
+    abitudini:habits.map(h => ({id:h.id, nome:h.name, obiettivo_settimanale:h.goal, fatte_questa_settimana:weekCount(h, weekStart())})),
+    giornata_oggi:(plans[today]?.blocks || []).map(b => `${fmtMin(b.s)}-${fmtMin(b.e)} ${b.t}`),
+    giornata_domani:(plans[ymd(addDays(now, 1))]?.blocks || []).map(b => `${fmtMin(b.s)}-${fmtMin(b.e)} ${b.t}`),
+    email_recenti:emails.slice(0, 20).map(e => ({id:e.id, da:e.from.name, oggetto:e.subject, tipo:e.cls.type === 'direct' ? 'per te' : 'broadcast', non_letta:e.unread, bozza_pronta:!!drafts[e.id]})),
+    contatti:Object.entries(contacts).slice(0, 50).map(([e, n]) => `${n} <${e}>`)
+  };
+}
 async function aiParse(text){
-  const open = tasks.filter(t => !t.done).slice(0, 40).map(t => ({id:t.id, titolo:t.title, scadenza:t.due}));
-  const cont = Object.entries(contacts).slice(0, 60).map(([e, n]) => `${n} <${e}>`).join('; ');
-  const composeOpen = $('#composeDlg').open;
   const now = new Date();
-  const days = Array.from({length:21}, (_, i) => { const d = addDays(now, i); return `${d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'})} = ${ymd(d)}${i === 0 ? ' (oggi)' : i === 1 ? ' (domani)' : ''}`; }).join('; ');
-  const prompt = `Sei l'assistente vocale della dashboard di ${S.name || 'uno studente'}. Adesso sono le ${fmtTime(now)} di ${now.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}.
-Calendario dei prossimi giorni (usalo per convertire le date): ${days}.
-Le date senza anno sono la prossima occorrenza futura.
+  const days = Array.from({length:30}, (_, i) => { const d = addDays(now, i); return `${d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'})} = ${ymd(d)}${i === 0 ? ' (oggi)' : i === 1 ? ' (domani)' : ''}`; }).join('; ');
+  const prompt = `Sei l'assistente della dashboard personale di ${S.name || 'uno studente universitario'}: vedi tutto quello che c'è e puoi fare tutto.
+Adesso sono le ${fmtTime(now)} di ${now.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}.
+Date dei prossimi giorni (usale per convertire): ${days}. Le date senza anno sono la prossima occorrenza futura.
 
-Trasforma il comando in un JSON {"actions":[...]} con UNA O PIÙ azioni, nell'ordine in cui le dice l'utente. Azioni possibili:
-{"action":"add_event","title":"...","date":"YYYY-MM-DD","time":"HH:MM"|null,"hours":numero,"imp":"alta"|"media"|""}
+CONTENUTO ATTUALE DELLA DASHBOARD:
+${JSON.stringify(dashboardSnapshot())}
+
+Rispondi SOLO con JSON: {"actions":[...], "risposta":"frase brevissima da dire a voce (max 12 parole), senza ripetere la richiesta"}
+Azioni (anche più di una, nell'ordine detto dall'utente):
 {"action":"add_task","title":"...","due":"YYYY-MM-DD"|null,"priority":"alta"|"media"|"bassa"}
-{"action":"complete_task","id":"<id della lista>"}   (l'utente dice di aver fatto qualcosa)
-{"action":"delete_task","id":"<id>"}
-{"action":"plan_day","day":"today"|"tomorrow","blocks":[{"start":"HH:MM","end":"HH:MM","title":"..."}]}   (organizza la SUA giornata di oggi/domani a blocchi orari)
-{"action":"read_plan","day":"today"|"tomorrow"} {"action":"recap"} {"action":"propose_day","day":"today"|"tomorrow"}   (chiede a te di organizzargli la giornata)
-{"action":"reply_email","who":"nome del mittente","body":"cosa vuole rispondere"}
-{"action":"mark_read","who":"nome del mittente"|"*broadcast"|"*all"} {"action":"archive_email","who":"nome del mittente"|"*broadcast"}
-{"action":"add_exam","name":"...","date":"YYYY-MM-DD","time":"HH:MM"|null} {"action":"read_exams"}
-{"action":"habit_done","name":"nome dell'abitudine"}   (abitudini: ${habits.map(h => h.name).join(', ') || 'nessuna'})
-{"action":"send_email","to":"indirizzo email, nome della persona o «prof di <corso>»","subject":"...","body":"email completa, educata, in italiano, firmata '${S.signature || S.name || ''}'"}
-{"action":"read_tasks"} {"action":"read_emails"} {"action":"read_agenda","date":"YYYY-MM-DD"} {"action":"refresh"} {"action":"help"}
-${composeOpen ? '{"action":"compose_send"} {"action":"compose_draft"} {"action":"compose_cancel"}  (c\'è una email aperta in attesa di conferma)\n' : ''}{"action":"unknown","reply":"risposta brevissima"}
+{"action":"complete_task","id":"..."}  {"action":"delete_task","id":"..."}
+{"action":"edit_task","id":"...","new_title":"..."|null,"due":"YYYY-MM-DD"|null,"priority":"alta"|"media"|"bassa"|null}
+{"action":"add_event","title":"...","date":"YYYY-MM-DD","time":"HH:MM"|null,"hours":numero,"imp":"alta"|"media"|""}
+{"action":"move_event","id":"...","date":"YYYY-MM-DD","time":"HH:MM"|null}  {"action":"delete_event","id":"..."}  {"action":"set_importance","id":"...","imp":"alta"|"media"|""}
+{"action":"add_exam","name":"...","date":"YYYY-MM-DD","time":"HH:MM"|null}  {"action":"delete_exam","id":"..."}
+{"action":"hide_course","name":"..."}  {"action":"show_course","name":"..."}   (lezioni che non segue / che riprende a seguire)
+{"action":"habit_done","name":"..."}  {"action":"habit_undo","name":"..."}  {"action":"add_habit","name":"...","goal":numero_a_settimana}  {"action":"delete_habit","id":"..."}
+{"action":"plan_day","day":"today"|"tomorrow","blocks":[{"start":"HH:MM","end":"HH:MM","title":"..."}]}   {"action":"propose_day","day":"today"|"tomorrow"}
+{"action":"send_email","to":"email, nome della persona o «prof di <corso>»","subject":"...","body":"email completa ed educata in italiano, firmata '${S.signature || S.name || ''}'"}
+{"action":"reply_email","who":"nome del mittente","body":"cosa rispondere"}  {"action":"open_email","id":"..."}
+{"action":"mark_read","who":"nome"|"*broadcast"|"*all"}  {"action":"archive_email","who":"nome"|"*broadcast"}
+{"action":"read_tasks"} {"action":"read_emails"} {"action":"read_agenda","date":"YYYY-MM-DD"} {"action":"read_plan","day":"today"|"tomorrow"} {"action":"read_exams"} {"action":"recap"} {"action":"refresh"}
+{"action":"go","tab":"oggi"|"email"|"agenda"|"attivita"}   (mostrare una sezione)
+{"action":"say","text":"..."}   (per DOMANDE: rispondi tu usando il contenuto della dashboard, in modo breve e preciso)
+${$('#composeDlg').open ? '{"action":"compose_send"} {"action":"compose_draft"} {"action":"compose_cancel"}   (c\'è un\'email aperta che aspetta conferma)\n' : ''}
+Regole:
+- «aggiungi alle cose da fare X» / «devo fare X» / «ricordami X» → add_task (con «entro …» la data va in "due").
+- Qualcosa da mettere in un GIORNO PRECISO («il 10 novembre alle 9:45 …», «venerdì alle 15 …») → add_event (senza ora: "time": null).
+- «aggiungi un esame di X il 5 novembre» / appelli → add_exam (nome tipo «Esame di diritto»).
+- Per modificare, spostare, eliminare, completare usa gli "id" del contenuto qui sopra, scegliendo l'elemento più simile a quello che dice.
+- Titoli brevi, con l'iniziale maiuscola, senza date, orari, «metti», «aggiungi», «calendario», «che è».
+- Se davvero non capisci, usa {"action":"say","text":"domanda breve per chiarire"}.
 
-Regole importanti:
-- Se l'utente vuole mettere/segnare/aggiungere qualcosa in un GIORNO PRECISO (es. «il 10 novembre alle 9:45 …», «venerdì alle 15 …», «il 23 novembre …») è un add_event in calendario in quel giorno; con l'ora → "time", senza ora → "time": null (tutto il giorno).
-- add_task solo per cose da fare senza un giorno preciso, o con «entro» (allora "due" è la scadenza).
-- Esami e appelli con una data → add_exam.
-- Più cose nella stessa frase → più azioni, ciascuna con la SUA data e il SUO titolo.
-- Il titolo è breve, con l'iniziale maiuscola, e NON contiene date, orari né parole come «metti», «segna», «calendario».
-Esempio: «metti il 10 novembre alle 9:45 colloquio Erasmus e il 23 novembre consegna azienda e diritto» →
-{"actions":[{"action":"add_event","title":"Colloquio Erasmus","date":"<10 novembre>","time":"09:45","hours":1,"imp":""},{"action":"add_event","title":"Consegna azienda e diritto","date":"<23 novembre>","time":null,"hours":1,"imp":""}]}
-Per complete_task/delete_task scegli l'id più simile; se nessuno corrisponde usa unknown.
-Lista attuale cose da fare: ${JSON.stringify(open)}
-Contatti noti: ${cont || 'nessuno'}
-Comando: "${text.replace(/"/g, "'")}"`;
+Comando dell'utente: "${text.replace(/"/g, "'")}"`;
   const r = await gemini(prompt, true);
-  const list = Array.isArray(r.actions) ? r.actions : (r.action ? [r] : []);
+  const list = (Array.isArray(r.actions) ? r.actions : (r.action ? [r] : [])).map(normAction).filter(a => a && a.action);
   const hm = x => { const [h, m] = String(x || '').split(':').map(Number); return toMin(h || 0, m || 0); };
   for (const a of list){
     if (a.action === 'plan_day' && Array.isArray(a.blocks))
-      a.blocks = a.blocks.map(b => { const s = hm(b.start); let e = hm(b.end); if (e <= s) e += 1440; return {s, e, t:cap(String(b.title || ''))}; }).filter(b => b.t).sort((x, y) => x.s - y.s);
-    if (a.action === 'complete_task' || a.action === 'delete_task'){ a.task = tasks.find(t => t.id === a.id); if (!a.task) a.query = text; }
+      a.blocks = a.blocks.map(b => { const s = hm(b.start); let e = hm(b.end); if (e <= s) e += 1440; return {s, e, t:cap(String(b.title || b.titolo || ''))}; }).filter(b => b.t).sort((x, y) => x.s - y.s);
+    if (a.action === 'complete_task' || a.action === 'delete_task'){ a.task = tasks.find(t => t.id === a.id); if (!a.task) a.query = a.title || text; }
     if (a.action === 'habit_done') Object.assign(a, {action:'complete_task', query:a.name || text, habitOnly:true});
     if (a.action === 'add_event' && a.title) a.title = cap(String(a.title).trim());
   }
+  list.risposta = r.risposta || r.reply || '';
   return list;
+}
+
+/* ---------- cronologia dei comandi (per capire cosa ha sentito e cosa ha fatto) ---------- */
+let cmdLog = store.get('cmdlog', []);
+const lastLog = () => cmdLog[cmdLog.length - 1] || {};
+const saveLog = () => { cmdLog = cmdLog.slice(-30); store.set('cmdlog', cmdLog); };
+const descr = c => c.action === 'multi' ? c.actions.map(descr).join(' + ') : c.action + (c.title || c.name ? ` «${c.title || c.name}»` : '') + (c.date || c.due ? ' ' + (c.date || c.due) : '') + (c.time ? ' ' + c.time : '');
+function logCommand({text, engine, aiErr, cmd}){ cmdLog.push({at:Date.now(), text, engine, aiErr, did:descr(cmd)}); saveLog(); }
+function renderLog(){
+  $('#cmdLogBox').innerHTML = cmdLog.length ? [...cmdLog].reverse().map(l => `<div class="logrow"><div><b>«${esc(l.text)}»</b> <span class="tag ${l.engine === 'AI' ? 'violet' : ''}">${l.engine === 'AI' ? '✨ AI' : '⚙️ regole'}</span> <span class="lt">${esc(new Date(l.at).toLocaleString('it-IT', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}))}</span></div>
+    <div class="lt">Ho capito: ${esc(l.did)}${l.aiErr ? ' · ⚠️ AI: ' + esc(l.aiErr) : ''}</div>${l.result ? `<div class="lt">Risultato: ${esc(l.result.slice(0, 160))}</div>` : ''}</div>`).join('') : '<div class="note">Ancora nessun comando.</div>';
 }
 
 async function handleCommand(text){
@@ -1843,25 +1884,56 @@ async function handleCommand(text){
     if (/^(salva|bozza|salvala)/.test(n)) return $('#cDraft').click();
     if (/^(annulla|no|lascia stare|chiudi)\b/.test(n)){ $('#composeDlg').close(); return say('Ok, email annullata.', true, 'Annullata.'); }
   }
-  let cmd = ruleParse(text);
-  // con Gemini l'AI capisce per prima i comandi che aggiungono o scrivono qualcosa; le regole restano come riserva
-  const AI_FIRST = ['unknown', 'send_email', 'add_task', 'add_event', 'plan_day', 'multi', 'add_exam', 'reply_email'];
-  if (aiOn() && AI_FIRST.includes(cmd.action)){
+  let cmd = ruleParse(text), engine = 'regole', aiErr = '', voice = '';
+  // con Gemini l'assistente (che vede tutta la dashboard) capisce per primo ogni comando; le regole restano di riserva
+  const QUICK = ['accept_proposal', 'help'];
+  if (aiOn() && !QUICK.includes(cmd.action)){
     try{
       say('✨ Ci penso…', false);
       const acts = await aiParse(text);
-      const useful = acts.filter(a => a.action && a.action !== 'unknown');
-      if (useful.length) cmd = useful.length === 1 ? useful[0] : {action:'multi', actions:useful};
-      else if (cmd.action === 'unknown' && acts[0]) cmd = acts[0];
-    }catch(err){ console.warn(err); }
+      const useful = acts.filter(a => a.action !== 'unknown');
+      if (useful.length){ cmd = useful.length === 1 ? useful[0] : {action:'multi', actions:useful}; engine = 'AI'; voice = acts.risposta; }
+      else if (cmd.action === 'unknown' && acts[0]){ cmd = acts[0]; engine = 'AI'; }
+    }catch(err){ console.warn(err); aiErr = err.message; }
   }
-  try{ await runCommand(cmd, text); }
+  logCommand({text, engine, aiErr, cmd});
+  try{
+    if (voice && engine === 'AI' && !['say', 'read_tasks', 'read_emails', 'read_agenda', 'read_plan', 'read_exams', 'recap', 'propose_day', 'send_email', 'reply_email'].includes(cmd.action)){
+      sayCollect = [];
+      try{ await runCommand(cmd, text); } finally { const out = sayCollect; sayCollect = null; say(out.map(o => o.text).join('\n') || voice, true, voice); }
+    } else await runCommand(cmd, text);
+    if (aiErr) $('#replyTxt').textContent += `\n(⚠️ AI non disponibile: ${aiErr}. Ho usato le regole automatiche.)`;
+    lastLog().result = $('#replyTxt').textContent; saveLog();
+  }
   catch(err){
     if (err instanceof AuthError){ say('La sessione Google è scaduta: premi «Riconnetti» e riprova.'); showBanner(); }
     else say('Qualcosa non ha funzionato: ' + err.message);
   }
 }
 
+function reveal(tab, sel){
+  if (isPhone() && document.body.dataset.tab !== tab){ document.body.dataset.tab = tab; store.set('tab', tab); renderTabs(); renderRecap(); }
+  setTimeout(() => {
+    const el = sel && document.querySelector(sel); if (!el) return;
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }, 120);
+}
+// normalizza i nomi dei campi che l'AI a volte cambia (title/titolo/name/nome…)
+function normAction(a){
+  if (!a || typeof a !== 'object') return a;
+  const pick = (...k) => { for (const x of k) if (a[x] !== undefined && a[x] !== null && a[x] !== '') return a[x]; };
+  a.action = String(a.action || a.azione || '').trim();
+  a.title = pick('title', 'titolo', 'name', 'nome', 'what');
+  a.name = pick('name', 'nome', 'title', 'titolo');
+  a.date = pick('date', 'data', 'day', 'giorno', 'due', 'scadenza');
+  a.due = pick('due', 'scadenza', 'date', 'data');
+  a.time = pick('time', 'ora', 'orario') ?? null;
+  if (a.time && /^\d{1,2}$/.test(String(a.time))) a.time = a.time + ':00';
+  for (const k of ['date', 'due']) if (a[k] && !/^\d{4}-\d{2}-\d{2}$/.test(a[k])){ const w = parseWhen(cutter(String(a[k]))).date; a[k] = w ? ymd(w) : null; }
+  a.priority = pick('priority', 'priorita', 'priorità');
+  return a;
+}
 async function runActions(list, text){
   if (list.length === 1) return runCommand(list[0], text);
   sayCollect = [];
@@ -1874,6 +1946,69 @@ async function runActions(list, text){
 async function runCommand(cmd, text){
   switch (cmd.action){
     case 'multi': return runActions(cmd.actions, text);
+    case 'say':
+      return say(cmd.text || cmd.reply || 'Ok.');
+    case 'go':{
+      const tab = {oggi:'oggi', email:'email', agenda:'agenda', calendario:'agenda', attivita:'attivita', attività:'attivita'}[norm(cmd.tab || '')] || 'oggi';
+      reveal(tab, null); return say('Ecco.', true, 'Ecco.');
+    }
+    case 'edit_task':{
+      const t = tasks.find(x => x.id === cmd.id) || findTask(cmd.query || cmd.title || '');
+      if (!t) return say('Non trovo quella cosa da fare.');
+      if (cmd.new_title) t.title = cleanTitle(cmd.new_title);
+      if (cmd.due) t.due = cmd.due;
+      if (cmd.priority) t.priority = cmd.priority;
+      saveTasks(); renderTodos(); renderAgenda(); renderStats(); reveal('attivita', `[data-task="${t.id}"]`);
+      return say(`Modificata: ${t.title}${t.due ? ', per ' + relDay(t.due) : ''}.`, true, 'Modificata.');
+    }
+    case 'delete_event':
+    case 'move_event':
+    case 'set_importance':{
+      const e = allEvents.find(x => x.id === cmd.id); if (!e) return say('Non trovo quell\'evento.');
+      if (cmd.action === 'set_importance'){ setImp(e, ['alta', 'media'].includes(cmd.imp) ? cmd.imp : ''); reveal('agenda', `[data-ev="${e.id}"]`); return say(`${e.title}: ${IMP_LBL[impOf(e)].toLowerCase()}.`, true, 'Fatto.'); }
+      if (!e.writable && mode === 'google') return say('Questo evento è in un calendario che non posso modificare.');
+      if (cmd.action === 'delete_event'){ await deleteEvents([e]); return say(`Eliminato dal calendario: ${e.title}.`, true, 'Eliminato.'); }
+      const t = cmd.time ? cmd.time.split(':').map(Number) : (e.allDay ? null : [e.start.getHours(), e.start.getMinutes()]);
+      const hours = e.allDay ? 1 : (e.end - e.start) / 36e5;
+      await deleteEvents([e]);
+      await addEvent({title:e.title, date:fromYmd(cmd.date || ymd(e.start)), time:t, hours, imp:impOf(e) || undefined});
+      reveal('agenda', `[data-ev="${lastEventId}"]`);
+      return say(`Spostato: ${e.title}, ${relDay(cmd.date || ymd(e.start))}${t ? ' alle ' + fmtMin(t[0] * 60 + t[1]) : ''}.`, true, 'Spostato.');
+    }
+    case 'delete_exam':{
+      const x = exams.find(y => y.id === cmd.id); if (!x) return say('Non trovo quell\'esame.');
+      exams = exams.filter(y => y !== x); saveExams(); renderExams(); renderRecap();
+      return say(`Tolto dal countdown: ${x.name}.`, true, 'Tolto.');
+    }
+    case 'hide_course':
+    case 'show_course':{
+      const q = cmd.name || cmd.title || '';
+      if (cmd.action === 'show_course'){
+        const k = Object.keys(hiddenCourses).find(k => simTitle(hiddenCourses[k].title || k, q) >= .5);
+        if (!k) return say(`Non trovo «${q}» tra i corsi nascosti.`);
+        const t = hiddenCourses[k].title; delete hiddenCourses[k]; saveHidden(); afterEventsChange(); reveal('agenda', '#uniCard');
+        return say(`Di nuovo visibile: ${t}.`, true, 'Fatto, di nuovo visibile.');
+      }
+      const e = allEvents.find(x => x.lesson && simTitle(courseLabel(x), q) >= .5); if (!e) return say(`Non trovo il corso «${q}» nell'orario.`);
+      hideCourse(e); reveal('agenda', '#uniCard'); return say(`Nascoste le lezioni di ${courseLabel(e)}.`, true, 'Nascosto.');
+    }
+    case 'add_habit':{
+      if (!cmd.name) return say('Che abitudine aggiungo?');
+      const h = {id:uid(), name:cap(cmd.name), goal:Math.min(7, Math.max(1, +cmd.goal || 3)), createdAt:Date.now()};
+      habits.push(h); saveHabits(); renderHabits(); reveal('attivita', `[data-hab="${h.id}"]`);
+      return say(`Nuova abitudine: ${h.name}, ${h.goal} volte a settimana.`, true, 'Aggiunta.');
+    }
+    case 'delete_habit':
+    case 'habit_undo':{
+      const h = habits.find(x => x.id === cmd.id) || findHabit(cmd.name || ''); if (!h) return say('Non trovo quell\'abitudine.');
+      if (cmd.action === 'habit_undo'){ setHabit(h, cmd.date || ymd(new Date()), false); return say(`Tolto il segno a ${h.name}.`, true, 'Tolto.'); }
+      habits = habits.filter(x => x !== h); saveHabits(); renderHabits(); renderRecap();
+      return say(`Eliminata l'abitudine ${h.name}.`, true, 'Eliminata.');
+    }
+    case 'open_email':{
+      const e = emails.find(x => x.id === cmd.id) || findEmailBy(cmd.who || ''); if (!e) return say('Non trovo quell\'email.');
+      reveal('email', null); openEmail(e.id); return say(`Ecco l'email di ${e.from.name}: ${getAnalysis(e).riassunto || e.subject}`, true, `Ecco l'email di ${spokenName(e.from.name)}.`);
+    }
     case 'help':
       return say('Puoi dirmi per esempio:\n• ' + HELP.join('\n• '), false);
     case 'refresh':
@@ -1881,6 +2016,7 @@ async function runCommand(cmd, text){
     case 'add_task':{
       if (!cmd.title) return say('Cosa devo aggiungere? Prova con «aggiungi comprare il libro di chimica».');
       const t = addTask(cmd.title, {due:cmd.due, priority:cmd.priority || 'media', source:'voce'});
+      reveal('attivita', `[data-task="${t.id}"]`);
       return say(`Aggiunto: ${t.title}${t.due ? ', per ' + relDay(t.due) + (dayDiff(new Date(), fromYmd(t.due)) > 1 ? ' ' + fromYmd(t.due).toLocaleDateString('it-IT', {day:'numeric', month:'long'}) : '') : ''}${t.priority === 'alta' ? ', priorità alta' : ''}.`, true, t.due ? `Aggiunto, per ${relDay(t.due)}.` : 'Aggiunto.');
     }
     case 'complete_task':
@@ -1920,7 +2056,8 @@ async function runCommand(cmd, text){
     }
     case 'add_exam':{
       if (!cmd.name || !cmd.date) return say('Dimmi nome e data, per esempio «aggiungi esame di analisi il 15 gennaio».');
-      addExam(cmd.name, cmd.date, cmd.time);
+      const x = addExam(cmd.name, cmd.date, cmd.time);
+      reveal('agenda', `[data-exam="${x.id}"]`);
       if (!events.some(e => ymd(e.start) === cmd.date && simTitle(e.title, cmd.name) >= .5)){
         try{ await addEvent({title:cap(cmd.name), date:fromYmd(cmd.date), time:cmd.time ? cmd.time.split(':').map(Number) : null, hours:3, imp:'alta'}); }catch(err){ console.warn(err); }
       }
@@ -1968,6 +2105,7 @@ async function runCommand(cmd, text){
       if (!cmd.title) return openEventDlg({date:cmd.date ? fromYmd(cmd.date) : new Date()});
       const time = cmd.time ? cmd.time.split(':').map(Number) : null;
       await addEvent({title:cap(cmd.title), date:cmd.date ? fromYmd(cmd.date) : new Date(), time, hours:+cmd.hours || 1, imp:cmd.imp});
+      reveal('agenda', `[data-ev="${lastEventId}"]`);
       return say(`Aggiunto in calendario: ${cap(cmd.title)}, ${relDay(cmd.date || ymd(new Date()))}${time ? ' alle ' + cmd.time : ''}${cmd.imp ? ' (' + IMP_LBL[cmd.imp].toLowerCase() + ')' : ''}.`, true, 'Messo in calendario.');
     }
     case 'send_email':{
@@ -2389,6 +2527,7 @@ function openSettings(){
   $('#sLead').value = String(S.notifyLead || 10); $('#sPlanCal').checked = !!S.planToCal;
   $('#syncLbl').innerHTML = mode === 'google' ? (syncState || 'Non ancora sincronizzato.') : 'Disponibile dopo aver collegato l\'account.';
   if (mode === 'google') steps.push([hasScopes(), 'Permessi completi', hasScopes() ? 'archivio email, tutti i calendari, sincronizzazione col telefono' : 'premi il pulsante qui sotto e accetta tutto']);
+  renderLog();
   $('#setupSteps').innerHTML = steps.map(([ok, t, d], i) => `<div class="step ${ok ? 'ok' : ''}"><b>${ok ? '✓' : i + 1}</b><span><strong>${t}</strong> — ${esc(d)}</span></div>`).join('')
     + (mode === 'google' && !hasScopes() ? '<button class="btn primary sm" type="button" id="permBtn" style="justify-self:start">🔑 Aggiorna permessi Google</button>' : '');
   $('#settingsDlg').showModal();
@@ -2683,8 +2822,9 @@ function renderUni(){
   renderExams();
 }
 function addExam(name, date, time = null, eventId = null){
-  exams.push({id:uid(), name:cap(String(name).trim()), date, time, eventId, createdAt:Date.now()});
-  saveExams(); renderExams(); renderRecap();
+  const x = {id:uid(), name:cap(String(name).trim()), date, time, eventId, createdAt:Date.now()};
+  exams.push(x); saveExams(); renderExams(); renderRecap();
+  return x;
 }
 function renderExams(){
   const now = new Date(), today = ymd(now);
@@ -3180,7 +3320,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 15';
+const APP_VERSION = '29 ottobre · 16';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
