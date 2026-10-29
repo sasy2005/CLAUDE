@@ -1418,7 +1418,13 @@ async function gemini(prompt, urgent = false){
     if ((aiCool[en.id] || 0) > Date.now()) continue;
     tried++;
     try{
-      const out = await callEngine(en, prompt);
+      let out;
+      try{ out = await callEngine(en, typeof prompt === 'function' ? prompt('full') : prompt); }
+      catch(err){
+        const tooBig = err.status === 413 || /too large|tokens per minute|\bTPM\b|context length|maximum context|reduce the length/i.test(err.message);
+        if (!(tooBig && typeof prompt === 'function')) throw err;
+        out = await callEngine(en, prompt('mini'));        // richiesta troppo lunga per questa AI: riprovo con il riassunto mini
+      }
       if (lastEngine !== en.label){ lastEngine = en.label; renderHeader(); }
       return out;
     }catch(err){
@@ -1872,33 +1878,47 @@ function ruleParse(text){
   return {action:'unknown'};
 }
 
-function dashboardSnapshot(){
-  const now = new Date(), today = ymd(now), lim = ymd(addDays(now, 45));
-  return {
-    cose_da_fare:tasks.filter(t => !t.done).slice(0, 50).map(t => ({id:t.id, titolo:t.title, scadenza:t.due, priorita:t.priority})),
-    completate_di_recente:tasks.filter(t => t.done).sort((a, b) => b.doneAt - a.doneAt).slice(0, 8).map(t => ({id:t.id, titolo:t.title})),
-    eventi_calendario:events.filter(e => !e.lesson && ymd(e.end) >= today && ymd(e.start) <= lim).slice(0, 50)
-      .map(e => ({id:e.id, titolo:e.title, giorno:ymd(e.start), ora:e.allDay ? null : fmtTime(e.start), fine:e.allDay ? null : fmtTime(e.end), importanza:impOf(e) || 'normale', modificabile:!!e.writable || mode === 'demo'})),
-    corsi_che_seguo:[...new Set(events.filter(e => e.lesson).map(courseLabel))],
-    corsi_nascosti:Object.values(hiddenCourses).map(v => v.title),
-    lezioni_oggi_e_domani:events.filter(e => e.lesson && !e.allDay && [today, ymd(addDays(now, 1))].includes(ymd(e.start))).map(e => `${ymd(e.start)} ${fmtTime(e.start)} ${courseLabel(e)} ${roomOf(e)}`),
-    esami:exams.map(x => ({id:x.id, nome:x.name, giorno:x.date, ora:x.time, giorni_mancanti:dayDiff(now, fromYmd(x.date))})),
-    abitudini:habits.map(h => ({id:h.id, nome:h.name, obiettivo_settimanale:h.goal, fatte_questa_settimana:weekCount(h, weekStart())})),
-    giornata_oggi:(plans[today]?.blocks || []).map(b => `${fmtMin(b.s)}-${fmtMin(b.e)} ${b.t}`),
-    giornata_domani:(plans[ymd(addDays(now, 1))]?.blocks || []).map(b => `${fmtMin(b.s)}-${fmtMin(b.e)} ${b.t}`),
-    email_recenti:emails.slice(0, 20).map(e => ({id:e.id, da:e.from.name, oggetto:e.subject, tipo:e.cls.type === 'direct' ? 'per te' : 'broadcast', non_letta:e.unread, bozza_pronta:!!drafts[e.id]})),
-    contatti:Object.entries(contacts).slice(0, 50).map(([e, n]) => `${n} <${e}>`)
-  };
+// riassunto compatto della dashboard per l'AI (una riga per elemento). level 'mini': solo ciò che c'entra col comando
+function dashboardSnapshot(text = '', level = 'full'){
+  const now = new Date(), today = ymd(now), q = stems(text), mini = level === 'mini';
+  const rel = t => q.some(w => stems(t).includes(w));
+  const pickRel = (arr, title, n, keep) => mini ? [...arr.filter(x => rel(title(x))), ...arr.slice(0, keep)].filter((x, i, a) => a.indexOf(x) === i).slice(0, n) : arr.slice(0, n);
+  const open = tasks.filter(t => !t.done).sort((a, b) => score(b) - score(a));
+  const evs = events.filter(e => !e.lesson && ymd(e.end) >= today && ymd(e.start) <= ymd(addDays(now, 45)));
+  const mailish = /mail|email|e-mail|scriv|rispond|prof|manda|invia|contatt|archivi|lett[ae]\b/i.test(text);
+  const L = [];
+  const sec = (title, rows) => { if (rows.length) L.push(title + '\n' + rows.join('\n')); };
+  sec('COSE DA FARE (id|titolo|scadenza|priorità):', pickRel(open, t => t.title, 40, 5).map(t => `${t.id}|${t.title}|${t.due || '-'}|${t.priority}`));
+  sec('COMPLETATE DI RECENTE (id|titolo):', pickRel(tasks.filter(t => t.done).sort((a, b) => b.doneAt - a.doneAt), t => t.title, mini ? 3 : 5, 0).map(t => `${t.id}|${t.title}`));
+  sec('EVENTI IN CALENDARIO (id|giorno|ora|titolo|importanza|modificabile):', pickRel(evs, e => e.title, 30, 5)
+    .map(e => `${e.id}|${ymd(e.start)}|${e.allDay ? 'tutto il giorno' : fmtTime(e.start) + '-' + fmtTime(e.end)}|${e.title}|${impOf(e) || 'normale'}|${e.writable || mode === 'demo' ? 'sì' : 'no'}`));
+  const courses = [...new Set(events.filter(e => e.lesson).map(courseLabel))];
+  if (courses.length) L.push('CORSI CHE SEGUO: ' + courses.join(', '));
+  if (Object.keys(hiddenCourses).length) L.push('CORSI NASCOSTI: ' + Object.values(hiddenCourses).map(v => v.title).join(', '));
+  const les = events.filter(e => e.lesson && !e.allDay && [today, ymd(addDays(now, 1))].includes(ymd(e.start)));
+  if (les.length && !mini) L.push('LEZIONI OGGI E DOMANI: ' + les.map(e => `${ymd(e.start)} ${fmtTime(e.start)} ${courseLabel(e)} ${roomOf(e)}`).join('; '));
+  sec('ESAMI (id|nome|giorno|ora|giorni mancanti):', exams.map(x => `${x.id}|${x.name}|${x.date}|${x.time || '-'}|${dayDiff(now, fromYmd(x.date))}`));
+  sec('ABITUDINI (id|nome|fatte questa settimana/obiettivo):', habits.map(h => `${h.id}|${h.name}|${weekCount(h, weekStart())}/${h.goal}`));
+  const pl = k => (plans[k]?.blocks || []).map(b => `${fmtMin(b.s)}-${fmtMin(b.e)} ${b.t}`).join('; ');
+  if (pl(today)) L.push('GIORNATA DI OGGI: ' + pl(today));
+  if (pl(ymd(addDays(now, 1)))) L.push('GIORNATA DI DOMANI: ' + pl(ymd(addDays(now, 1))));
+  if (mailish || !mini) sec('EMAIL RECENTI (id|da|oggetto|tipo|non letta):', pickRel(emails, e => e.from.name + ' ' + e.subject, mini ? 6 : 12, 3)
+    .map(e => `${e.id}|${e.from.name}|${e.subject}|${e.cls.type === 'direct' ? 'per te' : 'broadcast'}|${e.unread ? 'sì' : 'no'}`));
+  if (mailish){
+    const cs = Object.entries(contacts);
+    L.push('CONTATTI: ' + (mini ? cs.filter(([e, n]) => rel(n + ' ' + e.split('@')[0].replace(/[._-]/g, ' '))).slice(0, 8) : cs.slice(0, 30)).map(([e, n]) => `${n} <${e}>`).join('; '));
+  }
+  return L.join('\n') || '(dashboard vuota)';
 }
 async function aiParse(text){
   const now = new Date();
-  const days = Array.from({length:30}, (_, i) => { const d = addDays(now, i); return `${d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'})} = ${ymd(d)}${i === 0 ? ' (oggi)' : i === 1 ? ' (domani)' : ''}`; }).join('; ');
-  const prompt = `Sei l'assistente della dashboard personale di ${S.name || 'uno studente universitario'}: vedi tutto quello che c'è e puoi fare tutto.
+  const days = Array.from({length:21}, (_, i) => { const d = addDays(now, i); return `${d.toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'})}=${ymd(d)}`; }).join(', ');
+  const prompt = level => `Sei l'assistente della dashboard personale di ${S.name || 'uno studente universitario'}: vedi tutto quello che c'è e puoi fare tutto.
 Adesso sono le ${fmtTime(now)} di ${now.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}.
-Date dei prossimi giorni (usale per convertire): ${days}. Le date senza anno sono la prossima occorrenza futura.
+Date dei prossimi giorni (usale per convertire; il primo è oggi): ${days}. Le date senza anno sono la prossima occorrenza futura.
 
 CONTENUTO ATTUALE DELLA DASHBOARD:
-${JSON.stringify(dashboardSnapshot())}
+${dashboardSnapshot(text, level)}
 
 Rispondi SOLO con JSON: {"actions":[...], "risposta":"frase brevissima da dire a voce (max 12 parole), senza ripetere la richiesta"}
 Azioni (anche più di una, nell'ordine detto dall'utente):
@@ -3423,7 +3443,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 18';
+const APP_VERSION = '29 ottobre · 19';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
