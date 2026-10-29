@@ -2140,6 +2140,7 @@ function openSettings(){
 function saveSettings(){
   const before = JSON.stringify([S.uniEmail, S.aliases, S.mailQuery, S.maxMails, S.geminiKey, S.calendars, S.lessonCal]);
   const cals = {}; document.querySelectorAll('[data-calid]').forEach(x => cals[x.dataset.calid] = x.checked);
+  const prev = Object.fromEntries(SYNC_KEYS.map(k => [k, JSON.stringify(S[k])]));
   Object.assign(S, {
     name:$('#sName').value.trim(), uniEmail:$('#sUni').value.trim(), aliases:$('#sAliases').value.trim(), clientId:$('#sClient').value.trim(),
     mailQuery:$('#sQuery').value.trim() || DEF.mailQuery, maxMails:Math.max(5, Math.min(100, +$('#sMax').value || 40)),
@@ -2147,8 +2148,10 @@ function saveSettings(){
     autoDrafts:$('#sAuto').checked, signature:$('#sSign').value.trim(), voiceReplies:$('#sVoice').checked, theme:$('#sTheme').value,
     voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1,
     calendars:calendars.length ? cals : S.calendars, lessonCal:$('#sLessonCal').value, notify:$('#sNotify').checked, notifyLead:+$('#sLead').value || 10,
-    planToCal:$('#sPlanCal').checked, u:Date.now()
+    planToCal:$('#sPlanCal').checked
   });
+  S.su ||= {};
+  for (const k of SYNC_KEYS) if (JSON.stringify(S[k]) !== prev[k]) S.su[k] = Date.now();   // si sincronizza solo ciò che hai cambiato
   store.set('settings', S); applyTheme(); $('#settingsDlg').close(); dirty();
   Object.keys(ruleCache).forEach(k => delete ruleCache[k]);
   renderAll();
@@ -2697,7 +2700,7 @@ const SYNC_KEYS = ['name', 'uniEmail', 'aliases', 'signature', 'geminiKey', 'gem
   'theme', 'notifyLead', 'planToCal', 'lessonCal', 'calendars', 'mailQuery', 'maxMails'];
 function localDoc(){
   return {v:1, tasks, plans, habits, habitLog, exams, hiddenCourses, eventImp, tombs,
-    settings:{u:S.u || 0, data:Object.fromEntries(SYNC_KEYS.map(k => [k, S[k]]))}};
+    settings:{fields:Object.fromEntries(SYNC_KEYS.map(k => [k, {v:S[k], u:S.su?.[k] || 0}]))}};
 }
 function mergeDocs(a, b){
   const T = {...(a.tombs || {})};
@@ -2715,11 +2718,31 @@ function mergeDocs(a, b){
   };
   return {v:1, tombs:T, tasks:L(a.tasks, b.tasks, 'task:'), habits:L(a.habits, b.habits, 'habit:'), exams:L(a.exams, b.exams, 'exam:'),
     plans:M(a.plans, b.plans, 'plan:'), habitLog:M(a.habitLog, b.habitLog, 'log:'), hiddenCourses:M(a.hiddenCourses, b.hiddenCourses, 'hide:'),
-    eventImp:M(a.eventImp, b.eventImp, 'imp:'), settings:(b.settings?.u || 0) > (a.settings?.u || 0) ? b.settings : a.settings};
+    eventImp:M(a.eventImp, b.eventImp, 'imp:'), settings:mergeSettings(a.settings, b.settings)};
+}
+const isEmptyVal = v => v === '' || v === null || v === undefined;
+// vecchio formato (tutte le impostazioni con un solo orario): un campo vuoto non deve mai cancellarne uno pieno
+const settingsFields = st => st?.fields || (st?.data ? Object.fromEntries(Object.entries(st.data).map(([k, v]) => [k, {v, u:isEmptyVal(v) ? 0 : st.u || 0}])) : {});
+function pickField(x, y){
+  if (!x) return y; if (!y) return x;
+  if (y.u !== x.u) return y.u > x.u ? y : x;
+  return isEmptyVal(x.v) && !isEmptyVal(y.v) ? y : x;
+}
+function mergeSettings(a, b){
+  const fa = settingsFields(a), fb = settingsFields(b), out = {};
+  for (const k of new Set([...Object.keys(fa), ...Object.keys(fb)])) out[k] = pickField(fa[k], fb[k]);
+  return {fields:out};
 }
 function applyDoc(d){
   ({tasks, plans, habits, habitLog, exams, hiddenCourses, eventImp, tombs} = d);
-  if (d.settings && (d.settings.u || 0) > (S.u || 0)){ Object.assign(S, d.settings.data, {u:d.settings.u}); store.set('settings', S); applyTheme(); }
+  S.su ||= {};
+  let sChanged = false;
+  for (const [k, f] of Object.entries(settingsFields(d.settings))){
+    if (!SYNC_KEYS.includes(k)) continue;
+    const mine = {v:S[k], u:S.su[k] || 0};
+    if (pickField(mine, f) === f && JSON.stringify(f.v) !== JSON.stringify(S[k])){ S[k] = f.v; S.su[k] = f.u; sChanged = true; }
+  }
+  if (sChanged){ store.set('settings', S); applyTheme(); }
   [['tasks', tasks], ['plans', plans], ['habits', habits], ['habitLog', habitLog], ['exams', exams], ['hidden', hiddenCourses], ['eventImp', eventImp], ['tombs', tombs]]
     .forEach(([k, v]) => store.set(K(k), v));
   resetShadows(); refreshVisible();
