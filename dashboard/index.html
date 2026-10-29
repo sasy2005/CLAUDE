@@ -838,12 +838,11 @@ async function geminiTTS(text){
   const key = S.gVoice + '|' + text;
   if (ttsCache.has(key)) return ttsCache.get(key);
   const models = [store.get('ttsModel', null), ...TTS_MODELS].filter((m, i, a) => m && a.indexOf(m) === i);
-  const speed = (+S.voiceRate || 1) >= 1.15 ? ' a ritmo un po\' sostenuto' : (+S.voiceRate || 1) <= 0.9 ? ' con calma' : '';
   for (const m of models){
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(S.geminiKey)}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        contents:[{parts:[{text:`Leggi in italiano, con voce naturale, calda e amichevole${speed}: ${text}`}]}],
+        contents:[{parts:[{text}]}],      // solo il testo: altrimenti la voce legge anche le istruzioni
         generationConfig:{responseModalities:['AUDIO'], speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:S.gVoice || 'Sulafat'}}}}
       })
     });
@@ -1467,7 +1466,10 @@ async function fetchGoogle(){
   const list = await gapi(`${GM}/messages?maxResults=${Math.min(100, +S.maxMails || 40)}&q=${encodeURIComponent(S.mailQuery)}`);
   const msgs = await pool(list.messages || [], 6, m => gapi(`${GM}/messages/${m.id}?format=full`).catch(() => null));
   const all = msgs.filter(Boolean).map(toEmail);
-  all.forEach(e => { if (e.cls.type === 'direct' && e.from.email) contacts[e.from.email] = e.from.name; });
+  all.forEach(e => {
+    if (e.from.email && !/no-?reply|newsletter|notific|mailer|bounce/i.test(e.from.email)) contacts[e.from.email] = e.from.name;
+    if (e.cls.type === 'direct') [...e.to, ...e.cc].forEach(a => { if (a.name && !myAddrs.includes(a.email)) contacts[a.email] ||= a.name; });
+  });
   emails = groupThreads(all);
   store.set(K('contacts'), contacts);
   // bozze già esistenti in Gmail (anche quelle create prima da qui)
@@ -1561,6 +1563,67 @@ function resolveRecipient(str){
   return best || {email:'', name:s};
 }
 let composeCtx = null;
+/* ---------- trovare una persona: contatti, orario delle lezioni, tutta la Gmail ---------- */
+const STUDENT_DOM = /studenti|students|campus|alumni|gmail|hotmail|outlook|libero|yahoo|icloud/i;
+const personName = raw => {   // «UBERTAZZI TOMMASO MARIA GIOVANNI» → «Tommaso Ubertazzi»
+  const w = raw.trim().split(/\s+/).map(x => cap(x.toLowerCase()));
+  return w.length > 1 && raw === raw.toUpperCase() ? `${w[1]} ${w[0]}` : w.join(' ');
+};
+// docenti di un corso, presi dai titoli dell'orario: «CORSO (T1 …) COGNOME NOME, COGNOME NOME U1-08 …»
+function teachersOf(course){
+  const q = stems(course), out = new Set();
+  for (const e of allEvents){
+    if (!e.lesson) continue;
+    const ls = stems(courseLabel(e)); if (!q.length || q.filter(w => ls.includes(w)).length / q.length < .6) continue;
+    const after = e.title.split(')').slice(1).join(')').split(/\b[A-Z]{1,3}\d{1,2}-\d{1,3}\b|\bcon\b|\[/)[0];
+    after.split(',').map(x => x.trim()).filter(x => /^[A-ZÀ-Ý' ]{4,}$/.test(x)).forEach(x => out.add(x));
+  }
+  return [...out].map(raw => ({raw, name:personName(raw), surname:raw.split(/\s+/)[0]}));
+}
+async function searchGmailPerson(word){
+  const w = norm(word).replace(/[^a-z' ]/g, '').trim(); if (w.length < 3 || mode !== 'google' || !token) return null;
+  const l = await gapi(`${GM}/messages?maxResults=15&q=${encodeURIComponent(`from:${w} OR to:${w} OR cc:${w}`)}`);
+  const msgs = await pool(l.messages || [], 5, m => gapi(`${GM}/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc`).catch(() => null));
+  const count = {};
+  for (const m of msgs.filter(Boolean)) for (const h of m.payload.headers || [])
+    for (const a of parseAddrs(h.value)) if (norm(a.name + ' ' + a.email).includes(w) && !myAddrs.includes(a.email)) (count[a.email] ||= {n:0, name:a.name}).n++;
+  const best = Object.entries(count).sort((a, b) => b[1].n - a[1].n)[0];
+  return best ? {email:best[0], name:best[1].name || word} : null;
+}
+function staffDomain(){   // dominio più usato dai docenti nei contatti (es. unimib.it)
+  const c = {};
+  for (const em of Object.keys(contacts)){ const d = em.split('@')[1]; if (d && !STUDENT_DOM.test(d)) c[d] = (c[d] || 0) + 1; }
+  const mine = (myAddrs[0] || S.uniEmail || '').split('@')[1] || '';
+  return Object.entries(c).sort((a, b) => b[1] - a[1])[0]?.[0] || mine.replace(/^(campus|studenti|students|stud)\./, '');
+}
+async function findPerson(text){
+  const raw = String(text || '').trim();
+  const local = resolveRecipient(raw);
+  if (local.email) return {...local, how:'contatti'};
+  const n = norm(raw);
+  const course = (n.match(/\b(?:prof\w*|docente|insegnante)\s+(?:di|del|della|dello|de|d')\s*(?:corso di\s+)?(.+)$/) || [])[1];
+  const name = n.replace(/\b(prof\.?|professor[ea]?|professoressa|dott\.?|dottor(essa)?|il|la|lo|al|alla|di)\b/g, ' ').replace(/\s+/g, ' ').trim();
+  // 1) il corso → i docenti dall'orario delle lezioni
+  const teachers = course ? teachersOf(course) : [];
+  for (const t of teachers){
+    const loc = resolveRecipient(t.surname); if (loc.email && norm(loc.name + loc.email).includes(norm(t.surname))) return {...loc, name:loc.name || t.name, how:'orario'};
+    try{ const g = await searchGmailPerson(t.surname); if (g) return {...g, name:g.name || t.name, how:'orario'}; }catch(err){ console.warn(err); }
+  }
+  // 2) nome e cognome detti a voce → ricerca in tutta la Gmail (prima il cognome, di solito l'ultima parola)
+  const words = (course ? '' : name).split(' ').filter(w => w.length >= 3);
+  for (const w of [...words].reverse()){
+    try{ const g = await searchGmailPerson(w); if (g) return {...g, how:'email'}; }catch(err){ console.warn(err); }
+  }
+  // 3) ipotesi nome.cognome@dominio dei docenti (da controllare)
+  const who = teachers[0] ? teachers[0].name : (words.length >= 2 ? words.map(cap).join(' ') : '');
+  const dom = staffDomain();
+  if (who && dom){
+    const parts = norm(who).replace(/[^a-z ]/g, '').split(' ');
+    return {email:`${parts[0]}.${parts[parts.length - 1]}@${dom}`, name:who, how:'ipotesi'};
+  }
+  return {email:'', name:who || raw, how:''};
+}
+
 function openCompose(to, subject, body, ctx = null){
   composeCtx = ctx;
   $('#cTitle').textContent = ctx?.replyTo ? '↩ Risposta a ' + ctx.replyTo.from.name : '✉️ Nuova email';
@@ -1821,17 +1884,20 @@ async function runCommand(cmd, text){
       return say(`Aggiunto in calendario: ${cap(cmd.title)}, ${relDay(cmd.date || ymd(new Date()))}${time ? ' alle ' + cmd.time : ''}${cmd.imp ? ' (' + IMP_LBL[cmd.imp].toLowerCase() + ')' : ''}.`);
     }
     case 'send_email':{
-      const r = resolveRecipient(cmd.to);
+      say(`🔎 Cerco «${cmd.to || '?'}»…`, false);
+      const r = await findPerson(cmd.to);
       let body = cmd.body || '';
       if (body && !aiOn()){
-        const prof = /prof|dott/i.test(cmd.to || '');
+        const prof = /prof|dott|docente/i.test(cmd.to || '') || r.how === 'orario' || r.how === 'ipotesi' || (!!r.email && !STUDENT_DOM.test(r.email.split('@')[1] || ''));
         const nm = r.name ? r.name.replace(/^(prof\.?(ssa)?|dott\.?(ssa)?)\s+/i, '').split(' ') : [];
         const greet = prof ? `Gentile Prof. ${nm[nm.length - 1] || ''},` : `Ciao${nm[0] ? ' ' + cap(nm[0]) : ''},`;
         body = `${greet}\n\n${cap(body.replace(/\s+$/, ''))}${/[.!?]$/.test(body) ? '' : '.'}\n\n${prof ? 'Cordiali saluti,' : 'A presto,'}\n${S.signature || S.name || ''}`.trim();
       }
       const subj = cmd.subject || (cmd.body ? cap(cmd.body.split(/\s+/).slice(0, 6).join(' ')).replace(/[.,;:!?]+$/, '') : '');
       openCompose(r.email || (cmd.to && cmd.to.includes('@') ? cmd.to : ''), subj, body);
-      return say(r.email ? `Ho preparato l'email per ${r.name || r.email}. Controllala e di' «conferma» per inviarla, oppure «salva» per tenerla come bozza.`
+      const how = {orario:' (trovato dal tuo orario delle lezioni)', email:' (trovato nelle tue email)', contatti:''}[r.how] ?? '';
+      if (r.how === 'ipotesi') return say(`⚠️ Non ho trovato ${r.name} nelle tue email: ho scritto l'indirizzo più probabile, ${r.email}. Controllalo prima di inviare!`);
+      return say(r.email ? `Ho preparato l'email per ${r.name || r.email}${how}. Controllala e di' «conferma» per inviarla, oppure «salva» per tenerla come bozza.`
         : `Ho preparato l'email, ma non trovo l'indirizzo di «${cmd.to || '?'}»: scrivilo nel campo «A».`);
     }
     case 'compose_send': return $('#cSend').click();
@@ -3023,7 +3089,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 11';
+const APP_VERSION = '29 ottobre · 12';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
