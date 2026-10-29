@@ -14,7 +14,7 @@
     --border:#e3e6f0; --accent:#5a56e0; --accent-2:#8b5cf6; --accent-fg:#fff; --accent-soft:#ecebfd;
     --red:#e5484d; --red-soft:#fdecec; --amber:#c27803; --amber-soft:#fdf3df; --green:#15975a; --green-soft:#e5f6ec;
     --blue:#2a6fdb; --blue-soft:#e7effc; --shadow:0 1px 2px rgba(20,24,50,.04),0 6px 24px rgba(20,24,50,.06);
-    --radius:18px;
+    --radius:18px; color-scheme:light;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -22,6 +22,7 @@
       --border:#262b3e; --accent:#8b88ff; --accent-2:#b18cff; --accent-fg:#0d0f17; --accent-soft:#25244a;
       --red:#ff7b7f; --red-soft:#3a1f24; --amber:#f5b54a; --amber-soft:#3a2d17; --green:#4fd18b; --green-soft:#183326;
       --blue:#79a8ff; --blue-soft:#1b2842; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.25);
+      color-scheme:dark;
     }
   }
   :root[data-theme="dark"]{
@@ -29,8 +30,18 @@
     --border:#262b3e; --accent:#8b88ff; --accent-2:#b18cff; --accent-fg:#0d0f17; --accent-soft:#25244a;
     --red:#ff7b7f; --red-soft:#3a1f24; --amber:#f5b54a; --amber-soft:#3a2d17; --green:#4fd18b; --green-soft:#183326;
     --blue:#79a8ff; --blue-soft:#1b2842; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.25);
+    color-scheme:dark;
   }
   *{box-sizing:border-box}
+  /* barre di scorrimento sottili, arrotondate, nei colori del tema */
+  ::-webkit-scrollbar{width:12px;height:12px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background-color:var(--border);border-radius:99px;border:4px solid transparent;background-clip:padding-box;min-height:40px}
+  ::-webkit-scrollbar-thumb:hover{background-color:var(--faint)}
+  ::-webkit-scrollbar-corner{background:transparent}
+  @supports not selector(::-webkit-scrollbar){*{scrollbar-width:thin;scrollbar-color:var(--border) transparent}}
+  html{scroll-behavior:smooth}
+  .card-b,.drawer-b,.dlg-b{overscroll-behavior:contain;scroll-behavior:smooth}
   html{-webkit-text-size-adjust:100%}
   body{margin:0;background:var(--bg);color:var(--fg);
     font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
@@ -267,6 +278,7 @@
     width:100%;border:1px solid var(--border);background:var(--surface-2);border-radius:11px;padding:9px 12px;outline:none}
   .field input:focus,.field select:focus{border-color:var(--accent)}
   .field .hint{font-size:.75rem;color:var(--muted);margin-top:4px}
+  .field input[type=range]{width:100%;accent-color:var(--accent);margin-top:10px}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .three{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px}
   @media(max-width:520px){.two,.three{grid-template-columns:1fr}}
@@ -433,6 +445,28 @@
 
     <div class="sec">Voce e aspetto</div>
     <label class="switch"><input type="checkbox" id="sVoice"> Rispondimi anche a voce</label>
+    <div class="two">
+      <div class="field"><label for="sEngine">Motore della voce</label><select id="sEngine">
+        <option value="auto">Automatico</option>
+        <option value="gemini">✨ Gemini AI — la più naturale</option>
+        <option value="browser">Voce del browser — istantanea</option></select></div>
+      <div class="field"><label for="sGVoice">Voce Gemini</label><select id="sGVoice">
+        <option value="Sulafat">Sulafat — donna, calda</option>
+        <option value="Aoede">Aoede — donna, leggera</option>
+        <option value="Leda">Leda — donna, giovane</option>
+        <option value="Kore">Kore — donna, decisa</option>
+        <option value="Achernar">Achernar — donna, morbida</option>
+        <option value="Achird">Achird — uomo, amichevole</option>
+        <option value="Puck">Puck — uomo, allegro</option>
+        <option value="Charon">Charon — uomo, pacato</option>
+        <option value="Orus">Orus — uomo, deciso</option></select></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="sBVoice">Voce del browser (di riserva)</label><select id="sBVoice"></select>
+        <div class="hint">Su Microsoft Edge ci sono voci «Natural» molto realistiche.</div></div>
+      <div class="field"><label for="sRate">Velocità: <span id="rateLbl"></span></label><input type="range" id="sRate" min="0.8" max="1.4" step="0.05"></div>
+    </div>
+    <button class="btn sm" type="button" id="testVoice" style="margin-bottom:12px">▶ Prova la voce</button>
     <div class="field"><label for="sTheme">Tema</label><select id="sTheme"><option value="auto">Automatico</option><option value="light">Chiaro</option><option value="dark">Scuro</option></select></div>
 
     <div class="sec">Dati</div>
@@ -523,7 +557,8 @@ const DEF = {
   name:'', uniEmail:'', aliases:'', clientId:'',
   mailQuery:'in:inbox newer_than:14d -category:promotions -category:social -from:me', maxMails:40,
   geminiKey:'', geminiModel:'gemini-flash-latest',
-  autoDrafts:true, signature:'', voiceReplies:true, theme:'auto'
+  autoDrafts:true, signature:'', voiceReplies:true, theme:'auto',
+  voiceEngine:'auto', gVoice:'Sulafat', bVoice:'', voiceRate:1.05
 };
 let S = {...DEF, ...store.get('settings', {})};
 let mode = store.get('mode', 'demo');                 // 'demo' | 'google'
@@ -573,16 +608,76 @@ function toast(msg, action, fn, ms = 4200){
 function say(text, speak = true){
   $('#replyTxt').textContent = text;
   $('#reply').classList.add('on');
-  if (speak && S.voiceReplies && 'speechSynthesis' in window){
-    try{
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text.replace(/[•✨🔥⭐🌱📅✉️]/gu, ''));
-      u.lang = 'it-IT';
-      const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('it'));
-      if (v) u.voice = v;
-      speechSynthesis.speak(u);
-    }catch{}
+  if (speak && S.voiceReplies) speakText(text);
+}
+
+/* ---------- voce: Gemini (naturale) con riserva sulla migliore voce del browser ---------- */
+const TTS_MODELS = ['gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-flash-preview-tts'];
+let audioCtx = null, curSrc = null, speakSeq = 0, ttsCooldown = 0;
+const ttsCache = new Map();
+function unlockAudio(){   // i browser permettono l'audio solo dopo un clic: lo "sblocco" al primo gesto
+  try{ audioCtx ||= new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); }catch{}
+}
+function stopSpeaking(){
+  speakSeq++;
+  try{ curSrc && curSrc.stop(); }catch{} curSrc = null;
+  try{ speechSynthesis.cancel(); }catch{}
+}
+function italianVoices(){ return 'speechSynthesis' in window ? speechSynthesis.getVoices().filter(v => /^it/i.test(v.lang)) : []; }
+function bestBrowserVoice(){
+  const vs = italianVoices();
+  if (S.bVoice){ const v = vs.find(v => v.name === S.bVoice); if (v) return v; }
+  const rank = v => /natural|neural/i.test(v.name) ? 0 : /online/i.test(v.name) ? 1 : /google/i.test(v.name) ? 2 : /premium|enhanced|siri|alice|federica|luca/i.test(v.name) ? 3 : 9;
+  return vs.sort((a, b) => rank(a) - rank(b))[0] || null;
+}
+function browserSpeak(text){
+  if (!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'it-IT'; u.rate = +S.voiceRate || 1;
+  const v = bestBrowserVoice(); if (v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+async function geminiTTS(text){
+  const key = S.gVoice + '|' + text;
+  if (ttsCache.has(key)) return ttsCache.get(key);
+  const models = [store.get('ttsModel', null), ...TTS_MODELS].filter((m, i, a) => m && a.indexOf(m) === i);
+  const speed = (+S.voiceRate || 1) >= 1.15 ? ' a ritmo un po\' sostenuto' : (+S.voiceRate || 1) <= 0.9 ? ' con calma' : '';
+  for (const m of models){
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(S.geminiKey)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[{text:`Leggi in italiano, con voce naturale, calda e amichevole${speed}: ${text}`}]}],
+        generationConfig:{responseModalities:['AUDIO'], speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:S.gVoice || 'Sulafat'}}}}
+      })
+    });
+    if (r.status === 404 || r.status === 400) continue;            // modello non disponibile: provo il successivo
+    if (!r.ok) throw new Error('voce Gemini ' + r.status);
+    const part = ((await r.json()).candidates?.[0]?.content?.parts || []).find(p => p.inlineData);
+    if (!part) throw new Error('nessun audio');
+    store.set('ttsModel', m);
+    const out = {data:part.inlineData.data, rate:+((part.inlineData.mimeType || '').match(/rate=(\d+)/) || [0, 24000])[1]};
+    ttsCache.set(key, out); if (ttsCache.size > 20) ttsCache.delete(ttsCache.keys().next().value);
+    return out;
   }
+  throw new Error('nessun modello voce disponibile');
+}
+function playPcm({data, rate}){
+  unlockAudio();
+  const bin = atob(data), n = bin.length >> 1;
+  const buf = audioCtx.createBuffer(1, n, rate), ch = buf.getChannelData(0);
+  for (let i = 0; i < n; i++){ const v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); ch[i] = (v > 32767 ? v - 65536 : v) / 32768; }
+  const src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(audioCtx.destination); src.start(); curSrc = src;
+}
+async function speakText(text){
+  const clean = String(text).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/[•«»]/g, '').replace(/\n+/g, '. ').replace(/\.\s*\./g, '.').trim();
+  if (!clean) return;
+  stopSpeaking(); const seq = speakSeq;
+  const engine = S.voiceEngine === 'auto' ? (aiOn() ? 'gemini' : 'browser') : S.voiceEngine;
+  if (engine === 'gemini' && aiOn() && Date.now() > ttsCooldown){
+    try{ const a = await geminiTTS(clean); if (seq === speakSeq) playPcm(a); return; }
+    catch(err){ console.warn(err); ttsCooldown = Date.now() + 5 * 60e3; }   // per 5 minuti uso la voce del browser
+  }
+  if (seq === speakSeq) browserSpeak(clean);
 }
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -604,7 +699,7 @@ function toggleMic(){
     const t = (finalTxt || $('#cmdInput').value).trim();
     if (t){ $('#cmdInput').value = ''; handleCommand(t); }
   };
-  try{ speechSynthesis.cancel(); }catch{}
+  unlockAudio(); stopSpeaking();
   rec.start(); listening = true; $('#micBtn').classList.add('on');
   $('#cmdInput').value = ''; $('#cmdInput').placeholder = 'Ti ascolto…';
   setTimeout(() => $('#cmdInput').placeholder = 'Parla o scrivi un comando…', 4000);
@@ -1735,6 +1830,8 @@ function openSettings(){
   $('#sName').value = S.name; $('#sUni').value = S.uniEmail; $('#sAliases').value = S.aliases; $('#sClient').value = S.clientId;
   $('#sQuery').value = S.mailQuery; $('#sMax').value = S.maxMails; $('#sGemini').value = S.geminiKey; $('#sModel').value = S.geminiModel;
   $('#sAuto').checked = S.autoDrafts; $('#sSign').value = S.signature; $('#sVoice').checked = S.voiceReplies; $('#sTheme').value = S.theme;
+  $('#sEngine').value = S.voiceEngine; $('#sGVoice').value = S.gVoice; $('#sRate').value = S.voiceRate; $('#rateLbl').textContent = (+S.voiceRate).toFixed(2) + '×';
+  fillBrowserVoices();
   $('#originLbl').textContent = location.protocol === 'file:' ? '(apri la pagina da GitHub Pages)' : location.origin;
   const steps = [
     [!!S.geminiKey, 'Chiave Gemini gratuita', 'per bozze, riassunti e recap scritti dall\'AI'],
@@ -1750,7 +1847,8 @@ function saveSettings(){
     name:$('#sName').value.trim(), uniEmail:$('#sUni').value.trim(), aliases:$('#sAliases').value.trim(), clientId:$('#sClient').value.trim(),
     mailQuery:$('#sQuery').value.trim() || DEF.mailQuery, maxMails:Math.max(5, Math.min(100, +$('#sMax').value || 40)),
     geminiKey:$('#sGemini').value.trim(), geminiModel:$('#sModel').value.trim() || DEF.geminiModel,
-    autoDrafts:$('#sAuto').checked, signature:$('#sSign').value.trim(), voiceReplies:$('#sVoice').checked, theme:$('#sTheme').value
+    autoDrafts:$('#sAuto').checked, signature:$('#sSign').value.trim(), voiceReplies:$('#sVoice').checked, theme:$('#sTheme').value,
+    voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1
   });
   store.set('settings', S); applyTheme(); $('#settingsDlg').close();
   Object.keys(ruleCache).forEach(k => delete ruleCache[k]);
@@ -1762,7 +1860,7 @@ function saveSettings(){
 /* =====================================================================
    Eventi UI
    ===================================================================== */
-$('#cmdForm').onsubmit = e => { e.preventDefault(); const t = $('#cmdInput').value; $('#cmdInput').value = ''; handleCommand(t); };
+$('#cmdForm').onsubmit = e => { e.preventDefault(); unlockAudio(); const t = $('#cmdInput').value; $('#cmdInput').value = ''; handleCommand(t); };
 $('#micBtn').onclick = toggleMic; $('#cMic').onclick = toggleMic;
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm'){ e.preventDefault(); toggleMic(); }
@@ -1770,7 +1868,7 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Escape' && $('#drawer').classList.contains('on')) closeDrawer();
 });
 $('#hints').innerHTML = HELP.slice(0, 5).map(h => `<button class="chip" type="button">${esc(h)}</button>`).join('');
-$('#hints').onclick = e => { const b = e.target.closest('.chip'); if (b) handleCommand(b.textContent); };
+$('#hints').onclick = e => { const b = e.target.closest('.chip'); if (b){ unlockAudio(); handleCommand(b.textContent); } };
 
 $('#mailTabs').onclick = e => { const b = e.target.closest('button'); if (b){ mailTab = b.dataset.tab; renderMail(); } };
 $('#mailList').onclick = e => { const b = e.target.closest('.mail'); if (b) openEmail(b.dataset.id); };
@@ -1791,8 +1889,8 @@ $('#planBody').onclick = e => {
   }
 };
 $('#recapBtn').onclick = () => { if ($('#recap').classList.contains('on')) $('#recapClose').click(); else showRecap(); };
-$('#recapClose').onclick = () => { $('#recap').classList.remove('on'); store.set(K('recapSeen'), ymd(new Date())); try{ speechSynthesis.cancel(); }catch{} };
-$('#recapSpeak').onclick = () => say(recapSpeech());
+$('#recapClose').onclick = () => { $('#recap').classList.remove('on'); store.set(K('recapSeen'), ymd(new Date())); stopSpeaking(); };
+$('#recapSpeak').onclick = () => { unlockAudio(); speakText(recapSpeech()); };
 $('#recapGrid').onclick = e => { if (e.target.closest('[data-recap-plan]')){ e.preventDefault(); planDay = 'today'; planEditing = true; renderPlan(); $('#planCard').scrollIntoView({behavior:'smooth'}); $('#planTxt').focus(); } };
 $('#copyOrigin').onclick = () => navigator.clipboard?.writeText(location.origin).then(() => toast('Copiato: ' + location.origin));
 $('#week').onclick = e => { const b = e.target.closest('.wd'); if (b){ selDay = selDay === b.dataset.day ? null : b.dataset.day; renderAgenda(); } };
@@ -1873,7 +1971,25 @@ $('#importInp').onchange = async e => {
   }catch(err){ toast('Import non riuscito: ' + err.message); }
   e.target.value = '';
 };
-if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};
+function fillBrowserVoices(){
+  const vs = italianVoices(), best = bestBrowserVoice();
+  $('#sBVoice').innerHTML = `<option value="">Automatica${best ? ' (' + esc(best.name) + ')' : ''}</option>` + vs.map(v => `<option value="${esc(v.name)}">${esc(v.name)}</option>`).join('');
+  $('#sBVoice').value = vs.some(v => v.name === S.bVoice) ? S.bVoice : '';
+}
+if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { if ($('#settingsDlg').open) fillBrowserVoices(); };
+$('#sRate').oninput = () => $('#rateLbl').textContent = (+$('#sRate').value).toFixed(2) + '×';
+$('#testVoice').onclick = async () => {
+  unlockAudio();
+  const old = {...S};
+  Object.assign(S, {voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1, geminiKey:$('#sGemini').value.trim()});
+  ttsCooldown = 0;
+  const b = $('#testVoice'); b.innerHTML = '<span class="spin"></span> Preparo…';
+  await speakText(`Ciao${$('#sName').value.trim() ? ' ' + $('#sName').value.trim() : ''}! Sono la tua dashboard. Oggi hai tre impegni e due cose urgenti da fare.`);
+  const usedGemini = S.voiceEngine !== 'browser' && aiOn() && Date.now() > ttsCooldown;
+  Object.assign(S, {voiceEngine:old.voiceEngine, gVoice:old.gVoice, bVoice:old.bVoice, voiceRate:old.voiceRate, geminiKey:old.geminiKey});
+  b.textContent = '▶ Prova la voce';
+  if ($('#sEngine').value !== 'browser' && !usedGemini) toast('La voce Gemini non è disponibile ora: uso la migliore voce del browser.', null, null, 6000);
+};
 setInterval(() => { renderHeader(); renderStats(); if (!planEditing) renderPlan(); }, 60e3);
 
 /* ---------- avvio ---------- */
