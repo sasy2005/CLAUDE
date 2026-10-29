@@ -623,6 +623,10 @@
         <div class="hint">Su Microsoft Edge ci sono voci «Natural» molto realistiche.</div></div>
       <div class="field"><label for="sRate">Velocità: <span id="rateLbl"></span></label><input type="range" id="sRate" min="0.8" max="1.4" step="0.05"></div>
     </div>
+    <div class="two">
+      <div class="field"><label for="sVol">🔊 Volume della voce: <span id="volLbl"></span></label><input type="range" id="sVol" min="0" max="1.5" step="0.05"></div>
+      <div class="field"></div>
+    </div>
     <button class="btn sm" type="button" id="testVoice" style="margin-bottom:12px">▶ Prova la voce</button>
     <div class="field"><label for="sPause">Quando parli, invia il comando dopo una pausa di</label><select id="sPause">
       <option value="2">2 secondi</option><option value="3">3 secondi</option><option value="4">4 secondi</option><option value="5">5 secondi</option></select>
@@ -747,7 +751,7 @@ const DEF = {
   mailQuery:'in:inbox newer_than:14d -category:promotions -category:social -from:me', maxMails:40,
   geminiKey:'', geminiModel:'gemini-flash-latest',
   autoDrafts:true, signature:'', voiceReplies:true, theme:'auto',
-  voiceEngine:'auto', gVoice:'Sulafat', bVoice:'', voiceRate:1.05, voicePause:3,
+  voiceEngine:'auto', gVoice:'Sulafat', bVoice:'', voiceRate:1.05, voicePause:3, voiceVolume:1,
   notify:false, notifyLead:10, planToCal:false, lessonCal:'', calendars:null, u:0
 };
 let S = {...DEF, ...store.get('settings', {})};
@@ -802,10 +806,18 @@ function toast(msg, action, fn, ms = 4200){
   $('#toast').classList.add('on');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('on'), ms);
 }
-function say(text, speak = true){
+// come chiamare una persona a voce: «Prof. Laura Bianchi» → «la prof Bianchi», «Giulia Verdi» → «Giulia», «Ufficio Erasmus» resta così
+function spokenName(name, formal = false){
+  const t = String(name || '').trim(), prof = /^(prof|dott|ing)/i.test(t) || formal;
+  const w = t.replace(/^(prof\.?(ssa)?|dott\.?(ssa)?|ing\.?)\s+/i, '').split(/\s+/).filter(Boolean);
+  if (!w.length) return '';
+  if (prof) return 'il prof ' + w[w.length - 1];
+  return /^(ufficio|segreteria|biblioteca|servizio|area|centro)/i.test(w[0]) ? w.slice(0, 2).join(' ') : w[0];
+}
+function say(text, speak = true, voice = null){   // a schermo il messaggio completo, a voce (se c'è) la versione breve
   $('#replyTxt').textContent = text;
   $('#reply').classList.add('on');
-  if (speak && S.voiceReplies) speakText(text);
+  if (speak && S.voiceReplies) speakText(voice || text);
 }
 
 /* ---------- voce: Gemini (naturale) con riserva sulla migliore voce del browser ---------- */
@@ -830,7 +842,7 @@ function bestBrowserVoice(){
 function browserSpeak(text){
   if (!('speechSynthesis' in window)) return;
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'it-IT'; u.rate = +S.voiceRate || 1;
+  u.lang = 'it-IT'; u.rate = +S.voiceRate || 1; u.volume = Math.min(1, S.voiceVolume ?? 1);
   const v = bestBrowserVoice(); if (v) u.voice = v;
   speechSynthesis.speak(u);
 }
@@ -862,7 +874,9 @@ function playPcm({data, rate}){
   const bin = atob(data), n = bin.length >> 1;
   const buf = audioCtx.createBuffer(1, n, rate), ch = buf.getChannelData(0);
   for (let i = 0; i < n; i++){ const v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); ch[i] = (v > 32767 ? v - 65536 : v) / 32768; }
-  const src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(audioCtx.destination); src.start(); curSrc = src;
+  const src = audioCtx.createBufferSource(), gain = audioCtx.createGain();
+  src.buffer = buf; gain.gain.value = S.voiceVolume ?? 1;           // fino a 150%
+  src.connect(gain); gain.connect(audioCtx.destination); src.start(); curSrc = src;
 }
 async function speakText(text){
   const clean = String(text).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/[•«»]/g, '').replace(/\n+/g, '. ').replace(/\.\s*\./g, '.').trim();
@@ -1772,7 +1786,7 @@ async function handleCommand(text){
   if ($('#composeDlg').open){
     if (/^(invia|inviala|conferma|confermo|si|manda|mandala|ok invia)\b/.test(n)) return $('#cSend').click();
     if (/^(salva|bozza|salvala)/.test(n)) return $('#cDraft').click();
-    if (/^(annulla|no|lascia stare|chiudi)\b/.test(n)){ $('#composeDlg').close(); return say('Ok, email annullata.'); }
+    if (/^(annulla|no|lascia stare|chiudi)\b/.test(n)){ $('#composeDlg').close(); return say('Ok, email annullata.', true, 'Annullata.'); }
   }
   let cmd = ruleParse(text);
   if (aiOn() && (cmd.action === 'unknown' || cmd.action === 'send_email')){
@@ -1790,11 +1804,11 @@ async function runCommand(cmd, text){
     case 'help':
       return say('Puoi dirmi per esempio:\n• ' + HELP.join('\n• '), false);
     case 'refresh':
-      say('Aggiorno…', false); await refreshAll(); return say('Fatto, tutto aggiornato.');
+      say('Aggiorno…', false); await refreshAll(); return say('Fatto, tutto aggiornato.', true, 'Aggiornato.');
     case 'add_task':{
       if (!cmd.title) return say('Cosa devo aggiungere? Prova con «aggiungi comprare il libro di chimica».');
       const t = addTask(cmd.title, {due:cmd.due, priority:cmd.priority || 'media', source:'voce'});
-      return say(`Aggiunto: ${t.title}${t.due ? ', per ' + relDay(t.due) + (dayDiff(new Date(), fromYmd(t.due)) > 1 ? ' ' + fromYmd(t.due).toLocaleDateString('it-IT', {day:'numeric', month:'long'}) : '') : ''}${t.priority === 'alta' ? ', priorità alta' : ''}.`);
+      return say(`Aggiunto: ${t.title}${t.due ? ', per ' + relDay(t.due) + (dayDiff(new Date(), fromYmd(t.due)) > 1 ? ' ' + fromYmd(t.due).toLocaleDateString('it-IT', {day:'numeric', month:'long'}) : '') : ''}${t.priority === 'alta' ? ', priorità alta' : ''}.`, true, t.due ? `Aggiunto, per ${relDay(t.due)}.` : 'Aggiunto.');
     }
     case 'complete_task':
     case 'delete_task':{
@@ -1803,18 +1817,18 @@ async function runCommand(cmd, text){
       if (h){
         setHabit(h, ymd(new Date()), true);
         const c = weekCount(h, weekStart());
-        return say(`Grande! Segnato: ${h.name} ✓ (${c} su ${h.goal} questa settimana${c >= h.goal ? ', obiettivo raggiunto! 🎉' : ''}).`);
+        return say(`Grande! Segnato: ${h.name} ✓ (${c} su ${h.goal} questa settimana${c >= h.goal ? ', obiettivo raggiunto! 🎉' : ''}).`, true, c >= h.goal ? 'Segnato. Obiettivo della settimana raggiunto!' : 'Segnato!');
       }
       if (!t){
         if (cmd.action === 'complete_task' && cmd.query && cmd.query.split(' ').length > 1)
-          return say(`Non trovo «${cmd.query}» nella lista. Bravo/a comunque! 🎉`);
+          return say(`Non trovo «${cmd.query}» nella lista. Bravo/a comunque! 🎉`, true, 'Non era in lista, ma bravo!');
         return say('Non ho capito quale attività intendi. Dimmi una parola del titolo.');
       }
-      if (cmd.action === 'delete_task'){ deleteTask(t); return say(`Eliminata: ${t.title}.`); }
+      if (cmd.action === 'delete_task'){ deleteTask(t); return say(`Eliminata: ${t.title}.`, true, 'Eliminata.'); }
       completeTask(t);
       toast(`Completata: ${t.title}`, 'Annulla', () => completeTask(t, false));
       const left = tasks.filter(x => !x.done).length;
-      return say(`Ottimo! Ho segnato come fatta «${t.title}». ${left ? `Ne restano ${left}.` : 'Hai finito tutto! 🎉'}`);
+      return say(`Ottimo! Ho segnato come fatta «${t.title}». ${left ? `Ne restano ${left}.` : 'Hai finito tutto! 🎉'}`, true, left ? `Fatto, ne restano ${left}.` : 'Fatto, hai finito tutto!');
     }
     case 'propose_day':{
       const day = cmd.day || 'tomorrow', k = planKey(day);
@@ -1823,13 +1837,13 @@ async function runCommand(cmd, text){
       $('#planCard').scrollIntoView({behavior:'smooth', block:'center'});
       if (!p.blocks.length){ delete proposals[k]; renderPlan(); return say('Non ho ancora abbastanza informazioni: dopo qualche settimana che organizzi le giornate imparo le tue abitudini. Intanto dimmi tu il programma.'); }
       pendingProposal = k;
-      return say(`Ti propongo per ${day === 'today' ? 'oggi' : 'domani'}: ` + p.blocks.map(b => `${b.t} dalle ${fmtMin(b.s)} alle ${fmtMin(b.e)}`).join(', ') + '. Ti va bene? Di\' «accetta» per confermare.');
+      return say(`Ti propongo per ${day === 'today' ? 'oggi' : 'domani'}: ` + p.blocks.map(b => `${b.t} dalle ${fmtMin(b.s)} alle ${fmtMin(b.e)}`).join(', ') + '. Ti va bene? Di\' «accetta» per confermare.', true, `Ti ho preparato la giornata, la vedi a schermo. Di' accetta per confermarla.`);
     }
     case 'accept_proposal':{
       const k = pendingProposal; pendingProposal = null;
       if (!proposals[k]) return say('Non c\'è nessuna proposta in attesa.');
       savePlan(k === planKey('today') ? 'today' : 'tomorrow', proposals[k].blocks);
-      return say('Perfetto, giornata salvata!');
+      return say('Perfetto, giornata salvata!', true, 'Salvata.');
     }
     case 'add_exam':{
       if (!cmd.name || !cmd.date) return say('Dimmi nome e data, per esempio «aggiungi esame di analisi il 15 gennaio».');
@@ -1837,7 +1851,7 @@ async function runCommand(cmd, text){
       if (!events.some(e => ymd(e.start) === cmd.date && simTitle(e.title, cmd.name) >= .5)){
         try{ await addEvent({title:cap(cmd.name), date:fromYmd(cmd.date), time:cmd.time ? cmd.time.split(':').map(Number) : null, hours:3, imp:'alta'}); }catch(err){ console.warn(err); }
       }
-      return say(`Aggiunto al countdown: ${cap(cmd.name)}, ${relDay(cmd.date)}. Mancano ${dayDiff(new Date(), fromYmd(cmd.date))} giorni.`);
+      return say(`Aggiunto al countdown: ${cap(cmd.name)}, ${relDay(cmd.date)}. Mancano ${dayDiff(new Date(), fromYmd(cmd.date))} giorni.`, true, `Aggiunto. Mancano ${dayDiff(new Date(), fromYmd(cmd.date))} giorni.`);
     }
     case 'read_exams':{
       const up = exams.filter(x => x.date >= ymd(new Date())).sort((a, b) => a.date.localeCompare(b.date));
@@ -1851,7 +1865,7 @@ async function runCommand(cmd, text){
       if (aiOn()) try{ body = await aiReply(e, cmd.body); }catch(err){ console.warn(err); }
       if (!body) body = templateReply(e, cmd.body);
       openCompose(e.headers['reply-to'] || e.headers.from, /^re:/i.test(e.subject) ? e.subject : 'Re: ' + e.subject, body, {replyTo:e});
-      return say(`Ho scritto la risposta a ${e.from.name}. Controllala: di' «conferma» per inviarla oppure «salva» per lasciarla in bozza.`);
+      return say(`Ho scritto la risposta a ${e.from.name}. Controllala: di' «conferma» per inviarla oppure «salva» per lasciarla in bozza.`, true, `Risposta pronta. Di' conferma per inviarla.`);
     }
     case 'mark_read':
     case 'archive_email':{
@@ -1859,9 +1873,9 @@ async function runCommand(cmd, text){
         : cmd.who === '*all' ? emails.filter(e => e.unread) : [findEmailBy(cmd.who)];
       list = list.filter(Boolean);
       if (!list.length) return say(cmd.who && !cmd.who.startsWith('*') ? `Non trovo un'email di «${cmd.who}».` : (cmd.who ? 'Non c\'è niente da segnare.' : 'Quale email? Aprila oppure dimmi il nome di chi l\'ha mandata.'));
-      if (cmd.action === 'archive_email'){ const k = await archiveEmails(list); return say(k === 1 ? `Archiviata: «${list[0].subject}».` : `Archiviate ${k} email.`); }
+      if (cmd.action === 'archive_email'){ const k = await archiveEmails(list); return say(k === 1 ? `Archiviata: «${list[0].subject}».` : `Archiviate ${k} email.`, true, 'Archiviato.'); }
       const k = await markRead(list);
-      return say(k === 1 ? `Segnata come letta: «${list[0].subject}».` : `Segnate come lette ${k} email.`);
+      return say(k === 1 ? `Segnata come letta: «${list[0].subject}».` : `Segnate come lette ${k} email.`, true, 'Fatto.');
     }
     case 'recap':
       showRecap(); $('#recap').scrollIntoView({behavior:'smooth', block:'start'}); return say(recapSpeech());
@@ -1869,7 +1883,7 @@ async function runCommand(cmd, text){
       const bl = cmd.blocks || [];
       if (!bl.length) return say('Non ho capito gli orari. Prova così: «programma domani dalle 10 alle 14 università, dalle 15 alle 17 palestra».');
       savePlan(cmd.day || 'tomorrow', bl);
-      return say(`Ho organizzato ${cmd.day === 'today' ? 'oggi' : 'domani'}: ` + bl.map(b => `${b.t} dalle ${fmtMin(b.s)} alle ${fmtMin(b.e)}`).join(', ') + '.');
+      return say(`Ho organizzato ${cmd.day === 'today' ? 'oggi' : 'domani'}: ` + bl.map(b => `${b.t} dalle ${fmtMin(b.s)} alle ${fmtMin(b.e)}`).join(', ') + '.', true, `Giornata di ${cmd.day === 'today' ? 'oggi' : 'domani'} salvata.`);
     }
     case 'read_plan':{
       const day = cmd.day || 'today', bl = plans[planKey(day)]?.blocks || [];
@@ -1881,7 +1895,7 @@ async function runCommand(cmd, text){
       if (!cmd.title) return openEventDlg({date:cmd.date ? fromYmd(cmd.date) : new Date()});
       const time = cmd.time ? cmd.time.split(':').map(Number) : null;
       await addEvent({title:cap(cmd.title), date:cmd.date ? fromYmd(cmd.date) : new Date(), time, hours:+cmd.hours || 1, imp:cmd.imp});
-      return say(`Aggiunto in calendario: ${cap(cmd.title)}, ${relDay(cmd.date || ymd(new Date()))}${time ? ' alle ' + cmd.time : ''}${cmd.imp ? ' (' + IMP_LBL[cmd.imp].toLowerCase() + ')' : ''}.`);
+      return say(`Aggiunto in calendario: ${cap(cmd.title)}, ${relDay(cmd.date || ymd(new Date()))}${time ? ' alle ' + cmd.time : ''}${cmd.imp ? ' (' + IMP_LBL[cmd.imp].toLowerCase() + ')' : ''}.`, true, 'Messo in calendario.');
     }
     case 'send_email':{
       say(`🔎 Cerco «${cmd.to || '?'}»…`, false);
@@ -1896,18 +1910,19 @@ async function runCommand(cmd, text){
       const subj = cmd.subject || (cmd.body ? cap(cmd.body.split(/\s+/).slice(0, 6).join(' ')).replace(/[.,;:!?]+$/, '') : '');
       openCompose(r.email || (cmd.to && cmd.to.includes('@') ? cmd.to : ''), subj, body);
       const how = {orario:' (trovato dal tuo orario delle lezioni)', email:' (trovato nelle tue email)', contatti:''}[r.how] ?? '';
-      if (r.how === 'ipotesi') return say(`⚠️ Non ho trovato ${r.name} nelle tue email: ho scritto l'indirizzo più probabile, ${r.email}. Controllalo prima di inviare!`);
+      if (r.how === 'ipotesi') return say(`⚠️ Non ho trovato ${r.name} nelle tue email: ho scritto l'indirizzo più probabile, ${r.email}. Controllalo prima di inviare!`, true, `Email pronta, ma controlla l'indirizzo prima di inviare.`);
       return say(r.email ? `Ho preparato l'email per ${r.name || r.email}${how}. Controllala e di' «conferma» per inviarla, oppure «salva» per tenerla come bozza.`
-        : `Ho preparato l'email, ma non trovo l'indirizzo di «${cmd.to || '?'}»: scrivilo nel campo «A».`);
+        : `Ho preparato l'email, ma non trovo l'indirizzo di «${cmd.to || '?'}»: scrivilo nel campo «A».`,
+        true, r.email ? `Email pronta per ${spokenName(r.name, r.how === 'orario' || !STUDENT_DOM.test(r.email.split('@')[1] || '')) || 'te'}. Di' conferma per inviarla.` : `Email pronta, ma manca l'indirizzo.`);
     }
     case 'compose_send': return $('#cSend').click();
     case 'compose_draft': return $('#cDraft').click();
-    case 'compose_cancel': $('#composeDlg').close(); return say('Ok, annullata.');
+    case 'compose_cancel': $('#composeDlg').close(); return say('Ok, annullata.', true, 'Annullata.');
     case 'read_tasks':{
       const open = tasks.filter(t => !t.done).sort((a, b) => score(b) - score(a));
       if (!open.length) return say('Non hai niente da fare. Goditi la giornata! 🎉');
       const top = open.slice(0, 5).map((t, i) => `${i + 1}. ${t.title}${t.due ? ' (' + relDay(t.due) + ')' : ''}`);
-      return say(`Hai ${open.length} cose da fare. Le più importanti:\n${top.join('\n')}`);
+      return say(`Hai ${open.length} cose da fare. Le più importanti:\n${top.join('\n')}`, true, `${open.length} cose da fare. Prima: ${open.slice(0, 2).map(t => t.title).join(', poi ')}.`);
     }
     case 'read_emails':{
       const direct = emails.filter(e => e.cls.type === 'direct');
@@ -1915,7 +1930,8 @@ async function runCommand(cmd, text){
       const br = emails.filter(e => e.cls.type === 'broadcast' && e.unread).length;
       if (!direct.length) return say(`Nessuna email personale.${br ? ` Ci sono ${br} broadcast non letti.` : ''}`);
       const list = (unread.length ? unread : direct).slice(0, 4).map(e => `• ${e.from.name}: ${e.subject}`);
-      return say(`Hai ${unread.length} email per te non lette${br ? ` e ${br} broadcast` : ''}.\n${list.join('\n')}`);
+      return say(`Hai ${unread.length} email per te non lette${br ? ` e ${br} broadcast` : ''}.\n${list.join('\n')}`, true,
+        unread.length ? `${unread.length} email per te: ${[...new Set(unread.slice(0, 3).map(e => spokenName(e.from.name)))].join(', ')}.` : 'Nessuna email nuova per te.');
     }
     case 'read_agenda':{
       const d = cmd.date || ymd(new Date());
@@ -2280,6 +2296,7 @@ function openSettings(){
   $('#sQuery').value = S.mailQuery; $('#sMax').value = S.maxMails; $('#sGemini').value = S.geminiKey; $('#sModel').value = S.geminiModel;
   $('#sAuto').checked = S.autoDrafts; $('#sSign').value = S.signature; $('#sVoice').checked = S.voiceReplies; $('#sTheme').value = S.theme;
   $('#sPause').value = String(S.voicePause || 3);
+  $('#sVol').value = S.voiceVolume ?? 1; $('#volLbl').textContent = Math.round((S.voiceVolume ?? 1) * 100) + '%';
   $('#sEngine').value = S.voiceEngine; $('#sGVoice').value = S.gVoice; $('#sRate').value = S.voiceRate; $('#rateLbl').textContent = (+S.voiceRate).toFixed(2) + '×';
   fillBrowserVoices();
   $('#originLbl').textContent = location.protocol === 'file:' ? '(apri la pagina da GitHub Pages)' : location.origin;
@@ -2313,7 +2330,7 @@ function saveSettings(){
     geminiKey:$('#sGemini').value.trim(), geminiModel:$('#sModel').value.trim() || DEF.geminiModel,
     autoDrafts:$('#sAuto').checked, signature:$('#sSign').value.trim(), voiceReplies:$('#sVoice').checked, theme:$('#sTheme').value,
     voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1,
-    voicePause:+$('#sPause').value || 3,
+    voicePause:+$('#sPause').value || 3, voiceVolume:+$('#sVol').value,
     calendars:calendars.length ? cals : S.calendars, lessonCal:$('#sLessonCal').value, notify:$('#sNotify').checked, notifyLead:+$('#sLead').value || 10,
     planToCal:$('#sPlanCal').checked
   });
@@ -2408,7 +2425,7 @@ $('#cSend').onclick = async () => {
   const to = $('#cTo').value.trim(), subj = $('#cSubj').value.trim(), body = $('#cBody').value;
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to.replace(/^.*<|>$/g, ''))){ $('#cTo').focus(); return say('Manca un indirizzo email valido nel campo «A».'); }
   $('#cSend').disabled = true;
-  try{ await sendEmail(to, subj || '(senza oggetto)', body, composeCtx?.replyTo); $('#composeDlg').close(); say('Email inviata.'); }
+  try{ await sendEmail(to, subj || '(senza oggetto)', body, composeCtx?.replyTo); $('#composeDlg').close(); say('Email inviata.', true, 'Inviata.'); }
   catch(err){ say(err instanceof AuthError ? 'Sessione scaduta: riconnetti l\'account e riprova.' : 'Invio non riuscito: ' + err.message); }
   $('#cSend').disabled = false;
 };
@@ -2416,7 +2433,7 @@ $('#cDraft').onclick = async () => {
   try{
     if (composeCtx?.replyTo) await saveDraft(composeCtx.replyTo, $('#cBody').value, true);
     else await draftNew($('#cTo').value.trim(), $('#cSubj').value.trim(), $('#cBody').value);
-    $('#composeDlg').close(); say('Salvata come bozza, non ho inviato niente.');
+    $('#composeDlg').close(); say('Salvata come bozza, non ho inviato niente.', true, 'Salvata in bozza.');
   }
   catch(err){ say('Non sono riuscito a salvare la bozza: ' + err.message); }
 };
@@ -2464,15 +2481,16 @@ function fillBrowserVoices(){
 }
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { if ($('#settingsDlg').open) fillBrowserVoices(); };
 $('#sRate').oninput = () => $('#rateLbl').textContent = (+$('#sRate').value).toFixed(2) + '×';
+$('#sVol').oninput = () => $('#volLbl').textContent = Math.round(+$('#sVol').value * 100) + '%';
 $('#testVoice').onclick = async () => {
   unlockAudio();
   const old = {...S};
-  Object.assign(S, {voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1, geminiKey:$('#sGemini').value.trim()});
+  Object.assign(S, {voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1, voiceVolume:+$('#sVol').value, geminiKey:$('#sGemini').value.trim()});
   ttsCooldown = 0;
   const b = $('#testVoice'); b.innerHTML = '<span class="spin"></span> Preparo…';
   await speakText(`Ciao${$('#sName').value.trim() ? ' ' + $('#sName').value.trim() : ''}! Sono la tua dashboard. Oggi hai tre impegni e due cose urgenti da fare.`);
   const usedGemini = S.voiceEngine !== 'browser' && aiOn() && Date.now() > ttsCooldown;
-  Object.assign(S, {voiceEngine:old.voiceEngine, gVoice:old.gVoice, bVoice:old.bVoice, voiceRate:old.voiceRate, geminiKey:old.geminiKey});
+  Object.assign(S, {voiceEngine:old.voiceEngine, gVoice:old.gVoice, bVoice:old.bVoice, voiceRate:old.voiceRate, voiceVolume:old.voiceVolume, geminiKey:old.geminiKey});
   b.textContent = '▶ Prova la voce';
   if ($('#sEngine').value !== 'browser' && !usedGemini) toast('La voce Gemini non è disponibile ora: uso la migliore voce del browser.', null, null, 6000);
 };
@@ -2876,7 +2894,7 @@ const saveHabitLog = saveWith(() => { stampMap('log', habitLog, 'log:'); store.s
 const saveExams = saveWith(() => { stampList('exams', exams, 'exam:'); store.set(K('exams'), exams); });
 const saveHidden = saveWith(() => { stampMap('hidden', hiddenCourses, 'hide:'); store.set(K('hidden'), hiddenCourses); });
 
-const SYNC_KEYS = ['name', 'uniEmail', 'aliases', 'signature', 'geminiKey', 'geminiModel', 'autoDrafts', 'voiceReplies', 'voiceEngine', 'gVoice', 'voiceRate', 'voicePause',
+const SYNC_KEYS = ['name', 'uniEmail', 'aliases', 'signature', 'geminiKey', 'geminiModel', 'autoDrafts', 'voiceReplies', 'voiceEngine', 'gVoice', 'voiceRate', 'voicePause', 'voiceVolume',
   'theme', 'notifyLead', 'planToCal', 'lessonCal', 'calendars', 'mailQuery', 'maxMails'];
 function localDoc(){
   return {v:1, tasks, plans, habits, habitLog, exams, hiddenCourses, eventImp, tombs,
@@ -3089,7 +3107,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 12';
+const APP_VERSION = '29 ottobre · 14';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
