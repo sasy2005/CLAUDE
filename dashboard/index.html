@@ -882,9 +882,24 @@ async function geminiTTS(text){
 }
 function playPcm({data, rate}){
   unlockAudio();
-  const bin = atob(data), n = bin.length >> 1;
-  const buf = audioCtx.createBuffer(1, n, rate), ch = buf.getChannelData(0);
-  for (let i = 0; i < n; i++){ const v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); ch[i] = (v > 32767 ? v - 65536 : v) / 32768; }
+  const bin = atob(data), n = bin.length >> 1, raw = new Float32Array(n);
+  for (let i = 0; i < n; i++){ const v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); raw[i] = (v > 32767 ? v - 65536 : v) / 32768; }
+  // pulizia: tolgo il fruscio/rumore dopo l'ultima parola e il silenzio iniziale, poi dissolvenza per evitare «clic»
+  const win = Math.round(rate * 0.02), rms = (a, b) => { let t = 0; for (let i = a; i < b; i++) t += raw[i] * raw[i]; return Math.sqrt(t / Math.max(1, b - a)); };
+  let peak = 0; for (let i = 0; i + win <= n; i += win) peak = Math.max(peak, rms(i, i + win));
+  const thr = Math.max(0.01, peak * 0.12);                      // sotto questa soglia non è voce
+  let first = 0, last = n;
+  for (let i = 0; i + win <= n; i += win) if (rms(i, i + win) > thr){ first = Math.max(0, i - Math.round(rate * 0.03)); break; }
+  for (let i = n - win; i >= 0; i -= win) if (rms(i, i + win) > thr){ last = Math.min(n, i + win + Math.round(rate * 0.18)); break; }
+  const len = Math.max(1, last - first);
+  const buf = audioCtx.createBuffer(1, len, rate), ch = buf.getChannelData(0);
+  const fadeIn = Math.min(len, Math.round(rate * 0.012)), fadeOut = Math.min(len, Math.round(rate * 0.15));
+  for (let i = 0; i < len; i++){
+    let g = 1;
+    if (i < fadeIn) g = i / fadeIn;
+    if (i > len - fadeOut) g = Math.min(g, (len - i) / fadeOut);
+    ch[i] = raw[first + i] * g;
+  }
   const src = audioCtx.createBufferSource(), gain = audioCtx.createGain();
   src.buffer = buf; gain.gain.value = S.voiceVolume ?? 1;           // fino a 150%
   src.connect(gain); gain.connect(audioCtx.destination); src.start(); curSrc = src;
@@ -3320,7 +3335,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 16';
+const APP_VERSION = '29 ottobre · 17';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
