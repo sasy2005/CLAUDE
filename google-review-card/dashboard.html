@@ -5,24 +5,24 @@
 <style>
 /* Layout: phone-first field tool. "Oggi" leads with one big next-shop card and one-tap outcomes; other tabs list returns, clients and numbers. Bottom tab bar, bottom sheet for details. */
 :root {
-  --bg: #F2F3EE; --surface: #FFFFFF; --sunk: #E8EAE3; --ink: #17201C; --muted: #5C6863; --line: #D6DBD1;
-  --brand: #1E5B47; --brand-ink: #FFFFFF; --brand-soft: #DDEEE6; --star: #A86A10;
-  --ok: #24693F; --ok-bg: #DCEFE3; --trial: #2A5A9C; --trial-bg: #E0E9F6;
+  --bg: #F3F4F7; --surface: #FFFFFF; --sunk: #E9EBF1; --ink: #161A24; --muted: #5B6273; --line: #D9DCE5;
+  --brand: #2D55D6; --brand-ink: #FFFFFF; --brand-soft: #E5EBFC; --star: #B5700B;
+  --ok: #1F7A4A; --ok-bg: #DDF2E5; --trial: #6A3FC1; --trial-bg: #ECE5FA;
   --wait: #8A5F00; --wait-bg: #FAEDCF; --no: #8E3A32; --no-bg: #F5E0DC; --off: #646B67; --off-bg: #E6E8E3;
   --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
   --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --r: 12px;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #101513; --surface: #19201D; --sunk: #222A26; --ink: #E7ECE8; --muted: #9AA6A0; --line: #2D3732;
-  --brand: #64B698; --brand-ink: #0C1813; --brand-soft: #1B3129; --star: #E3B24C;
-  --ok: #7DC89C; --ok-bg: #1B3225; --trial: #93B6EC; --trial-bg: #1A283E;
+  --bg: #0F121A; --surface: #181C26; --sunk: #212634; --ink: #E8EAF0; --muted: #9AA1B3; --line: #2C3242;
+  --brand: #7F9CFF; --brand-ink: #0D1224; --brand-soft: #1D2643; --star: #E8B44E;
+  --ok: #78CF9C; --ok-bg: #18301F; --trial: #B79BF2; --trial-bg: #2A2142;
   --wait: #E3B24C; --wait-bg: #382C14; --no: #EC9C92; --no-bg: #3B221F; --off: #A4AAA7; --off-bg: #252C29;
   color-scheme: dark; } }
 :root[data-theme="dark"] {
-  --bg: #101513; --surface: #19201D; --sunk: #222A26; --ink: #E7ECE8; --muted: #9AA6A0; --line: #2D3732;
-  --brand: #64B698; --brand-ink: #0C1813; --brand-soft: #1B3129; --star: #E3B24C;
-  --ok: #7DC89C; --ok-bg: #1B3225; --trial: #93B6EC; --trial-bg: #1A283E;
+  --bg: #0F121A; --surface: #181C26; --sunk: #212634; --ink: #E8EAF0; --muted: #9AA1B3; --line: #2C3242;
+  --brand: #7F9CFF; --brand-ink: #0D1224; --brand-soft: #1D2643; --star: #E8B44E;
+  --ok: #78CF9C; --ok-bg: #18301F; --trial: #B79BF2; --trial-bg: #2A2142;
   --wait: #E3B24C; --wait-bg: #382C14; --no: #EC9C92; --no-bg: #3B221F; --off: #A4AAA7; --off-bg: #252C29;
   color-scheme: dark; }
 
@@ -97,8 +97,8 @@ main .wrap { padding-block: 6px 112px; display: grid; gap: 18px; }
 .s-venduto { background: var(--ok-bg); color: var(--ok); }
 .s-no, .s-perso { background: var(--no-bg); color: var(--no); }
 .s-chiuso { background: var(--off-bg); color: var(--off); }
-.p-alta { background: var(--ok-bg); color: var(--ok); }
-.p-media { background: var(--wait-bg); color: var(--wait); }
+.p-alta { background: var(--brand); color: var(--brand-ink); }
+.p-media { background: var(--brand-soft); color: var(--brand); }
 .p-bassa { background: var(--off-bg); color: var(--off); }
 .section { display: grid; gap: 8px; }
 .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
@@ -157,7 +157,7 @@ nav.tabs a[aria-current=page] { color: var(--ink); border-top-color: var(--brand
 .badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 2px; border-radius: 9px; background: var(--no); color: var(--surface); font-size: 11px; line-height: 18px; font-weight: 700; }
 
 /* sheet */
-.scrim { position: fixed; inset: 0; z-index: 19; background: rgba(10, 16, 13, .45); }
+.scrim { position: fixed; inset: 0; z-index: 19; background: rgba(10, 12, 20, .5); }
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; max-height: 92%; overflow-y: auto; background: var(--bg); border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
 .sheet .wrap { padding-block: 14px 0; display: grid; gap: 16px; }
 .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto; }
@@ -174,6 +174,15 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .chips input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
 .chips .hint { font-size: 11px; font-weight: 800; margin-left: 6px; color: var(--brand); text-transform: uppercase; letter-spacing: .04em; }
 .chips input:checked + span .hint { color: inherit; }
+.chips input[type=checkbox]:checked + span { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.help { font-size: 13px; color: var(--muted); }
+.help b { color: var(--ink); }
+.qbtn { width: 22px; height: 22px; border-radius: 11px; border: 1px solid var(--line); background: var(--surface); font-size: 12px; font-weight: 800; padding: 0; color: var(--muted); }
+.walk { font-size: 12px; color: var(--muted); text-align: center; padding: 2px 0; border-top: 1px solid var(--line); background: var(--sunk); }
+.notes { display: grid; gap: 8px; }
+.note-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px; display: grid; gap: 4px; }
+.note-item .who { font-size: 13px; color: var(--muted); }
+.tagline { display: flex; flex-wrap: wrap; gap: 4px; }
 .big-chips label > span { min-height: 52px; font-weight: 700; }
 .packs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .packs label { position: relative; }
@@ -249,9 +258,11 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     "autolavaggio": ["Autolavaggio", 1], "lavanderia": ["Lavanderia", 0], "altro": ["Altro", 1],
   };
   const ESITI = { venduto: "Venduto", prova: "Prova lasciata", ripasso: "Ripasso", no: "No", chiuso: "Chiuso / assente" };
-  const OBIEZIONI = { prezzo: "Costa troppo", nonserve: "Non serve", celho: "Ce l'ha già", titolare: "Deve chiedere", fiducia: "Non si fida", tempo: "Non ha tempo", altro: "Altro" };
+  const OBIEZIONI = { notitolare: "Non c'era il titolare", prezzo: "Costa troppo", nonserve: "Non gli serve", celho: "Ce l'ha già", pensarci: "Deve pensarci", fiducia: "Non si fida", tempo: "Non aveva tempo", clienti: "Era pieno di clienti", titolare: "Deve chiedere al socio", altro: "Altro" };
+  const motivi = (v) => v?.motivi?.length ? v.motivi : v?.obiezione ? [v.obiezione] : [];
   const PACCHETTI = { p1: [1, 25, "1 card"], p2: [2, 39, "2 card"], p3: [3, 45, "3 card"] };
   const STATI = { da: "Da visitare", prova: "In prova", ripasso: "Ripasso", venduto: "Cliente", no: "No", perso: "Prova persa", chiuso: "Chiuso" };
+  const PRIO = { alta: "Alta", media: "Media", bassa: "Bassa" };
 
   const $ = (s, el = document) => el.querySelector(s);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -333,6 +344,20 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     return Object.keys(STRAT).sort((a, b) => (perCat[a] - perCat[b]) || (tot[a] - tot[b]) || a.localeCompare(b))[0];
   }
 
+  function distKm(a, b) {
+    if (a?.lat == null || b?.lat == null) return 0;
+    const r = (x) => (x * Math.PI) / 180, dLat = r(b.lat - a.lat), dLng = r(b.lng - a.lng);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLng / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.sqrt(h));
+  }
+  const metri = (km) => km < 1 ? `${Math.max(10, Math.round(km * 100) * 10)} m` : `${km.toFixed(1).replace(".", ",")} km`;
+  const lunghezzaGiro = (l) => l.slice(1).reduce((s, n, i) => s + distKm(l[i], n), 0);
+  function zonaGiro(l) { const c = {}; l.forEach((n) => { if (n.zona) c[n.zona] = (c[n.zona] || 0) + 1; }); return Object.entries(c).sort((a, b) => b[1] - a[1])[0]?.[0] || ""; }
+  function prevDist(l, n) {
+    const i = l.indexOf(n); if (i <= 0) return "";
+    const prima = [...l.slice(0, i)].reverse().find((x) => stato(x) !== "da") || l[i - 1];
+    return `<p class="why num">A ${metri(distKm(prima, n))} da ${esc(prima.nome)}</p>`;
+  }
   const giri = () => [...new Set(negozi.map((n) => n.giro).filter((g) => g != null))].sort((a, b) => a - b);
   const delGiro = (g) => negozi.filter((n) => n.giro === g).sort((a, b) => (a.ordine ?? 99) - (b.ordine ?? 99));
   function giroCorrente() {
@@ -356,7 +381,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
   function rigaNegozio(n, opts = {}) {
     const s = stato(n), p = priorita(n);
     const destra = s === "da"
-      ? `<span class="pill p-${p.livello}">${p.livello === "alta" ? "Priorità alta" : p.livello === "media" ? "Media" : "Bassa"}</span>`
+      ? `<span class="pill p-${p.livello}">${PRIO[p.livello]}</span>`
       : `<span class="pill s-${s}">${esc(STATI[s])}</span>`;
     return `<button class="row ${opts.next ? "is-next" : ""} ${s !== "da" ? "is-done" : ""}" type="button" data-id="${esc(n.id)}">
       <span class="ord num">${opts.ord ?? ""}</span>
@@ -378,7 +403,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
         <button class="icon-btn" type="button" data-giro="${gs[idx - 1] ?? ""}" ${idx <= 0 ? "disabled" : ""} aria-label="Giro precedente">‹</button>
         <div class="mid"><h2>Giro ${g} <span class="muted small">di ${gs.length}</span></h2>
           <div class="progress" aria-label="${fatti} su ${lista.length} fatti"><i style="width:${(fatti / lista.length) * 100}%"></i></div>
-          <span class="muted small num">${fatti} su ${lista.length} fatti</span></div>
+          <span class="muted small num">${fatti} su ${lista.length} fatti · ${esc(zonaGiro(lista))} · ${metri(lunghezzaGiro(lista))} a piedi</span></div>
         <button class="icon-btn" type="button" data-giro="${gs[idx + 1] ?? ""}" ${idx >= gs.length - 1 ? "disabled" : ""} aria-label="Giro successivo">›</button>
       </div>`;
     const due = ritorniDovuti();
@@ -388,12 +413,15 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
       const p = priorita(prossimo), sug = strategiaSuggerita(prossimo.categoria), st = STRAT[sug];
       const nav = prossimo.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${prossimo.lat},${prossimo.lng}&travelmode=walking` : "";
       html += `<article class="next" aria-label="Prossimo negozio">
-        <div class="eyebrow"><span>Prossimo · n. ${prossimo.ordine ?? ""}</span><span class="pill p-${p.livello}">Priorità ${p.livello}</span></div>
+        <div class="eyebrow"><span>Prossimo · n. ${prossimo.ordine ?? ""} di ${lista.length}</span><span style="display:flex;gap:6px;align-items:center"><span class="pill p-${p.livello}">Possibilità di sì: ${p.livello}</span><button class="qbtn" type="button" id="prioHelp" aria-label="Cosa vuol dire" aria-expanded="false">?</button></span></div>
+        <p class="help" id="prioText" hidden>È una <b>stima</b> di quanto è facile che ti dica sì, prima di entrare: conta il tipo di negozio (es. barbieri ed estetiste hanno quasi sempre il titolare in cassa), quante poche recensioni ha e la media. Non è una garanzia: nella sezione Numeri, sotto "Possibilità", vedi se le "alta" comprano davvero di più.</p>
         <div style="display:grid;gap:6px"><h2>${esc(prossimo.nome)}</h2>
           <div class="facts"><span>${esc(catNome(prossimo.categoria))}</span><span><b class="num">${prossimo.recensioni ?? "?"}</b> recensioni ${stelle(prossimo.rating)}</span></div>
-          ${p.motivi.length ? `<p class="why">Perché: ${esc(p.motivi.join(", "))}</p>` : ""}</div>
-        <div class="row-btns">${nav ? `<a class="btn primary" href="${esc(nav)}" target="_blank" rel="noopener">Naviga</a>` : ""}
-          ${prossimo.mapsUrl ? `<a class="btn" href="${esc(prossimo.mapsUrl)}" target="_blank" rel="noopener">Scheda Google</a>` : ""}</div>
+          ${p.motivi.length ? `<p class="why">Perché: ${esc(p.motivi.join(", "))}</p>` : ""}
+          ${prevDist(lista, prossimo)}</div>
+        <div style="display:grid;gap:6px"><div class="row-btns">${nav ? `<a class="btn primary" href="${esc(nav)}" target="_blank" rel="noopener">Portami lì</a>` : ""}
+          ${prossimo.mapsUrl ? `<a class="btn" href="${esc(prossimo.mapsUrl)}" target="_blank" rel="noopener">Vedi su Google</a>` : ""}</div>
+          <p class="help"><b>Portami lì</b> apre Google Maps con il percorso a piedi fino al negozio. <b>Vedi su Google</b> apre la sua pagina su Google Maps: lì controlli quante recensioni ha prima di entrare.</p></div>
         <div class="strategy"><span class="lbl">Prova la strategia ${sug}</span><b>${esc(st.nome)}</b><p>${esc(st.frase)}</p><a href="#pitch">Pitch completo ›</a></div>
         <div style="display:grid;gap:8px"><span class="eyebrow"><span>Com'è andata?</span></span>
           <div class="outcomes">
@@ -420,7 +448,8 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     }
     html += `<section class="section"><div class="section-head"><h3>Tutto il giro</h3>
         ${daFare.length > 1 ? `<a class="btn sm" href="https://www.google.com/maps/dir/?${q}" target="_blank" rel="noopener">Percorso in Maps</a>` : ""}</div>
-      <div class="list">${lista.map((n) => rigaNegozio(n, { ord: n.ordine, next: prossimo && n.id === prossimo.id })).join("")}</div></section>`;
+      <div class="list">${lista.map((n, i) => (i ? `<div class="walk num">↓ ${metri(distKm(lista[i - 1], n))}</div>` : "") + rigaNegozio(n, { ord: n.ordine, next: prossimo && n.id === prossimo.id })).join("")}</div>
+      <p class="help">I negozi sono già in ordine: dal primo all'ultimo è il percorso più corto. Le "↓" sono le distanze a piedi in linea d'aria.</p></section>`;
     const manuali = negozi.filter((n) => n.giro == null);
     if (manuali.length) html += `<section class="section"><div class="section-head"><h3>Aggiunti a mano</h3></div><div class="list">${manuali.map((n) => rigaNegozio(n)).join("")}</div></section>`;
     html += `<div><button class="btn sm ghost" type="button" id="addBtn">+ Aggiungi un negozio che non è in lista</button></div>`;
@@ -476,7 +505,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
   const GRUPPI = {
     strategia: ["Strategia", (n) => n.visita.strategia, (k) => STRAT[k] ? `${k} · ${STRAT[k].corto}` : k],
     categoria: ["Categoria", (n) => n.categoria, (k) => catNome(k)],
-    priorita: ["Priorità", (n) => priorita(n).livello, (k) => ({ alta: "Alta", media: "Media", bassa: "Bassa" }[k] || k)],
+    priorita: ["Possibilità", (n) => priorita(n).livello, (k) => PRIO[k] || k],
     zona: ["Zona", (n) => n.zona || "–", (k) => k],
     chi: ["Con chi", (n) => n.visita.interlocutore || "–", (k) => ({ titolare: "Titolare", dipendente: "Dipendente" }[k] || k)],
   };
@@ -503,7 +532,9 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     const cl = negozi.filter(cliente), ric = negozi.reduce((s, n) => s + ricavo(n), 0);
     const cv = negozi.reduce((s, n) => s + cardVendute(n), 0), fuori = negozi.reduce((s, n) => s + cardFuori(n), 0);
     const prove = vis.filter((n) => n.visita.esito === "prova"), proveDecise = prove.filter((n) => ["comprato", "non"].includes(n.ritorno?.esito));
-    const ob = {}; vis.forEach((n) => { const o = n.visita.obiezione; if (o && !cliente(n)) ob[o] = (ob[o] || 0) + 1; });
+    const ob = {}; vis.forEach((n) => { if (!cliente(n)) motivi(n.visita).forEach((o) => { ob[o] = (ob[o] || 0) + 1; }); });
+    const note = negozi.flatMap((n) => [n.visita?.note && { n, data: n.visita.data, testo: n.visita.note, quando: "Visita" }, n.ritorno?.note && { n, data: n.ritorno.data, testo: n.ritorno.note, quando: "Ritorno" }].filter(Boolean))
+      .sort((a, b) => (b.data || "").localeCompare(a.data || ""));
     const obTop = Object.entries(ob).sort((a, b) => b[1] - a[1]);
     const ins = (lbl, txt, attesa) => `<div class="insight ${txt ? "" : "wait"}"><span>${lbl}</span><b>${esc(txt || attesa)}</b></div>`;
     const [titolo, fn, et] = GRUPPI[numeriBy];
@@ -511,7 +542,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     const max = Math.max(0.01, ...righe.map(([, r]) => r.ven / r.vis));
     return `<div class="kpis">
         <div class="kpi"><span>Visite</span><b>${vis.length}</b><small>${negozi.filter((n) => stato(n) === "da").length} ancora da fare</small></div>
-        <div class="kpi"><span>Dicono sì</span><b>${pct(cl.length, vis.length)}</b><small>${cl.length} clienti su ${vis.length}</small></div>
+        <div class="kpi"><span>Dicono sì</span><b>${pct(cl.length, vis.length)}</b><small>${cl.length} su ${vis.length} visite</small></div>
         <div class="kpi"><span>Guadagno</span><b>${euro(ric - cv * COSTO_CARD)}</b><small>${euro(ric)} incassati − card</small></div>
         <div class="kpi"><span>Card rimaste</span><b>${MAGAZZINO - cv - fuori}</b><small>${cv} vendute · ${fuori} in prova</small></div>
       </div>
@@ -520,8 +551,13 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
         ${ins("Negozi migliori", migliore(GRUPPI.categoria[1], GRUPPI.categoria[2]), `Servono ${MIN_CAMPIONE} visite per categoria`)}
         ${ins("Zona migliore", migliore(GRUPPI.zona[1], GRUPPI.zona[2]), `Servono ${MIN_CAMPIONE} visite per zona`)}
         ${ins("Prove che diventano vendite", proveDecise.length ? `${proveDecise.filter((n) => n.ritorno.esito === "comprato").length} su ${proveDecise.length} (${pct(proveDecise.filter((n) => n.ritorno.esito === "comprato").length, proveDecise.length)})` : "", "Ancora nessuna prova conclusa")}
-        ${ins("Obiezione più frequente", obTop.length ? `${OBIEZIONI[obTop[0][0]] || obTop[0][0]} (${obTop[0][1]} volte)` : "", "Nessuna obiezione segnata")}
+        ${ins("Motivo di no più frequente", obTop.length ? `${OBIEZIONI[obTop[0][0]] || obTop[0][0]} (${obTop[0][1]} ${obTop[0][1] === 1 ? "volta" : "volte"})` : "", "Nessun motivo segnato")}
       </div></section>
+      ${obTop.length ? `<section class="section"><div class="section-head"><h3>Perché ti dicono di no</h3></div>
+        <div class="tbl-wrap"><table><tbody>${obTop.map(([k, c]) => `<tr><td>${esc(OBIEZIONI[k] || k)}</td><td><span class="bar" style="width:${Math.round((c / obTop[0][1]) * 60)}px"></span>${c}</td></tr>`).join("")}</tbody></table></div></section>` : ""}
+      ${note.length ? `<section class="section"><div class="section-head"><h3>Le tue note</h3><span class="muted num">${note.length}</span></div>
+        <div class="notes">${note.slice(0, 30).map((x) => `<div class="note-item"><span class="who">${esc(x.n.nome)} · ${esc(catNome(x.n.categoria))} · ${x.quando} ${dataBreve(x.data)} · <span class="pill s-${stato(x.n)}">${esc(STATI[stato(x.n)])}</span></span><span>${esc(x.testo)}</span></div>`).join("")}</div>
+        <p class="help">Chiedi a Claude "analizza le note": le legge tutte e ti dice cosa ricorre e cosa cambiare nel pitch.</p></section>` : ""}
       <section class="section"><div class="section-head"><h3>Confronta per</h3></div>
         <div class="tabs-inline" role="group" aria-label="Raggruppa per">${Object.entries(GRUPPI).map(([k, [l]]) => `<button type="button" data-by="${k}" aria-pressed="${numeriBy === k}">${l}</button>`).join("")}</div>
         <div class="tbl-wrap"><table><thead><tr><th>${titolo}</th><th>Visite</th><th>Sì</th><th>% sì</th><th>Incasso</th></tr></thead><tbody>
@@ -582,6 +618,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     const by = e.target.closest("[data-by]"); if (by) { numeriBy = by.dataset.by; return render(); }
     if (e.target.id === "csvBtn") return copiaCsv();
     if (e.target.id === "addBtn") return apri(null);
+    if (e.target.id === "prioHelp") { const t = $("#prioText"); t.hidden = !t.hidden; e.target.setAttribute("aria-expanded", String(!t.hidden)); }
   });
 
   // ---------- sheet ----------
@@ -619,7 +656,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
       <div style="display:grid;gap:16px">
       <div class="sheet-head"><div><h2 id="sheetTitle">${n.id ? esc(n.nome) : "Nuovo negozio"}</h2>${sub ? `<p class="muted small">${sub}</p>` : ""}</div>
         <button class="btn sm" type="button" data-chiudi>Chiudi</button></div>
-      ${n.id ? `<div class="row-btns">${nav ? `<a class="btn sm" href="${esc(nav)}" target="_blank" rel="noopener">Naviga</a>` : ""}${n.mapsUrl ? `<a class="btn sm" href="${esc(n.mapsUrl)}" target="_blank" rel="noopener">Scheda Google</a>` : ""}
+      ${n.id ? `<div class="row-btns">${nav ? `<a class="btn sm" href="${esc(nav)}" target="_blank" rel="noopener">Portami lì</a>` : ""}${n.mapsUrl ? `<a class="btn sm" href="${esc(n.mapsUrl)}" target="_blank" rel="noopener">Vedi su Google</a>` : ""}
         ${n.telefono ? `<span class="btn sm" style="user-select:all">${esc(n.telefono)}</span>` : ""}</div>` : ""}
       ${n.manuale ? `<div class="box"><h3>Negozio</h3>
         <div class="field"><label for="m-nome">Nome</label><input type="text" id="m-nome" value="${esc(n.nome)}"></div>
@@ -636,7 +673,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
         <div data-rshow="comprato">${packs("rpack", r.card, r.prezzo)}</div>
         <label class="check" data-rshow="non"><input type="checkbox" id="r-restituita" ${r.cardRestituita === false ? "" : "checked"}> Mi ha ridato la card</label>
         <div class="field" data-rshow="ripasso"><label for="r-prossimo">Ripasso il</label><input type="date" id="r-prossimo" value="${esc(r.prossimo || piuGiorni(oggi(), GIORNI_RIPASSO))}"></div>
-        <details><summary>Aggiungi una nota</summary><textarea id="r-note" aria-label="Nota sul ritorno">${esc(r.note || "")}</textarea></details>
+        <div class="field"><label for="r-note">Note <span class="muted">(facoltativo)</span></label><textarea id="r-note" placeholder="Cosa ti ha detto al ritorno?">${esc(r.note || "")}</textarea></div>
       </div>
       <details><summary>Modifica la prima visita</summary><div style="height:10px"></div>` : ""}
 
@@ -646,13 +683,15 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
         <div class="two" data-show="prova ripasso">
           <div class="field"><label for="v-ritorno">Torno il</label><input type="date" id="v-ritorno" value="${esc(v.dataRitorno || "")}"></div>
           <div class="field" data-show="prova"><label for="v-cardprova">Card lasciate</label><input type="number" inputmode="numeric" id="v-cardprova" value="${esc(v.cardProva ?? 1)}"></div></div>
-        <fieldset class="field" data-show="no ripasso prova"><legend>Cosa ti ha frenato?</legend>${chips("obiezione", OBIEZIONI, v.obiezione)}</fieldset>
+        <fieldset class="field" data-show="no ripasso prova"><legend>Perché non ha comprato subito? <span class="muted">(facoltativo, anche più di uno)</span></legend>
+          <div class="chips">${Object.entries(OBIEZIONI).map(([k, l]) => `<label><input type="checkbox" name="motivi" id="motivi-${k}" value="${k}" ${motivi(v).includes(k) ? "checked" : ""}><span>${esc(l)}</span></label>`).join("")}</div></fieldset>
+        <div class="field" data-show="venduto prova ripasso no chiuso"><label for="v-note">Note <span class="muted">(facoltativo)</span></label>
+          <textarea id="v-note" placeholder="Es. il titolare torna sabato, ha detto che ci pensa, gli è piaciuta la demo…">${esc(v.note || "")}</textarea></div>
         <fieldset class="field" data-show="venduto prova ripasso no"><legend>Strategia usata</legend>${chips("strategia", Object.fromEntries(Object.entries(STRAT).map(([k, s]) => [k, `${k} · ${s.corto}`])), v.strategia || sug, sug)}</fieldset>
         <fieldset class="field" data-show="venduto prova ripasso no"><legend>Con chi hai parlato</legend>${chips("interlocutore", { titolare: "Titolare", dipendente: "Dipendente" }, v.interlocutore || "titolare")}</fieldset>
         <div class="two" data-show="venduto prova ripasso no">
           <div class="field"><label for="v-rec">Recensioni oggi</label><input type="number" inputmode="numeric" id="v-rec" value="${esc(v.recensioni ?? n.recensioni ?? "")}"></div>
           <div class="field"><label for="v-data">Data</label><input type="date" id="v-data" value="${esc(v.data || oggi())}"></div></div>
-        <details data-show="venduto prova ripasso no chiuso"><summary>Aggiungi una nota</summary><textarea id="v-note" aria-label="Nota sulla visita">${esc(v.note || "")}</textarea></details>
       </div>
       ${isRitorno ? `</details>` : ""}
       ${n.orari?.length ? `<details><summary>Orari di apertura</summary><ul class="orari">${n.orari.map((o) => `<li>${esc(o)}</li>`).join("")}</ul></details>` : ""}
@@ -727,7 +766,10 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
       if (esito === "venduto") Object.assign(doc.visita, leggiPack("vpack"));
       if (esito === "prova" || esito === "ripasso") doc.visita.dataRitorno = $("#v-ritorno").value || null;
       if (esito === "prova") doc.visita.cardProva = numOrNull("#v-cardprova") ?? 1;
-      if (["no", "ripasso", "prova"].includes(esito)) doc.visita.obiezione = pick("obiezione");
+      if (["no", "ripasso", "prova"].includes(esito)) {
+        doc.visita.motivi = [...f.querySelectorAll('input[name="motivi"]:checked')].map((x) => x.value);
+        doc.visita.obiezione = doc.visita.motivi[0] || null;
+      }
       const resito = pick("resito"), rrec = numOrNull("#r-rec");
       if ((esito === "prova" || esito === "ripasso") && (resito || rrec != null)) {
         doc.ritorno = { data: oggi(), recensioni: rrec, esito: resito, note: $("#r-note")?.value.trim() || "" };
@@ -751,10 +793,10 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
   }
 
   function copiaCsv() {
-    const col = ["giro", "ordine", "nome", "categoria", "zona", "priorita", "recensioni", "rating", "stato", "data", "strategia", "con_chi", "esito", "obiezione", "rec_visita", "card", "prezzo", "ritorno_data", "rec_ritorno", "ritorno_esito", "note"];
+    const col = ["giro", "ordine", "nome", "categoria", "zona", "possibilita", "recensioni", "rating", "stato", "data", "strategia", "con_chi", "esito", "motivi", "rec_visita", "card", "prezzo", "ritorno_data", "rec_ritorno", "ritorno_esito", "note"];
     const righe = negozi.filter((n) => n.visita).map((n) => {
       const v = n.visita, r = n.ritorno || {}, x = vendita(n) || {};
-      return [n.giro, n.ordine, n.nome, n.categoria, n.zona, priorita(n).livello, n.recensioni, n.rating, stato(n), v.data, v.strategia, v.interlocutore, v.esito, v.obiezione, v.recensioni, x.card, x.prezzo, r.data, r.recensioni, r.esito, [v.note, r.note].filter(Boolean).join(" / ")];
+      return [n.giro, n.ordine, n.nome, n.categoria, n.zona, priorita(n).livello, n.recensioni, n.rating, stato(n), v.data, v.strategia, v.interlocutore, v.esito, motivi(v).map((k) => OBIEZIONI[k] || k).join(", "), v.recensioni, x.card, x.prezzo, r.data, r.recensioni, r.esito, [v.note, r.note].filter(Boolean).join(" / ")];
     });
     const txt = [col, ...righe].map((r) => r.map((x) => String(x ?? "").replace(/[\t\n]/g, " ")).join("\t")).join("\n");
     const ta = $("#csvOut"); ta.value = txt;
