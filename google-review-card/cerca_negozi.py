@@ -341,6 +341,38 @@ def scrivi_html(giri, partenza, mezzo, percorso: Path):
     )
 
 
+# Categorie che si fanno concorrenza tra loro (per il pitch "confronto concorrente").
+GRUPPI_CONCORRENZA = {
+    "barbiere": "capelli", "parrucchiere": "capelli",
+    "pasticceria": "dolci", "gelateria": "dolci",
+    "animali": "animali", "veterinario": "veterinario",
+}
+
+
+def aggiungi_concorrenti(negozi: list[dict], tutti: list[dict], raggio_km: float = 1.5):
+    """Per ogni negozio trova il concorrente più vicino dello stesso tipo con
+    almeno il doppio delle recensioni (e almeno 30 in più)."""
+    gruppo = lambda c: GRUPPI_CONCORRENZA.get(c, c)
+    for n in negozi:
+        migliore = None
+        for c in tutti:
+            if c["id"] == n["id"] or gruppo(c["categoria"]) != gruppo(n["categoria"]) or c.get("lat") is None:
+                continue
+            if c["recensioni"] < max(2 * n["recensioni"], n["recensioni"] + 30):
+                continue
+            d = distanza_km((n["lat"], n["lng"]), (c["lat"], c["lng"]))
+            if d <= raggio_km and (migliore is None or d < migliore[0]):
+                migliore = (d, c)
+        if migliore:
+            d, c = migliore
+            n["concorrente"] = {
+                "nome": c["nome"], "recensioni": c["recensioni"], "rating": c["rating"],
+                "metri": round(d * 1000 / 10) * 10, "mapsUrl": c["mapsUrl"],
+            }
+        else:
+            n["concorrente"] = None
+
+
 def carica_env(percorso: Path):
     """Legge KEY=valore dal file .env accanto allo script, se esiste."""
     if not percorso.exists():
@@ -402,6 +434,7 @@ def main():
     if not negozi:
         sys.exit("Nessun negozio da visitare con questi filtri.")
 
+    aggiungi_concorrenti(negozi, tutti)
     giri = crea_giri(negozi, partenza, a.per_giro)
     for g, giro in enumerate(giri, 1):
         for o, p in enumerate(giro, 1):

@@ -183,6 +183,17 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .note-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px; display: grid; gap: 4px; }
 .note-item .who { font-size: 13px; color: var(--muted); }
 .tagline { display: flex; flex-wrap: wrap; gap: 4px; }
+.hours { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; padding: 5px 10px; border-radius: 999px; justify-self: start; }
+.h-aperto { background: var(--ok-bg); color: var(--ok); }
+.h-chiude { background: var(--wait-bg); color: var(--wait); }
+.h-chiuso { background: var(--no-bg); color: var(--no); }
+.h-ignoto { background: var(--off-bg); color: var(--off); }
+.closed-now { color: var(--no); font-weight: 600; }
+.rival { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; font-size: 14px; }
+.rival span { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.rival a { color: var(--brand); font-weight: 600; }
+.wa { background: #1FA855; color: #fff; border-color: #1FA855; }
+.alert { background: var(--wait-bg); color: var(--wait); border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 600; }
 .big-chips label > span { min-height: 52px; font-weight: 700; }
 .packs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .packs label { position: relative; }
@@ -210,7 +221,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
 @media (prefers-reduced-motion: no-preference) {
   .sheet:not([hidden]) { animation: rise .18s ease-out; }
   .toast:not([hidden]) { animation: pop .18s ease-out; }
-  @keyframes rise { from { transform: translateY(24px); opacity: .6; } }
+  @keyframes rise { from { transform: translateY(24px); } }
   @keyframes pop { from { opacity: 0; transform: translate(-50%, 8px); } }
 }
 </style>
@@ -358,6 +369,68 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     const prima = [...l.slice(0, i)].reverse().find((x) => stato(x) !== "da") || l[i - 1];
     return `<p class="why num">A ${metri(distKm(prima, n))} da ${esc(prima.nome)}</p>`;
   }
+  // Opening hours from Google ("lunedì: 09:00–12:30, 15:00–19:00" / "Chiuso" / "Aperto 24 ore su 24").
+  const GIORNI = ["domenica", "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato"];
+  function fasce(n, dow) {
+    if (!n.orari?.length) return null;
+    const riga = n.orari.find((o) => o.toLowerCase().startsWith(GIORNI[dow]));
+    if (!riga) return null;
+    const t = riga.split(": ").slice(1).join(": ");
+    if (/chiuso/i.test(t)) return [];
+    if (/24 ore/i.test(t)) return [[0, 1440]];
+    const out = [];
+    for (const m of t.matchAll(/(\d{1,2})[:.](\d{2})\s*[–-]\s*(\d{1,2})[:.](\d{2})/g)) {
+      const a = +m[1] * 60 + +m[2]; let b = +m[3] * 60 + +m[4]; if (b <= a) b += 1440; out.push([a, b]);
+    }
+    return out.length ? out : null;
+  }
+  const hhmm = (m) => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+  function orario(n, ora = new Date()) {
+    const dow = ora.getDay(), min = ora.getHours() * 60 + ora.getMinutes();
+    const f = fasce(n, dow);
+    if (f === null) return { stato: "ignoto", testo: "Orari non disponibili" };
+    for (const [, b] of fasce(n, (dow + 6) % 7) || []) if (b > 1440 && min < b - 1440) return { stato: "aperto", testo: `Aperto fino alle ${hhmm(b)}` };
+    for (const [a, b] of f) if (min >= a && min < b) {
+      return b - min <= 20 ? { stato: "chiude", testo: `Chiude tra ${b - min} min` } : { stato: "aperto", testo: `Aperto fino alle ${hhmm(b)}` };
+    }
+    const dopo = f.find(([a]) => a > min);
+    if (dopo) return { stato: "chiuso", testo: `Chiuso ora · riapre alle ${hhmm(dopo[0])}`, apre: dopo[0] };
+    for (let k = 1; k <= 7; k++) {
+      const g = fasce(n, (dow + k) % 7);
+      if (g && g.length) return { stato: "chiuso", testo: `Chiuso · riapre ${k === 1 ? "domani" : GIORNI[(dow + k) % 7]} alle ${hhmm(g[0][0])}`, apre: 1440 * k + g[0][0] };
+    }
+    return { stato: "chiuso", testo: "Chiuso", apre: 99999 };
+  }
+  const visitabile = (n) => ["aperto", "chiude", "ignoto"].includes(orario(n).stato);
+
+  const nomeBreve = (t) => { const x = String(t || "").split(/\s[-|–·]\s/)[0].trim(); return x.length > 34 ? x.slice(0, 32).trim() + "…" : x; };
+  function rivale(n, compatto) {
+    const c = n.concorrente; if (!c) return "";
+    const testo = `<b>${esc(nomeBreve(c.nome))}</b>, a ${metri(c.metri / 1000)}: <b class="num">${c.recensioni}</b> recensioni ${stelle(c.rating)} contro le sue ${n.recensioni ?? "?"}`;
+    return compatto ? testo : `<div class="rival"><span>Concorrente vicino</span><p>${testo}</p>${c.mapsUrl ? `<a href="${esc(c.mapsUrl)}" target="_blank" rel="noopener">Vedi il concorrente su Google ›</a>` : ""}</div>`;
+  }
+  function fraseStrategia(k, n) {
+    const c = n.concorrente;
+    if (k === "D" && c) return `\u201c${nomeBreve(c.nome)}, qui a ${metri(c.metri / 1000)}, ha ${c.recensioni} recensioni, voi ${n.recensioni ?? "poche"}. Chi cerca su Google vede prima loro, anche se magari lavorate meglio voi.\u201d`;
+    return STRAT[k].frase;
+  }
+
+  function waNumero(tel) {
+    let d = String(tel || "").replace(/[^\d+]/g, "");
+    if (d.startsWith("+")) d = d.slice(1); else if (d.startsWith("00")) d = d.slice(2); else if (d.startsWith("3") && d.length <= 10) d = "39" + d;
+    return d.length >= 11 ? d : "";
+  }
+  const waLink = (tel, testo) => { const num = waNumero(tel); return num ? `https://wa.me/${num}?text=${encodeURIComponent(testo)}` : ""; };
+  function waMsg(n, tipo) {
+    const ciao = n.contatto?.nome ? `Ciao ${n.contatto.nome}` : "Buongiorno";
+    const d = dataRitorno(n);
+    const quando = !d ? "nei prossimi giorni" : d === oggi() ? "oggi" : d === piuGiorni(oggi(), 1) ? "domani" : `${dataBreve(d)}`;
+    if (tipo === "pagamento") return `${ciao}, sono quello delle card per le recensioni Google. Quando ti è comodo passo per il pagamento (${euro(vendita(n)?.prezzo)}). Grazie!`;
+    return `${ciao}, sono quello delle card per le recensioni Google. Passo ${quando} per vedere com'è andata la prova!`;
+  }
+  const pagato = (n) => cliente(n) && vendita(n)?.pagamento !== "dopo";
+  const daIncassare = (n) => cliente(n) && vendita(n)?.pagamento === "dopo";
+
   const giri = () => [...new Set(negozi.map((n) => n.giro).filter((g) => g != null))].sort((a, b) => a - b);
   const delGiro = (g) => negozi.filter((n) => n.giro === g).sort((a, b) => (a.ordine ?? 99) - (b.ordine ?? 99));
   function giroCorrente() {
@@ -370,7 +443,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
 
   // ---------- header ----------
   function renderHeader() {
-    const ric = negozi.reduce((s, n) => s + ricavo(n), 0);
+    const ric = negozi.filter(pagato).reduce((s, n) => s + ricavo(n), 0);
     const clienti = negozi.filter(cliente).length;
     $("#money").innerHTML = `${euro(ric)}<small>${clienti} ${clienti === 1 ? "cliente" : "clienti"}</small>`;
     const due = ritorniDovuti().length;
@@ -386,7 +459,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     return `<button class="row ${opts.next ? "is-next" : ""} ${s !== "da" ? "is-done" : ""}" type="button" data-id="${esc(n.id)}">
       <span class="ord num">${opts.ord ?? ""}</span>
       <span class="main"><span class="name">${esc(n.nome)}</span>
-        <span class="meta">${esc(catNome(n.categoria))} · ${n.recensioni ?? "?"} rec${n.rating ? " · " + String(n.rating).replace(".", ",") + "★" : ""}</span></span>
+        <span class="meta">${s === "da" && orario(n).stato === "chiuso" ? '<span class="closed-now">Chiuso ora</span> · ' : ""}${esc(catNome(n.categoria))} · ${n.recensioni ?? "?"} rec${n.rating ? " · " + String(n.rating).replace(".", ",") + "★" : ""}</span></span>
       <span class="right">${destra}</span></button>`;
   }
 
@@ -397,7 +470,11 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     }
     const gs = giri(), g = giroCorrente(), lista = delGiro(g);
     const fatti = lista.filter((n) => stato(n) !== "da").length;
-    const prossimo = lista.find((n) => stato(n) === "da" && !saltati.has(n.id)) || lista.find((n) => stato(n) === "da");
+    const daVis = lista.filter((n) => stato(n) === "da");
+    const candidati = daVis.filter((n) => !saltati.has(n.id));
+    const prossimo = candidati.find(visitabile) || daVis.find(visitabile) || null;
+    const chiusiSaltati = candidati.filter((n) => !visitabile(n) && (!prossimo || (n.ordine ?? 0) < (prossimo.ordine ?? 0)));
+    const tuttiChiusi = !prossimo && daVis.length ? daVis.slice().sort((a, b) => (orario(a).apre ?? 99999) - (orario(b).apre ?? 99999))[0] : null;
     const idx = gs.indexOf(g);
     let html = `<div class="giro-bar">
         <button class="icon-btn" type="button" data-giro="${gs[idx - 1] ?? ""}" ${idx <= 0 ? "disabled" : ""} aria-label="Giro precedente">‹</button>
@@ -409,20 +486,23 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     const due = ritorniDovuti();
     if (due.length) html += `<a class="btn" href="#ritorni" style="justify-content:space-between"><span>${due.length} ${due.length === 1 ? "ritorno da fare" : "ritorni da fare"} oggi</span><span>›</span></a>`;
 
+    if (chiusiSaltati.length && prossimo) html += `<div class="alert">Ho saltato ${chiusiSaltati.length === 1 ? `${esc(chiusiSaltati[0].nome)}, chiuso adesso` : `${chiusiSaltati.length} negozi chiusi adesso`}. Li trovi nella lista sotto, segnati in rosso.</div>`;
     if (prossimo) {
-      const p = priorita(prossimo), sug = strategiaSuggerita(prossimo.categoria), st = STRAT[sug];
+      const p = priorita(prossimo), sug = strategiaSuggerita(prossimo.categoria), st = STRAT[sug], o = orario(prossimo);
       const nav = prossimo.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${prossimo.lat},${prossimo.lng}&travelmode=walking` : "";
       html += `<article class="next" aria-label="Prossimo negozio">
         <div class="eyebrow"><span>Prossimo · n. ${prossimo.ordine ?? ""} di ${lista.length}</span><span style="display:flex;gap:6px;align-items:center"><span class="pill p-${p.livello}">Possibilità di sì: ${p.livello}</span><button class="qbtn" type="button" id="prioHelp" aria-label="Cosa vuol dire" aria-expanded="false">?</button></span></div>
         <p class="help" id="prioText" hidden>È una <b>stima</b> di quanto è facile che ti dica sì, prima di entrare: conta il tipo di negozio (es. barbieri ed estetiste hanno quasi sempre il titolare in cassa), quante poche recensioni ha e la media. Non è una garanzia: nella sezione Numeri, sotto "Possibilità", vedi se le "alta" comprano davvero di più.</p>
         <div style="display:grid;gap:6px"><h2>${esc(prossimo.nome)}</h2>
+          <span class="hours h-${o.stato}">${esc(o.testo)}</span>
           <div class="facts"><span>${esc(catNome(prossimo.categoria))}</span><span><b class="num">${prossimo.recensioni ?? "?"}</b> recensioni ${stelle(prossimo.rating)}</span></div>
           ${p.motivi.length ? `<p class="why">Perché: ${esc(p.motivi.join(", "))}</p>` : ""}
           ${prevDist(lista, prossimo)}</div>
         <div style="display:grid;gap:6px"><div class="row-btns">${nav ? `<a class="btn primary" href="${esc(nav)}" target="_blank" rel="noopener">Portami lì</a>` : ""}
           ${prossimo.mapsUrl ? `<a class="btn" href="${esc(prossimo.mapsUrl)}" target="_blank" rel="noopener">Vedi su Google</a>` : ""}</div>
           <p class="help"><b>Portami lì</b> apre Google Maps con il percorso a piedi fino al negozio. <b>Vedi su Google</b> apre la sua pagina su Google Maps: lì controlli quante recensioni ha prima di entrare.</p></div>
-        <div class="strategy"><span class="lbl">Prova la strategia ${sug}</span><b>${esc(st.nome)}</b><p>${esc(st.frase)}</p><a href="#pitch">Pitch completo ›</a></div>
+        <div class="strategy"><span class="lbl">Prova la strategia ${sug}</span><b>${esc(st.nome)}</b><p>${esc(fraseStrategia(sug, prossimo))}</p><a href="#pitch">Pitch completo ›</a></div>
+        ${rivale(prossimo)}
         <div style="display:grid;gap:8px"><span class="eyebrow"><span>Com'è andata?</span></span>
           <div class="outcomes">
             <button class="outcome venduto" type="button" data-esito="venduto" data-id="${esc(prossimo.id)}">Venduto</button>
@@ -433,6 +513,10 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
           </div>
           <button class="btn ghost sm" type="button" data-salta="${esc(prossimo.id)}">Salta, lo faccio dopo</button></div>
       </article>`;
+    } else if (tuttiChiusi) {
+      html += `<div class="next done-card"><h2>Adesso sono tutti chiusi</h2>
+        <p class="muted">Nel giro ${g} restano ${daVis.length} negozi. Il primo a riaprire è <b>${esc(tuttiChiusi.nome)}</b>: ${esc(orario(tuttiChiusi).testo.toLowerCase())}.</p>
+        <p class="muted small">Puoi passare a un altro giro con le frecce in alto, o fare i ritorni.</p></div>`;
     } else {
       const nextG = gs.find((x) => x > g && delGiro(x).some((n) => stato(n) === "da"));
       html += `<div class="next done-card"><h2>Giro ${g} finito</h2>
@@ -466,7 +550,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
       const quando = !d ? "Senza data" : d < t ? `In ritardo (${dataBreve(d)})` : d === t ? "Oggi" : dataBreve(d);
       return `<button class="row" type="button" data-id="${esc(n.id)}"><span class="ord">${n.visita?.strategia || ""}</span>
         <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">${esc(STATI[s])} dal ${dataBreve(n.visita?.data)} · ${n.visita?.recensioni ?? "?"} rec allora</span></span>
-        <span class="right"><span class="pill ${d && d <= t ? "s-no" : "s-" + s}">${esc(quando)}</span></span></button>`;
+        <span class="right"><span class="pill ${d && d <= t ? "s-no" : "s-" + s}">${esc(quando)}</span>${crescita(n) ? `<span class="gain num" style="font-size:14px">+${crescita(n).piu} rec.</span>` : ""}</span></button>`;
     };
     return (oraL.length ? `<section class="section"><div class="section-head"><h3>Da fare oggi</h3><span class="muted num">${oraL.length}</span></div><div class="list">${oraL.map(riga).join("")}</div>
         <p class="muted small">Tocca il negozio, controlla le recensioni su Google e segna com'è finita.</p></section>` : "") +
@@ -479,11 +563,12 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     const prove = negozi.filter((n) => stato(n) === "prova");
     if (!cl.length && !prove.length) return `<div class="empty"><h3>Ancora nessun cliente</h3><p>Chi compra finisce qui, con quanto ha pagato e quante recensioni ha preso da quando ha la card. Sono i numeri da mostrare ai prossimi negozi.</p></div>`;
     const crescite = cl.map(crescita).filter(Boolean);
+    const dovuti = cl.filter(daIncassare);
     const media = crescite.length ? crescite.reduce((s, c) => s + c.settimana, 0) / crescite.length : null;
     const rigaC = (n) => {
       const v = vendita(n), c = crescita(n);
       return `<button class="row" type="button" data-id="${esc(n.id)}"><span class="ord">${n.visita?.strategia || ""}</span>
-        <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">${esc(catNome(n.categoria))} · ${v?.card || "?"} card · ${euro(v?.prezzo)} · ${dataBreve(v?.data || n.visita.data)}</span></span>
+        <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">${daIncassare(n) ? '<span class="closed-now">Da pagare</span> · ' : ""}${esc(catNome(n.categoria))} · ${v?.card || "?"} card · ${euro(v?.prezzo)} · ${dataBreve(v?.data || n.visita.data)}</span></span>
         <span class="right">${c ? `<span class="gain num">${c.piu >= 0 ? "+" : ""}${c.piu}</span><span class="muted small">rec. in ${c.giorni} gg</span>` : `<span class="muted small">recensioni<br>da aggiornare</span>`}</span></button>`;
     };
     const rigaP = (n) => {
@@ -493,9 +578,11 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
         <span class="right">${c ? `<span class="gain num">+${c.piu}</span>` : `<span class="pill s-prova">In prova</span>`}</span></button>`;
     };
     return `<div class="kpis">
-        <div class="kpi"><span>Clienti</span><b>${cl.length}</b><small>${euro(negozi.reduce((s, n) => s + ricavo(n), 0))} incassati</small></div>
+        <div class="kpi"><span>Clienti</span><b>${cl.length}</b><small>${euro(cl.filter(pagato).reduce((s, n) => s + ricavo(n), 0))} incassati${dovuti.length ? ` · ${euro(dovuti.reduce((s, n) => s + ricavo(n), 0))} da incassare` : ""}</small></div>
         <div class="kpi"><span>Recensioni in più</span><b>${media === null ? "–" : "+" + media.toFixed(1).replace(".", ",")}</b><small>media a settimana per cliente</small></div>
       </div>
+      ${dovuti.length ? `<section class="section"><div class="section-head"><h3>Devono ancora pagarti</h3><span class="muted num">${euro(dovuti.reduce((s, n) => s + ricavo(n), 0))}</span></div><div class="list">${dovuti.map(rigaC).join("")}</div>
+        <p class="help">Apri il negozio per scrivergli su WhatsApp o segnare che ha pagato.</p></section>` : ""}
       ${cl.length ? `<section class="section"><div class="section-head"><h3>Hanno comprato</h3></div><div class="list">${cl.map(rigaC).join("")}</div></section>` : ""}
       ${prove.length ? `<section class="section"><div class="section-head"><h3>In prova adesso</h3></div><div class="list">${prove.map(rigaP).join("")}</div></section>` : ""}
       <p class="muted small">Per aggiornare le recensioni di tutti i clienti in un colpo, chiedi a Claude "aggiorna le recensioni".</p>`;
@@ -550,6 +637,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
         ${ins("Strategia migliore", migliore(GRUPPI.strategia[1], GRUPPI.strategia[2]), `Servono ${MIN_CAMPIONE} visite per strategia`)}
         ${ins("Negozi migliori", migliore(GRUPPI.categoria[1], GRUPPI.categoria[2]), `Servono ${MIN_CAMPIONE} visite per categoria`)}
         ${ins("Zona migliore", migliore(GRUPPI.zona[1], GRUPPI.zona[2]), `Servono ${MIN_CAMPIONE} visite per zona`)}
+        ${ins("Recensioni prese durante la prova", (() => { const g = negozi.filter((n) => n.visita?.esito === "prova").map(crescita).filter(Boolean); return g.length ? `+${(g.reduce((s, c) => s + c.piu, 0) / g.length).toFixed(1).replace(".", ",")} in media in ${Math.round(g.reduce((s, c) => s + c.giorni, 0) / g.length)} giorni (${g.length} ${g.length === 1 ? "prova" : "prove"})` : ""; })(), "Si vede quando segni le recensioni al ritorno")}
         ${ins("Prove che diventano vendite", proveDecise.length ? `${proveDecise.filter((n) => n.ritorno.esito === "comprato").length} su ${proveDecise.length} (${pct(proveDecise.filter((n) => n.ritorno.esito === "comprato").length, proveDecise.length)})` : "", "Ancora nessuna prova conclusa")}
         ${ins("Motivo di no più frequente", obTop.length ? `${OBIEZIONI[obTop[0][0]] || obTop[0][0]} (${obTop[0][1]} ${obTop[0][1] === 1 ? "volta" : "volte"})` : "", "Nessun motivo segnato")}
       </div></section>
@@ -632,6 +720,8 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
       <div class="two" data-altro="${name}"><div class="field"><label for="${name}-card">Card</label><input type="number" inputmode="numeric" id="${name}-card" value="${esc(card ?? 2)}"></div>
         <div class="field"><label for="${name}-prezzo">Prezzo €</label><input type="number" inputmode="decimal" id="${name}-prezzo" value="${esc(prezzo ?? 39)}"></div></div>`;
   };
+  const PAGAMENTI = { contanti: "Contanti", satispay: "Satispay", bonifico: "Bonifico", dopo: "Mi paga dopo" };
+  const pagamento = (name, val) => `<fieldset class="field"><legend>Come ti ha pagato?</legend>${chips(name, PAGAMENTI, val || "contanti")}</fieldset>`;
   const leggiPack = (name) => {
     const k = $(`input[name="${name}"]:checked`)?.value || "p2";
     if (k === "altro") return { card: Number($(`#${name}-card`).value || 0), prezzo: Number($(`#${name}-prezzo`).value || 0) };
@@ -658,6 +748,8 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
         <button class="btn sm" type="button" data-chiudi>Chiudi</button></div>
       ${n.id ? `<div class="row-btns">${nav ? `<a class="btn sm" href="${esc(nav)}" target="_blank" rel="noopener">Portami lì</a>` : ""}${n.mapsUrl ? `<a class="btn sm" href="${esc(n.mapsUrl)}" target="_blank" rel="noopener">Vedi su Google</a>` : ""}
         ${n.telefono ? `<span class="btn sm" style="user-select:all">${esc(n.telefono)}</span>` : ""}</div>` : ""}
+      ${n.id && !n.manuale ? `<span class="hours h-${orario(n).stato}">${esc(orario(n).testo)}</span>` : ""}
+      ${!isRitorno && n.concorrente ? rivale(n) : ""}
       ${n.manuale ? `<div class="box"><h3>Negozio</h3>
         <div class="field"><label for="m-nome">Nome</label><input type="text" id="m-nome" value="${esc(n.nome)}"></div>
         <div class="two"><div class="field"><label for="m-cat">Tipo</label><select id="m-cat">${Object.entries(CAT).map(([k, [l]]) => `<option value="${k}" ${n.categoria === k ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div>
@@ -668,9 +760,10 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
         <p>${v.esito === "prova" ? `Card in prova dal <b>${dataBreve(v.data)}</b>, quel giorno aveva <b>${v.recensioni ?? "?"}</b> recensioni.` : `Ti ha detto di ripassare il <b>${dataBreve(v.data)}</b>.`}</p>
         <div class="field"><label for="r-rec">Quante recensioni ha adesso? <span class="muted">(guarda la scheda Google)</span></label>
           <input type="number" inputmode="numeric" id="r-rec" value="${esc(r.recensioni ?? "")}" placeholder="${esc(ult?.rec ?? "")}"></div>
-        ${c ? `<p class="gain num">${c.piu >= 0 ? "+" : ""}${c.piu} recensioni in ${c.giorni} giorni</p>` : ""}
+        <p class="gain num" id="r-delta">${c ? `${c.piu >= 0 ? "+" : ""}${c.piu} recensioni in ${c.giorni} giorni` : ""}</p>
+        ${n.contatto?.tel && waLink(n.contatto.tel, "x") ? `<a class="btn wa" href="${esc(waLink(n.contatto.tel, waMsg(n, "ritorno")))}" target="_blank" rel="noopener">Avvisa su WhatsApp che passi</a>` : ""}
         <fieldset class="field"><legend>Com'è finita?</legend>${chips("resito", { comprato: "Ha comprato", non: "Non compra", ripasso: "Ripasso ancora" }, r.esito, null, "big-chips")}</fieldset>
-        <div data-rshow="comprato">${packs("rpack", r.card, r.prezzo)}</div>
+        <div data-rshow="comprato" style="display:grid;gap:10px">${packs("rpack", r.card, r.prezzo)}${pagamento("rpag", r.pagamento)}</div>
         <label class="check" data-rshow="non"><input type="checkbox" id="r-restituita" ${r.cardRestituita === false ? "" : "checked"}> Mi ha ridato la card</label>
         <div class="field" data-rshow="ripasso"><label for="r-prossimo">Ripasso il</label><input type="date" id="r-prossimo" value="${esc(r.prossimo || piuGiorni(oggi(), GIORNI_RIPASSO))}"></div>
         <div class="field"><label for="r-note">Note <span class="muted">(facoltativo)</span></label><textarea id="r-note" placeholder="Cosa ti ha detto al ritorno?">${esc(r.note || "")}</textarea></div>
@@ -679,7 +772,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
 
       <div class="box"><h3>${isRitorno ? "Prima visita" : "Visita"}</h3>
         <fieldset class="field"><legend>Esito</legend>${chips("esito", ESITI, esito, null, "big-chips")}</fieldset>
-        <div data-show="venduto">${packs("vpack", v.card, v.prezzo)}</div>
+        <div data-show="venduto" style="display:grid;gap:10px">${packs("vpack", v.card, v.prezzo)}${pagamento("vpag", v.pagamento)}</div>
         <div class="two" data-show="prova ripasso">
           <div class="field"><label for="v-ritorno">Torno il</label><input type="date" id="v-ritorno" value="${esc(v.dataRitorno || "")}"></div>
           <div class="field" data-show="prova"><label for="v-cardprova">Card lasciate</label><input type="number" inputmode="numeric" id="v-cardprova" value="${esc(v.cardProva ?? 1)}"></div></div>
@@ -694,6 +787,11 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
           <div class="field"><label for="v-data">Data</label><input type="date" id="v-data" value="${esc(v.data || oggi())}"></div></div>
       </div>
       ${isRitorno ? `</details>` : ""}
+      <div class="box" data-contatto><h3>Contatto</h3>
+        <div class="two"><div class="field"><label for="c-nome">Nome del titolare</label><input type="text" id="c-nome" autocomplete="off" value="${esc(n.contatto?.nome || "")}" placeholder="Es. Marco"></div>
+          <div class="field"><label for="c-tel">Cellulare / WhatsApp</label><input type="text" inputmode="tel" id="c-tel" autocomplete="off" value="${esc(n.contatto?.tel || (/^\s*3/.test(n.telefono || "") ? n.telefono : ""))}" placeholder="333 123 4567"></div></div>
+        ${daIncassare(n) && n.contatto?.tel && waLink(n.contatto.tel, "x") ? `<a class="btn wa" href="${esc(waLink(n.contatto.tel, waMsg(n, "pagamento")))}" target="_blank" rel="noopener">Ricordagli il pagamento su WhatsApp</a>` : ""}
+        <p class="help">Facoltativo. Ti serve per avvisarlo prima di ripassare: il messaggio su WhatsApp è già scritto.</p></div>
       ${n.orari?.length ? `<details><summary>Orari di apertura</summary><ul class="orari">${n.orari.map((o) => `<li>${esc(o)}</li>`).join("")}</ul></details>` : ""}
       ${v.esito ? `<button class="btn ghost sm" type="button" id="resetBtn" style="justify-self:start">Cancella la visita (torna "da visitare")</button>` : ""}
       </div>
@@ -712,11 +810,17 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     const re = f.querySelector('input[name="resito"]:checked')?.value || "";
     f.querySelectorAll("[data-show]").forEach((el) => { el.hidden = !el.dataset.show.split(" ").includes(es); });
     f.querySelectorAll("[data-rshow]").forEach((el) => { el.hidden = el.dataset.rshow !== re; });
+    const cb = f.querySelector("[data-contatto]"); if (cb) cb.hidden = !["venduto", "prova", "ripasso"].includes(es);
     ["vpack", "rpack"].forEach((p) => { const el = f.querySelector(`[data-altro="${p}"]`); if (el) el.hidden = f.querySelector(`input[name="${p}"]:checked`)?.value !== "altro"; });
     const rit = $("#v-ritorno");
     if (rit && !rit.value && (es === "prova" || es === "ripasso")) rit.value = piuGiorni($("#v-data")?.value || oggi(), es === "prova" ? GIORNI_PROVA : GIORNI_RIPASSO);
   }
   $("#sheet").addEventListener("change", aggiornaVisibili);
+  $("#sheet").addEventListener("input", (e) => {
+    if (e.target.id !== "r-rec" || !corrente?.visita) return;
+    const base = corrente.visita.recensioni, v = e.target.value, el = $("#r-delta");
+    if (el && base != null && v !== "") { const d = Number(v) - base, g = Math.max(1, giorniTra(corrente.visita.data, oggi())); el.textContent = `${d >= 0 ? "+" : ""}${d} recensioni in ${g} ${g === 1 ? "giorno" : "giorni"}`; }
+  });
   $("#sheet").addEventListener("click", (e) => {
     if (e.target.closest("[data-chiudi]")) chiudi();
     if (e.target.id === "resetBtn") resetVisita();
@@ -763,7 +867,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
       const old = n.visita || {};
       doc.visita = { data: $("#v-data")?.value || old.data || oggi(), esito, note: $("#v-note")?.value.trim() || "" };
       if (esito !== "chiuso") Object.assign(doc.visita, { recensioni: numOrNull("#v-rec"), strategia: pick("strategia"), interlocutore: pick("interlocutore") });
-      if (esito === "venduto") Object.assign(doc.visita, leggiPack("vpack"));
+      if (esito === "venduto") Object.assign(doc.visita, leggiPack("vpack"), { pagamento: pick("vpag") || "contanti" });
       if (esito === "prova" || esito === "ripasso") doc.visita.dataRitorno = $("#v-ritorno").value || null;
       if (esito === "prova") doc.visita.cardProva = numOrNull("#v-cardprova") ?? 1;
       if (["no", "ripasso", "prova"].includes(esito)) {
@@ -773,11 +877,15 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
       const resito = pick("resito"), rrec = numOrNull("#r-rec");
       if ((esito === "prova" || esito === "ripasso") && (resito || rrec != null)) {
         doc.ritorno = { data: oggi(), recensioni: rrec, esito: resito, note: $("#r-note")?.value.trim() || "" };
-        if (resito === "comprato") Object.assign(doc.ritorno, leggiPack("rpack"));
+        if (resito === "comprato") Object.assign(doc.ritorno, leggiPack("rpack"), { pagamento: pick("rpag") || "contanti" });
         if (resito === "non") doc.ritorno.cardRestituita = $("#r-restituita").checked;
         if (resito === "ripasso") doc.ritorno.prossimo = $("#r-prossimo").value || piuGiorni(oggi(), GIORNI_RIPASSO);
       } else if (!(esito === "prova" || esito === "ripasso")) delete doc.ritorno;
     } else { delete doc.visita; delete doc.ritorno; }
+    if (["venduto", "prova", "ripasso"].includes(esito)) {
+      const cn = $("#c-nome")?.value.trim() || "", ct = $("#c-tel")?.value.trim() || "";
+      if (cn || ct) doc.contatto = { nome: cn, tel: ct }; else delete doc.contatto;
+    }
     const btn = f.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Salvo…";
     const msg = doc.ritorno?.esito === "comprato" || doc.visita?.esito === "venduto" ? `Venduto a ${doc.nome}` : "Salvato";
     if (await scrivi(doc, msg, prima ? () => scrivi(prima, "Annullato") : null)) { if (n.giro != null) saltati.delete(n.id); chiudi(); }
@@ -793,10 +901,10 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
   }
 
   function copiaCsv() {
-    const col = ["giro", "ordine", "nome", "categoria", "zona", "possibilita", "recensioni", "rating", "stato", "data", "strategia", "con_chi", "esito", "motivi", "rec_visita", "card", "prezzo", "ritorno_data", "rec_ritorno", "ritorno_esito", "note"];
+    const col = ["giro", "ordine", "nome", "categoria", "zona", "possibilita", "recensioni", "rating", "stato", "data", "strategia", "con_chi", "esito", "motivi", "rec_visita", "card", "prezzo", "pagamento", "ritorno_data", "rec_ritorno", "ritorno_esito", "note"];
     const righe = negozi.filter((n) => n.visita).map((n) => {
       const v = n.visita, r = n.ritorno || {}, x = vendita(n) || {};
-      return [n.giro, n.ordine, n.nome, n.categoria, n.zona, priorita(n).livello, n.recensioni, n.rating, stato(n), v.data, v.strategia, v.interlocutore, v.esito, motivi(v).map((k) => OBIEZIONI[k] || k).join(", "), v.recensioni, x.card, x.prezzo, r.data, r.recensioni, r.esito, [v.note, r.note].filter(Boolean).join(" / ")];
+      return [n.giro, n.ordine, n.nome, n.categoria, n.zona, priorita(n).livello, n.recensioni, n.rating, stato(n), v.data, v.strategia, v.interlocutore, v.esito, motivi(v).map((k) => OBIEZIONI[k] || k).join(", "), v.recensioni, x.card, x.prezzo, x.pagamento, r.data, r.recensioni, r.esito, [v.note, r.note].filter(Boolean).join(" / ")];
     });
     const txt = [col, ...righe].map((r) => r.map((x) => String(x ?? "").replace(/[\t\n]/g, " ")).join("\t")).join("\n");
     const ta = $("#csvOut"); ta.value = txt;
@@ -808,6 +916,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
 
   // ---------- data ----------
   render();
+  setInterval(() => { if ($("#sheet").hidden && tab() === "oggi") render(); }, 60000);
   (async () => {
     db = window.claude?.use ? await window.claude.use("db") : null;
     if (!db) { notice("Per salvare le visite apri questa pagina da claude.ai con il tuo account."); caricato = true; return render(); }
