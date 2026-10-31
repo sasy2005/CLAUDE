@@ -71,7 +71,8 @@ CATENE = re.compile(
     r"salmoiraghi|grandvision|vision\s*ottica|mcfit|virgin active|anytime fitness|"
     r"fit\s*express|jean louis david|franck provost|toni\s*&\s*guy|old wild west|"
     r"roadhouse|spizzico|rossopomodoro|arcaplanet|isola dei tesori|norauto|"
-    r"midas|speedy|euronics|unieuro|mediaworld",
+    r"midas|speedy|euronics|unieuro|mediaworld|\bq8\b|tamoil|\beni\b|\besso\b|\bagip\b|\bshell\b|"
+    r"\bip\b|dropship",
     re.IGNORECASE,
 )
 
@@ -248,19 +249,33 @@ def lunghezza(giro: list[dict], partenza) -> float:
     return tot
 
 
-def due_opt(giro: list[dict], partenza) -> list[dict]:
-    """Inverte tratti del percorso finché accorcia (percorso aperto, niente ritorno)."""
-    migliore, best = giro[:], lunghezza(giro, partenza)
-    migliorato = True
-    while migliorato:
+def due_opt(giro: list[dict], partenza, max_passate: int = 50) -> list[dict]:
+    """Inverte tratti del percorso finché accorcia (percorso aperto che parte da casa).
+    Calcola solo la differenza di lunghezza di ogni inversione, con le distanze
+    precalcolate: veloce anche con centinaia di negozi."""
+    n = len(giro)
+    if n < 3:
+        return giro
+    coord = [partenza] + [(p["lat"], p["lng"]) for p in giro]
+    d = [[distanza_km(a, b) for b in coord] for a in coord]
+    ordine = list(range(n + 1))  # 0 = partenza, fissa
+    for _ in range(max_passate):
         migliorato = False
-        for i in range(len(migliore) - 1):
-            for k in range(i + 1, len(migliore)):
-                nuovo = migliore[:i] + migliore[i:k + 1][::-1] + migliore[k + 1:]
-                d = lunghezza(nuovo, partenza)
-                if d < best - 1e-9:
-                    migliore, best, migliorato = nuovo, d, True
-    return migliore
+        for i in range(1, n):
+            for k in range(i + 1, n + 1):
+                a, b, c = ordine[i - 1], ordine[i], ordine[k]
+                prima = d[a][b]
+                dopo = d[a][c]
+                if k < n:
+                    e = ordine[k + 1]
+                    prima += d[c][e]
+                    dopo += d[b][e]
+                if dopo < prima - 1e-9:
+                    ordine[i:k + 1] = reversed(ordine[i:k + 1])
+                    migliorato = True
+        if not migliorato:
+            break
+    return [giro[j - 1] for j in ordine[1:]]
 
 
 def crea_giri(negozi: list[dict], partenza, per_giro: int) -> list[list[dict]]:
@@ -343,12 +358,15 @@ def main():
     ap.add_argument("--raggio", type=float, default=3.0)
     ap.add_argument("--partenza", default=f"{PARTENZA_DEFAULT[0]},{PARTENZA_DEFAULT[1]}")
     ap.add_argument("--max-recensioni", type=int, default=100)
+    ap.add_argument("--min-recensioni", type=int, default=0,
+                    help="scarta le schede quasi vuote (spesso attività chiuse o senza negozio)")
     ap.add_argument("--per-giro", type=int, default=10)
     ap.add_argument("--categorie", default=",".join(CATEGORIE))
     ap.add_argument("--griglia", type=int, default=2, help="riquadri per lato (2 = 4 riquadri)")
     ap.add_argument("--mezzo", default="walking", choices=["walking", "bicycling", "driving"])
     ap.add_argument("--uscita", default=str(Path(__file__).parent / "output"))
     ap.add_argument("--demo", action="store_true")
+    ap.add_argument("--usa-cache", action="store_true", help="riusa output/grezzi.json invece di chiamare Google")
     a = ap.parse_args()
 
     partenza = tuple(float(x) for x in a.partenza.split(","))
@@ -357,20 +375,27 @@ def main():
     if sconosciute:
         sys.exit(f"Categorie sconosciute: {sconosciute}. Disponibili: {', '.join(CATEGORIE)}")
 
+    grezzi = Path(__file__).parent / "output" / "grezzi.json"
     if a.demo:
         tutti = dati_demo(partenza, a.raggio)
+    elif a.usa_cache:
+        tutti = json.loads(grezzi.read_text(encoding="utf-8"))
+        print(f"Uso {len(tutti)} negozi salvati in {grezzi}")
     else:
         chiave = os.environ.get("GOOGLE_MAPS_API_KEY")
         if not chiave:
             sys.exit("Manca la chiave: export GOOGLE_MAPS_API_KEY=\"...\" (oppure usa --demo)")
         print(f"Cerco in un raggio di {a.raggio} km da {partenza}...")
         tutti = raccogli(chiave, categorie, partenza, a.raggio, a.griglia)
+        grezzi.parent.mkdir(parents=True, exist_ok=True)
+        grezzi.write_text(json.dumps(tutti, ensure_ascii=False), encoding="utf-8")
 
     negozi = [
         n for n in tutti
         if n["lat"] is not None
         and distanza_km(partenza, (n["lat"], n["lng"])) <= a.raggio
-        and n["recensioni"] <= a.max_recensioni
+        and a.min_recensioni <= n["recensioni"] <= a.max_recensioni
+        and n["categoria"] in categorie
         and not CATENE.search(n["nome"])
     ]
     print(f"\nTrovati {len(tutti)} negozi, {len(negozi)} con al massimo {a.max_recensioni} recensioni.")
