@@ -425,11 +425,9 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     const ciao = n.contatto?.nome ? `Ciao ${n.contatto.nome}` : "Buongiorno";
     const d = dataRitorno(n);
     const quando = !d ? "nei prossimi giorni" : d === oggi() ? "oggi" : d === piuGiorni(oggi(), 1) ? "domani" : `${dataBreve(d)}`;
-    if (tipo === "pagamento") return `${ciao}, sono quello delle card per le recensioni Google. Quando ti è comodo passo per il pagamento (${euro(vendita(n)?.prezzo)}). Grazie!`;
     return `${ciao}, sono quello delle card per le recensioni Google. Passo ${quando} per vedere com'è andata la prova!`;
   }
-  const pagato = (n) => cliente(n) && vendita(n)?.pagamento !== "dopo";
-  const daIncassare = (n) => cliente(n) && vendita(n)?.pagamento === "dopo";
+  const pagato = (n) => cliente(n);
 
   const giri = () => [...new Set(negozi.map((n) => n.giro).filter((g) => g != null))].sort((a, b) => a - b);
   const delGiro = (g) => negozi.filter((n) => n.giro === g).sort((a, b) => (a.ordine ?? 99) - (b.ordine ?? 99));
@@ -563,12 +561,11 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
     const prove = negozi.filter((n) => stato(n) === "prova");
     if (!cl.length && !prove.length) return `<div class="empty"><h3>Ancora nessun cliente</h3><p>Chi compra finisce qui, con quanto ha pagato e quante recensioni ha preso da quando ha la card. Sono i numeri da mostrare ai prossimi negozi.</p></div>`;
     const crescite = cl.map(crescita).filter(Boolean);
-    const dovuti = cl.filter(daIncassare);
     const media = crescite.length ? crescite.reduce((s, c) => s + c.settimana, 0) / crescite.length : null;
     const rigaC = (n) => {
       const v = vendita(n), c = crescita(n);
       return `<button class="row" type="button" data-id="${esc(n.id)}"><span class="ord">${n.visita?.strategia || ""}</span>
-        <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">${daIncassare(n) ? '<span class="closed-now">Da pagare</span> · ' : ""}${esc(catNome(n.categoria))} · ${v?.card || "?"} card · ${euro(v?.prezzo)} · ${dataBreve(v?.data || n.visita.data)}</span></span>
+        <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">${esc(catNome(n.categoria))} · ${v?.card || "?"} card · ${euro(v?.prezzo)} · ${dataBreve(v?.data || n.visita.data)}</span></span>
         <span class="right">${c ? `<span class="gain num">${c.piu >= 0 ? "+" : ""}${c.piu}</span><span class="muted small">rec. in ${c.giorni} gg</span>` : `<span class="muted small">recensioni<br>da aggiornare</span>`}</span></button>`;
     };
     const rigaP = (n) => {
@@ -578,11 +575,9 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
         <span class="right">${c ? `<span class="gain num">+${c.piu}</span>` : `<span class="pill s-prova">In prova</span>`}</span></button>`;
     };
     return `<div class="kpis">
-        <div class="kpi"><span>Clienti</span><b>${cl.length}</b><small>${euro(cl.filter(pagato).reduce((s, n) => s + ricavo(n), 0))} incassati${dovuti.length ? ` · ${euro(dovuti.reduce((s, n) => s + ricavo(n), 0))} da incassare` : ""}</small></div>
+        <div class="kpi"><span>Clienti</span><b>${cl.length}</b><small>${euro(cl.reduce((s, n) => s + ricavo(n), 0))} incassati</small></div>
         <div class="kpi"><span>Recensioni in più</span><b>${media === null ? "–" : "+" + media.toFixed(1).replace(".", ",")}</b><small>media a settimana per cliente</small></div>
       </div>
-      ${dovuti.length ? `<section class="section"><div class="section-head"><h3>Devono ancora pagarti</h3><span class="muted num">${euro(dovuti.reduce((s, n) => s + ricavo(n), 0))}</span></div><div class="list">${dovuti.map(rigaC).join("")}</div>
-        <p class="help">Apri il negozio per scrivergli su WhatsApp o segnare che ha pagato.</p></section>` : ""}
       ${cl.length ? `<section class="section"><div class="section-head"><h3>Hanno comprato</h3></div><div class="list">${cl.map(rigaC).join("")}</div></section>` : ""}
       ${prove.length ? `<section class="section"><div class="section-head"><h3>In prova adesso</h3></div><div class="list">${prove.map(rigaP).join("")}</div></section>` : ""}
       <p class="muted small">Per aggiornare le recensioni di tutti i clienti in un colpo, chiedi a Claude "aggiorna le recensioni".</p>`;
@@ -720,7 +715,7 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
       <div class="two" data-altro="${name}"><div class="field"><label for="${name}-card">Card</label><input type="number" inputmode="numeric" id="${name}-card" value="${esc(card ?? 2)}"></div>
         <div class="field"><label for="${name}-prezzo">Prezzo €</label><input type="number" inputmode="decimal" id="${name}-prezzo" value="${esc(prezzo ?? 39)}"></div></div>`;
   };
-  const PAGAMENTI = { contanti: "Contanti", satispay: "Satispay", bonifico: "Bonifico", dopo: "Mi paga dopo" };
+  const PAGAMENTI = { contanti: "Contanti", satispay: "Satispay", bonifico: "Bonifico" };
   const pagamento = (name, val) => `<fieldset class="field"><legend>Come ti ha pagato?</legend>${chips(name, PAGAMENTI, val || "contanti")}</fieldset>`;
   const leggiPack = (name) => {
     const k = $(`input[name="${name}"]:checked`)?.value || "p2";
@@ -790,7 +785,6 @@ details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding
       <div class="box" data-contatto><h3>Contatto</h3>
         <div class="two"><div class="field"><label for="c-nome">Nome del titolare</label><input type="text" id="c-nome" autocomplete="off" value="${esc(n.contatto?.nome || "")}" placeholder="Es. Marco"></div>
           <div class="field"><label for="c-tel">Cellulare / WhatsApp</label><input type="text" inputmode="tel" id="c-tel" autocomplete="off" value="${esc(n.contatto?.tel || (/^\s*3/.test(n.telefono || "") ? n.telefono : ""))}" placeholder="333 123 4567"></div></div>
-        ${daIncassare(n) && n.contatto?.tel && waLink(n.contatto.tel, "x") ? `<a class="btn wa" href="${esc(waLink(n.contatto.tel, waMsg(n, "pagamento")))}" target="_blank" rel="noopener">Ricordagli il pagamento su WhatsApp</a>` : ""}
         <p class="help">Facoltativo. Ti serve per avvisarlo prima di ripassare: il messaggio su WhatsApp è già scritto.</p></div>
       ${n.orari?.length ? `<details><summary>Orari di apertura</summary><ul class="orari">${n.orari.map((o) => `<li>${esc(o)}</li>`).join("")}</ul></details>` : ""}
       ${v.esito ? `<button class="btn ghost sm" type="button" id="resetBtn" style="justify-self:start">Cancella la visita (torna "da visitare")</button>` : ""}
