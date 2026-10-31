@@ -326,7 +326,19 @@ def scrivi_html(giri, partenza, mezzo, percorso: Path):
     )
 
 
+def carica_env(percorso: Path):
+    """Legge KEY=valore dal file .env accanto allo script, se esiste."""
+    if not percorso.exists():
+        return
+    for riga in percorso.read_text(encoding="utf-8").splitlines():
+        riga = riga.strip()
+        if riga and not riga.startswith("#") and "=" in riga:
+            k, v = riga.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
 def main():
+    carica_env(Path(__file__).parent / ".env")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--raggio", type=float, default=3.0)
     ap.add_argument("--partenza", default=f"{PARTENZA_DEFAULT[0]},{PARTENZA_DEFAULT[1]}")

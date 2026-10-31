@@ -1,2 +1,3 @@
 google-review-card/output/
 __pycache__/
+.env
