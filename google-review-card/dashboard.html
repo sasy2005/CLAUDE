@@ -1,217 +1,277 @@
 <title>Giro Review Card</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Public+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Public+Sans:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: a field notebook for the phone. Sticky header with the day's numbers, one list per view, bottom tab bar, a full-height sheet to log a visit. */
+/* Layout: phone-first field tool. "Oggi" leads with one big next-shop card and one-tap outcomes; other tabs list returns, clients and numbers. Bottom tab bar, bottom sheet for details. */
 :root {
-  --bg: #F3F4EF; --surface: #FFFFFF; --sunk: #E9EBE4; --ink: #18211D; --muted: #5E6A64; --line: #D7DCD2;
-  --brand: #1E5B47; --brand-ink: #FFFFFF; --star: #A86A10; --star-bg: #FBEFD6;
-  --ok: #276B43; --ok-bg: #DFF0E5; --trial: #2B5C9F; --trial-bg: #E1EAF7;
-  --wait: #8C6100; --wait-bg: #FBEFD6; --no: #8A3B34; --no-bg: #F5E2DF; --off: #646B67; --off-bg: #E7E9E5;
+  --bg: #F2F3EE; --surface: #FFFFFF; --sunk: #E8EAE3; --ink: #17201C; --muted: #5C6863; --line: #D6DBD1;
+  --brand: #1E5B47; --brand-ink: #FFFFFF; --brand-soft: #DDEEE6; --star: #A86A10;
+  --ok: #24693F; --ok-bg: #DCEFE3; --trial: #2A5A9C; --trial-bg: #E0E9F6;
+  --wait: #8A5F00; --wait-bg: #FAEDCF; --no: #8E3A32; --no-bg: #F5E0DC; --off: #646B67; --off-bg: #E6E8E3;
   --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
   --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --r: 10px;
+  --r: 12px;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #111614; --surface: #1A211E; --sunk: #232B27; --ink: #E7ECE8; --muted: #9AA6A0; --line: #2E3833;
-  --brand: #63B597; --brand-ink: #0D1914; --star: #E3B24C; --star-bg: #392D15;
-  --ok: #7DC89C; --ok-bg: #1C3226; --trial: #93B6EC; --trial-bg: #1B2940;
-  --wait: #E3B24C; --wait-bg: #392D15; --no: #EC9C92; --no-bg: #3C2320; --off: #A4AAA7; --off-bg: #262D2A;
+  --bg: #101513; --surface: #19201D; --sunk: #222A26; --ink: #E7ECE8; --muted: #9AA6A0; --line: #2D3732;
+  --brand: #64B698; --brand-ink: #0C1813; --brand-soft: #1B3129; --star: #E3B24C;
+  --ok: #7DC89C; --ok-bg: #1B3225; --trial: #93B6EC; --trial-bg: #1A283E;
+  --wait: #E3B24C; --wait-bg: #382C14; --no: #EC9C92; --no-bg: #3B221F; --off: #A4AAA7; --off-bg: #252C29;
   color-scheme: dark; } }
 :root[data-theme="dark"] {
-  --bg: #111614; --surface: #1A211E; --sunk: #232B27; --ink: #E7ECE8; --muted: #9AA6A0; --line: #2E3833;
-  --brand: #63B597; --brand-ink: #0D1914; --star: #E3B24C; --star-bg: #392D15;
-  --ok: #7DC89C; --ok-bg: #1C3226; --trial: #93B6EC; --trial-bg: #1B2940;
-  --wait: #E3B24C; --wait-bg: #392D15; --no: #EC9C92; --no-bg: #3C2320; --off: #A4AAA7; --off-bg: #262D2A;
+  --bg: #101513; --surface: #19201D; --sunk: #222A26; --ink: #E7ECE8; --muted: #9AA6A0; --line: #2D3732;
+  --brand: #64B698; --brand-ink: #0C1813; --brand-soft: #1B3129; --star: #E3B24C;
+  --ok: #7DC89C; --ok-bg: #1B3225; --trial: #93B6EC; --trial-bg: #1A283E;
+  --wait: #E3B24C; --wait-bg: #382C14; --no: #EC9C92; --no-bg: #3B221F; --off: #A4AAA7; --off-bg: #252C29;
   color-scheme: dark; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--body); }
+body { background: var(--bg); color: var(--ink); font: 16px/1.45 var(--body); }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
-.wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 620px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+p { margin: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
-:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
 .num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
 
-/* header */
-header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
-header .wrap { padding-block: 12px 10px; display: grid; gap: 8px; }
-.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
-.tally { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--muted); font-size: 13px; }
-.tally b { color: var(--ink); font-weight: 600; }
-.notice { font-size: 13px; padding: 8px 10px; border-radius: 8px; background: var(--wait-bg); color: var(--wait); }
+header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); }
+header .wrap { padding-block: 10px 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+h1 { font-size: 19px; font-weight: 800; }
+.money { font-family: var(--display); font-weight: 800; font-size: 17px; }
+.money small { font-family: var(--body); font-weight: 500; font-size: 13px; color: var(--muted); margin-left: 4px; }
+.notice { font-size: 14px; padding: 8px 12px; border-radius: 10px; background: var(--wait-bg); color: var(--wait); }
 
-main .wrap { padding-block: 14px 110px; display: grid; gap: 16px; }
+main .wrap { padding-block: 6px 112px; display: grid; gap: 18px; }
 
-/* toolbar */
-.tools { display: flex; gap: 8px; flex-wrap: wrap; }
-.tools input[type=search] { flex: 1 1 180px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
-.seg { display: flex; gap: 6px; flex-wrap: wrap; }
-.seg button { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 13px; }
-.seg button[aria-pressed=true] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); text-decoration: none; font-weight: 600; font-size: 14px; color: var(--ink); }
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); text-decoration: none; font-weight: 600; font-size: 15px; color: var(--ink); }
 .btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
-.btn.small { padding: 6px 10px; font-size: 13px; }
+.btn.ghost { background: transparent; }
+.btn.sm { min-height: 36px; padding: 6px 12px; font-size: 14px; }
+.btn:disabled { opacity: .5; }
+.row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.row-btns .btn { flex: 1 1 0; }
 
-/* groups + rows */
-.group { display: grid; gap: 6px; }
-.group-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: 4px; }
-.group-head h2 { font-size: 16px; font-weight: 700; }
-.group-head span { color: var(--muted); font-size: 13px; }
-.list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
-.row { width: 100%; display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 11px 12px; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; }
-.row:first-child { border-top: 0; }
-.row:hover { background: var(--sunk); }
-.ord { font-family: var(--display); font-weight: 700; color: var(--muted); text-align: center; font-size: 14px; }
-.row .main { min-width: 0; display: grid; gap: 2px; }
-.row .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row .meta { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.stars { color: var(--star); font-weight: 600; }
-.pill { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+/* giro switcher */
+.giro-bar { display: grid; grid-template-columns: 44px 1fr 44px; gap: 8px; align-items: center; }
+.giro-bar .mid { text-align: center; display: grid; gap: 6px; }
+.giro-bar h2 { font-size: 20px; font-weight: 800; }
+.progress { height: 8px; border-radius: 4px; background: var(--sunk); overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--brand); border-radius: 4px; }
+.icon-btn { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); font-size: 20px; font-weight: 700; display: grid; place-items: center; }
+
+/* next card */
+.next { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 14px; box-shadow: 0 1px 0 var(--line); }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.next h2 { font-size: 26px; font-weight: 800; line-height: 1.15; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 15px; color: var(--muted); }
+.facts b { color: var(--ink); }
+.stars { color: var(--star); font-weight: 700; }
+.why { font-size: 14px; color: var(--muted); }
+.strategy { background: var(--brand-soft); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; }
+.strategy .lbl { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); }
+.strategy b { font-family: var(--display); font-size: 18px; }
+.strategy p { font-size: 15px; }
+.strategy a { color: var(--brand); font-weight: 600; font-size: 14px; }
+.outcomes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.outcome { min-height: 56px; border-radius: 12px; border: 1px solid transparent; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.outcome.venduto { background: var(--ok-bg); color: var(--ok); }
+.outcome.prova { background: var(--trial-bg); color: var(--trial); }
+.outcome.ripasso { background: var(--wait-bg); color: var(--wait); }
+.outcome.no { background: var(--no-bg); color: var(--no); }
+.outcome.chiuso { background: var(--off-bg); color: var(--off); }
+.outcome.wide { grid-column: 1 / -1; min-height: 48px; }
+.done-card { text-align: center; padding: 26px 18px; }
+
+/* pills + rows */
+.pill { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
 .s-da { background: var(--off-bg); color: var(--off); }
 .s-prova { background: var(--trial-bg); color: var(--trial); }
 .s-ripasso { background: var(--wait-bg); color: var(--wait); }
 .s-venduto { background: var(--ok-bg); color: var(--ok); }
 .s-no, .s-perso { background: var(--no-bg); color: var(--no); }
 .s-chiuso { background: var(--off-bg); color: var(--off); }
-.due { color: var(--no); font-weight: 600; }
+.p-alta { background: var(--ok-bg); color: var(--ok); }
+.p-media { background: var(--wait-bg); color: var(--wait); }
+.p-bassa { background: var(--off-bg); color: var(--off); }
+.section { display: grid; gap: 8px; }
+.section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.section-head h3 { font-size: 17px; font-weight: 800; }
+.list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.row { width: 100%; display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; padding: 12px; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; min-height: 60px; }
+.row:first-child { border-top: 0; }
+.row:hover { background: var(--sunk); }
+.row.is-next { background: var(--brand-soft); }
+.row.is-done .name { color: var(--muted); }
+.ord { font-family: var(--display); font-weight: 700; color: var(--muted); text-align: center; }
+.row .main { min-width: 0; display: grid; gap: 2px; }
+.row .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .meta { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .right { display: grid; gap: 4px; justify-items: end; }
+.gain { font-family: var(--display); font-weight: 800; color: var(--ok); font-size: 17px; }
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 20px 18px; display: grid; gap: 6px; }
+.empty h3 { font-size: 17px; }
+.empty p { color: var(--muted); font-size: 15px; }
 
-.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 22px 18px; display: grid; gap: 8px; }
-.empty h2 { font-size: 18px; }
-.empty p { margin: 0; color: var(--muted); max-width: 60ch; }
-
-/* stats */
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
-.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 2px; }
-.kpi span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-.kpi b { font-family: var(--display); font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.kpi small { color: var(--muted); font-size: 12px; }
+/* numbers */
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 2px; }
+.kpi span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.kpi b { font-family: var(--display); font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.kpi small { color: var(--muted); font-size: 13px; }
+.insights { display: grid; gap: 8px; }
+.insight { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 2px; }
+.insight span { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.insight b { font-size: 17px; }
+.insight.wait b { color: var(--muted); font-weight: 500; font-size: 15px; }
 .tbl-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
 table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
-th, td { padding: 9px 10px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
-th { border-top: 0; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+th, td { padding: 10px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
+th { border-top: 0; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 th:first-child, td:first-child { text-align: left; }
 .bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--brand); vertical-align: middle; margin-right: 6px; }
-.note { color: var(--muted); font-size: 13px; margin: 0; }
+.tabs-inline { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs-inline button { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; }
+.tabs-inline button[aria-pressed=true] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 /* pitch */
-.pitch { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 8px; }
-.pitch h2 { font-size: 17px; display: flex; gap: 10px; align-items: center; }
-.letter { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: var(--ink); color: var(--bg); font-size: 15px; flex: none; }
-.pitch blockquote { margin: 0; padding-left: 12px; border-left: 3px solid var(--line); font-size: 15px; }
+.pitch { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; }
+.pitch h3 { font-size: 18px; display: flex; gap: 10px; align-items: center; }
+.letter { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--ink); color: var(--bg); font-size: 16px; flex: none; }
+.pitch blockquote { margin: 0; padding-left: 12px; border-left: 3px solid var(--brand); font-size: 16px; }
 .pitch ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
-.objections { display: grid; gap: 8px; }
-.objections div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; font-size: 14px; }
-.objections b { display: block; }
+.obj { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; font-size: 15px; }
+.obj b { display: block; }
 
 /* bottom nav */
 nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
-nav.tabs .in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
-nav.tabs a { padding: 12px 4px 13px; text-align: center; text-decoration: none; color: var(--muted); font-weight: 600; font-size: 13px; border-top: 3px solid transparent; }
+nav.tabs .in { max-width: 620px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+nav.tabs a { padding: 12px 2px 14px; text-align: center; text-decoration: none; color: var(--muted); font-weight: 600; font-size: 13px; border-top: 3px solid transparent; }
 nav.tabs a[aria-current=page] { color: var(--ink); border-top-color: var(--brand); }
-nav.tabs a .count { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 3px; border-radius: 9px; background: var(--no); color: var(--surface); font-size: 11px; line-height: 18px; }
+.badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 2px; border-radius: 9px; background: var(--no); color: var(--surface); font-size: 11px; line-height: 18px; font-weight: 700; }
 
 /* sheet */
-.sheet { position: fixed; inset: 0; z-index: 20; background: var(--bg); overflow-y: auto; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-.sheet .wrap { padding-block: 12px 40px; display: grid; gap: 16px; }
+.scrim { position: fixed; inset: 0; z-index: 19; background: rgba(10, 16, 13, .45); }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; max-height: 92%; overflow-y: auto; background: var(--bg); border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.sheet .wrap { padding-block: 14px 0; display: grid; gap: 16px; }
+.grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto; }
 .sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.sheet-head h2 { font-size: 21px; font-weight: 800; }
-.sheet-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
-.links { display: flex; gap: 8px; flex-wrap: wrap; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 14px; }
-.card h3 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.field { display: grid; gap: 6px; }
-.field > label, .field > legend { font-size: 13px; font-weight: 600; padding: 0; }
+.sheet-head h2 { font-size: 22px; font-weight: 800; }
+.field { display: grid; gap: 8px; }
+.field > label, .field > legend { font-size: 14px; font-weight: 700; padding: 0; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips label { position: relative; }
 .chips input { position: absolute; opacity: 0; inset: 0; margin: 0; }
-.chips span { display: inline-block; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; }
+.chips label > span { display: inline-flex; align-items: center; min-height: 42px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 15px; }
 .chips input:checked + span { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.chips input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
-.chips .hint { font-size: 11px; font-weight: 700; margin-left: 4px; color: var(--brand); }
+.chips input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
+.chips .hint { font-size: 11px; font-weight: 800; margin-left: 6px; color: var(--brand); text-transform: uppercase; letter-spacing: .04em; }
 .chips input:checked + span .hint { color: inherit; }
+.big-chips label > span { min-height: 52px; font-weight: 700; }
+.packs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.packs label { position: relative; }
+.packs input { position: absolute; opacity: 0; inset: 0; margin: 0; }
+.packs span { display: grid; place-items: center; text-align: center; min-height: 64px; padding: 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; line-height: 1.2; }
+.packs span small { font-weight: 500; color: var(--muted); }
+.packs input:checked + span { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+.packs input:checked + span small { color: var(--ok); }
+.packs input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .two > * { min-width: 0; }
-input[type=text], input[type=number], input[type=date], select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+input[type=text], input[type=number], input[type=date], select, textarea { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 textarea { min-height: 70px; resize: vertical; }
-.check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
-.delta { font-family: var(--display); font-weight: 700; color: var(--ok); }
-.save { position: sticky; bottom: 0; padding-block: 10px; background: var(--bg); display: flex; gap: 8px; }
-.save .btn { flex: 1; padding: 13px; font-size: 15px; }
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; }
-.orari { font-size: 13px; color: var(--muted); margin: 0; padding-left: 18px; }
-details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
-@media (prefers-reduced-motion: no-preference) { .toast { animation: up .2s ease-out; } @keyframes up { from { opacity: 0; transform: translate(-50%, 8px); } } }
+.check { display: flex; gap: 10px; align-items: center; font-size: 15px; min-height: 44px; }
+.check input { width: 22px; height: 22px; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 14px; }
+.box h3 { font-size: 13px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.save { position: sticky; bottom: 0; padding-block: 12px 14px; background: var(--bg); display: flex; gap: 8px; }
+.save .btn { flex: 1; min-height: 54px; font-size: 17px; }
+.save .btn.ghost { flex: 0 0 auto; }
+details summary { cursor: pointer; font-size: 14px; color: var(--muted); padding: 4px 0; }
+.orari { font-size: 14px; color: var(--muted); margin: 6px 0 0; padding-left: 18px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 999px; font-size: 15px; font-weight: 600; display: flex; gap: 12px; align-items: center; max-width: calc(100% - 32px); }
+.toast button { background: none; border: 0; color: var(--bg); font-weight: 800; text-decoration: underline; padding: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .sheet:not([hidden]) { animation: rise .18s ease-out; }
+  .toast:not([hidden]) { animation: pop .18s ease-out; }
+  @keyframes rise { from { transform: translateY(24px); opacity: .6; } }
+  @keyframes pop { from { opacity: 0; transform: translate(-50%, 8px); } }
+}
 </style>
 
 <header>
   <div class="wrap">
-    <div class="top">
-      <h1>Giro Review Card</h1>
-      <button class="btn small" id="addBtn" type="button">+ Negozio</button>
-    </div>
-    <div class="tally" id="tally"></div>
-    <div class="notice" id="notice" hidden></div>
+    <h1>Giro Review Card</h1>
+    <div class="money num" id="money"></div>
   </div>
+  <div class="wrap"><div class="notice" id="notice" hidden></div></div>
 </header>
 
 <main><div class="wrap" id="view"></div></main>
 
 <nav class="tabs" aria-label="Sezioni">
   <div class="in">
-    <a href="#giro" data-tab="giro">Giro</a>
+    <a href="#oggi" data-tab="oggi">Oggi</a>
     <a href="#ritorni" data-tab="ritorni">Ritorni</a>
-    <a href="#risultati" data-tab="risultati">Risultati</a>
+    <a href="#clienti" data-tab="clienti">Clienti</a>
+    <a href="#numeri" data-tab="numeri">Numeri</a>
     <a href="#pitch" data-tab="pitch">Pitch</a>
   </div>
 </nav>
 
+<div class="scrim" id="scrim" hidden></div>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" hidden role="status"></div>
 
 <script>
 (() => {
-  const MAGAZZINO = 100;          // card comprate
-  const COSTO_CARD = 1.8;         // 180 € / 100
-  const GIORNI_PROVA = 5;
+  const MAGAZZINO = 100, COSTO_CARD = 1.8, GIORNI_PROVA = 5, GIORNI_RIPASSO = 3, MIN_CAMPIONE = 5;
 
   const STRAT = {
-    A: { nome: "Prova 5 giorni", corto: "Prova" },
-    B: { nome: "Demo dal vivo", corto: "Demo" },
-    C: { nome: "Vendita con garanzia", corto: "Garanzia" },
-    D: { nome: "Confronto concorrente", corto: "Concorrente" },
+    A: { nome: "Prova gratis 5 giorni", corto: "Prova", frase: "“Ve la lascio 5 giorni gratis. Passo [giorno]: se vi è servita la tenete, 39 € per due.”" },
+    B: { nome: "Demo dal vivo", corto: "Demo", frase: "“Prenda il telefono e lo avvicini qui: ecco cosa vede il suo cliente.” Poi: 39 € per due." },
+    C: { nome: "Vendita con garanzia", corto: "Garanzia", frase: "“39 € per due, una volta sola. Se tra 14 giorni non ha più recensioni, le ridò i soldi.”" },
+    D: { nome: "Confronto concorrente", corto: "Concorrente", frase: "“[Concorrente] qui vicino ha 210 recensioni, voi 38: chi cerca su Google vede prima lui.”" },
   };
-  const CATEGORIE = {
-    "barbiere": "Barbiere", "parrucchiere": "Parrucchiere", "estetica": "Estetica / unghie",
-    "tatuaggi": "Tatuaggi", "gelateria": "Gelateria", "pasticceria": "Pasticceria", "bar": "Bar",
-    "pizzeria-asporto": "Pizza / asporto", "officina": "Officina / gommista", "autolavaggio": "Autolavaggio",
-    "animali": "Animali", "veterinario": "Veterinario", "ottico": "Ottico", "lavanderia": "Lavanderia",
-    "palestra": "Palestra", "esperienze": "Escape room / paintball", "altro": "Altro",
+  const CAT = {
+    "barbiere": ["Barbiere", 3], "parrucchiere": ["Parrucchiere", 3], "estetica": ["Estetica / unghie", 3],
+    "tatuaggi": ["Tatuaggi", 3], "animali": ["Animali", 3], "esperienze": ["Escape room / paintball", 3],
+    "ottico": ["Ottico", 2], "veterinario": ["Veterinario", 2], "pasticceria": ["Pasticceria / forno", 2],
+    "gelateria": ["Gelateria", 2], "officina": ["Officina / gommista", 2],
+    "bar": ["Bar", 1], "palestra": ["Palestra / yoga", 1], "pizzeria-asporto": ["Pizza / asporto", 1],
+    "autolavaggio": ["Autolavaggio", 1], "lavanderia": ["Lavanderia", 0], "altro": ["Altro", 1],
   };
-  const ESITI = { no: "No", ripasso: "Ripasso", prova: "Prova lasciata", venduto: "Venduto", chiuso: "Chiuso / assente" };
-  const OBIEZIONI = { prezzo: "Costa troppo", nonserve: "Non serve", celho: "Ce l'ho già", titolare: "Devo chiedere", fiducia: "Non mi fido", tempo: "Non ha tempo", altro: "Altro" };
-  const STATI = {
-    da: "Da visitare", prova: "In prova", ripasso: "Ripasso", venduto: "Venduto",
-    no: "No", perso: "Prova persa", chiuso: "Chiuso",
-  };
+  const ESITI = { venduto: "Venduto", prova: "Prova lasciata", ripasso: "Ripasso", no: "No", chiuso: "Chiuso / assente" };
+  const OBIEZIONI = { prezzo: "Costa troppo", nonserve: "Non serve", celho: "Ce l'ha già", titolare: "Deve chiedere", fiducia: "Non si fida", tempo: "Non ha tempo", altro: "Altro" };
+  const PACCHETTI = { p1: [1, 25, "1 card"], p2: [2, 39, "2 card"], p3: [3, 45, "3 card"] };
+  const STATI = { da: "Da visitare", prova: "In prova", ripasso: "Ripasso", venduto: "Cliente", no: "No", perso: "Prova persa", chiuso: "Chiuso" };
 
   const $ = (s, el = document) => el.querySelector(s);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const oggi = () => new Date().toISOString().slice(0, 10);
+  const oggi = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
   const piuGiorni = (d, n) => { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+  const giorniTra = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 86400000);
   const dataBreve = (d) => d ? new Date(d + "T12:00:00").toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" }) : "";
   const euro = (n) => (n || 0).toLocaleString("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
   const pct = (a, b) => b ? Math.round((a / b) * 100) + "%" : "–";
+  const stelle = (r) => r ? `<span class="stars">${String(r).replace(".", ",")}★</span>` : "";
+  const catNome = (c) => (CAT[c] || [c])[0];
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
 
-  let db = null, negozi = [], caricato = false, filtro = "tutti", cerca = "";
+  let db = null, negozi = [], caricato = false;
+  let giroScelto = store.get("giro", null), saltati = new Set(), numeriBy = "strategia";
 
-  // ---------- derived state ----------
+  // ---------- derived ----------
   function stato(n) {
     const v = n.visita || {}, r = n.ritorno || {};
     if (!v.esito) return "da";
@@ -224,9 +284,10 @@ details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
     return v.esito;
   }
   const visitato = (n) => ["no", "ripasso", "prova", "venduto"].includes(n.visita?.esito);
-  const venduto = (n) => stato(n) === "venduto";
-  const ricavo = (n) => !venduto(n) ? 0 : Number((n.visita?.esito === "venduto" ? n.visita.prezzo : n.ritorno?.prezzo) || 0);
-  const cardVendute = (n) => !venduto(n) ? 0 : Number((n.visita?.esito === "venduto" ? n.visita.card : n.ritorno?.card) || 0);
+  const cliente = (n) => stato(n) === "venduto";
+  const vendita = (n) => !cliente(n) ? null : (n.visita.esito === "venduto" ? n.visita : n.ritorno);
+  const ricavo = (n) => Number(vendita(n)?.prezzo || 0);
+  const cardVendute = (n) => Number(vendita(n)?.card || 0);
   const cardFuori = (n) => {
     const v = n.visita || {}, r = n.ritorno || {};
     if (v.esito !== "prova") return 0;
@@ -234,176 +295,250 @@ details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
     if (r.esito === "non" && r.cardRestituita === false) return Number(v.cardProva || 1);
     return 0;
   };
-  const delta = (n) => {
-    const a = n.visita?.recensioni, b = n.ritorno?.recensioni;
-    return (a === undefined || a === null || a === "" || b === undefined || b === null || b === "") ? null : Number(b) - Number(a);
-  };
+  const dataRitorno = (n) => n.ritorno?.esito === "ripasso" ? n.ritorno.prossimo || n.visita?.dataRitorno : n.visita?.dataRitorno;
+
+  // Latest review count we know of, with its date.
+  function ultimeRecensioni(n) {
+    const punti = [];
+    if (n.visita?.recensioni != null) punti.push({ data: n.visita.data, rec: n.visita.recensioni });
+    if (n.ritorno?.recensioni != null) punti.push({ data: n.ritorno.data, rec: n.ritorno.recensioni });
+    (n.storico || []).forEach((s) => punti.push(s));
+    punti.sort((a, b) => (a.data || "").localeCompare(b.data || ""));
+    return punti[punti.length - 1] || null;
+  }
+  function crescita(n) {
+    const base = n.visita?.recensioni, ult = ultimeRecensioni(n);
+    if (base == null || !ult || ult.data <= n.visita.data) return null;
+    const giorni = Math.max(1, giorniTra(n.visita.data, ult.data));
+    return { piu: ult.rec - base, giorni, settimana: ((ult.rec - base) / giorni) * 7, ult };
+  }
+
+  // How likely a "yes" is, from what we know before entering.
+  function priorita(n) {
+    const peso = (CAT[n.categoria] || [0, 1])[1];
+    const rec = Number(n.recensioni ?? 999);
+    let punti = peso, motivi = [];
+    if (peso >= 3) motivi.push("titolare spesso in cassa");
+    if (rec <= 30) { punti += 2; motivi.push(`solo ${rec} recensioni`); }
+    else if (rec <= 60) { punti += 1; motivi.push(`${rec} recensioni`); }
+    if (n.rating >= 4.5) { punti += 1; motivi.push("bravi ma poco visibili"); }
+    else if (n.rating && n.rating < 4.2) { punti += 1; motivi.push("media da alzare"); }
+    const livello = punti >= 5 ? "alta" : punti >= 3 ? "media" : "bassa";
+    return { livello, punti, motivi };
+  }
 
   function strategiaSuggerita(cat) {
-    const conta = (filtroFn) => {
-      const c = { A: 0, B: 0, C: 0, D: 0 };
-      negozi.filter((n) => visitato(n) && filtroFn(n)).forEach((n) => { if (c[n.visita.strategia] !== undefined) c[n.visita.strategia]++; });
-      return c;
-    };
+    const conta = (f) => { const c = { A: 0, B: 0, C: 0, D: 0 }; negozi.filter((n) => visitato(n) && f(n)).forEach((n) => { if (n.visita.strategia in c) c[n.visita.strategia]++; }); return c; };
     const perCat = conta((n) => n.categoria === cat), tot = conta(() => true);
     return Object.keys(STRAT).sort((a, b) => (perCat[a] - perCat[b]) || (tot[a] - tot[b]) || a.localeCompare(b))[0];
   }
 
+  const giri = () => [...new Set(negozi.map((n) => n.giro).filter((g) => g != null))].sort((a, b) => a - b);
+  const delGiro = (g) => negozi.filter((n) => n.giro === g).sort((a, b) => (a.ordine ?? 99) - (b.ordine ?? 99));
+  function giroCorrente() {
+    const gs = giri();
+    if (giroScelto != null && gs.includes(giroScelto)) return giroScelto;
+    return gs.find((g) => delGiro(g).some((n) => stato(n) === "da")) ?? gs[0];
+  }
+  const ritorniAperti = () => negozi.filter((n) => ["prova", "ripasso"].includes(stato(n)));
+  const ritorniDovuti = () => ritorniAperti().filter((n) => (dataRitorno(n) || "0") <= oggi());
+
   // ---------- header ----------
-  function renderTally() {
-    const vis = negozi.filter(visitato).length;
-    const ven = negozi.filter(venduto).length;
+  function renderHeader() {
     const ric = negozi.reduce((s, n) => s + ricavo(n), 0);
-    const usate = negozi.reduce((s, n) => s + cardVendute(n) + cardFuori(n), 0);
-    $("#tally").innerHTML =
-      `<span><b class="num">${vis}</b> visitati</span><span><b class="num">${ven}</b> venduti</span>` +
-      `<span><b class="num">${euro(ric)}</b> incassati</span><span><b class="num">${MAGAZZINO - usate}</b> card in magazzino</span>`;
-    const dovuti = negozi.filter((n) => ["prova", "ripasso"].includes(stato(n)) && n.visita?.dataRitorno && n.visita.dataRitorno <= oggi()).length;
-    const a = $('nav a[data-tab="ritorni"]');
-    a.innerHTML = "Ritorni" + (dovuti ? ` <span class="count num">${dovuti}</span>` : "");
+    const clienti = negozi.filter(cliente).length;
+    $("#money").innerHTML = `${euro(ric)}<small>${clienti} ${clienti === 1 ? "cliente" : "clienti"}</small>`;
+    const due = ritorniDovuti().length;
+    $('nav a[data-tab="ritorni"]').innerHTML = "Ritorni" + (due ? `<span class="badge num">${due}</span>` : "");
   }
 
-  // ---------- views ----------
-  function rowHtml(n, showOrd = true) {
-    const s = stato(n);
-    let pill = STATI[s];
-    if ((s === "prova" || s === "ripasso") && n.visita?.dataRitorno) pill += " · " + dataBreve(n.visita.dataRitorno);
-    const rec = `${n.recensioni ?? "?"} rec` + (n.rating ? ` · <span class="stars">${String(n.rating).replace(".", ",")}★</span>` : "");
-    return `<button class="row" type="button" data-id="${esc(n.id)}">
-      <span class="ord num">${showOrd ? esc(n.ordine ?? "·") : ""}</span>
+  // ---------- Oggi ----------
+  function rigaNegozio(n, opts = {}) {
+    const s = stato(n), p = priorita(n);
+    const destra = s === "da"
+      ? `<span class="pill p-${p.livello}">${p.livello === "alta" ? "Priorità alta" : p.livello === "media" ? "Media" : "Bassa"}</span>`
+      : `<span class="pill s-${s}">${esc(STATI[s])}</span>`;
+    return `<button class="row ${opts.next ? "is-next" : ""} ${s !== "da" ? "is-done" : ""}" type="button" data-id="${esc(n.id)}">
+      <span class="ord num">${opts.ord ?? ""}</span>
       <span class="main"><span class="name">${esc(n.nome)}</span>
-      <span class="meta">${esc(CATEGORIE[n.categoria] || n.categoria)}${n.zona ? " · " + esc(n.zona) : ""} · ${rec}</span></span>
-      <span class="pill s-${s}">${esc(pill)}</span></button>`;
+        <span class="meta">${esc(catNome(n.categoria))} · ${n.recensioni ?? "?"} rec${n.rating ? " · " + String(n.rating).replace(".", ",") + "★" : ""}</span></span>
+      <span class="right">${destra}</span></button>`;
   }
 
-  function mapsGiro(lista) {
-    const tappe = lista.filter((n) => n.lat != null && stato(n) === "da").slice(0, 10);
-    if (!tappe.length) return "";
-    const c = tappe.map((n) => `${n.lat},${n.lng}`);
-    const q = new URLSearchParams({ api: "1", destination: c[c.length - 1], travelmode: "walking" });
-    if (c.length > 1) q.set("waypoints", c.slice(0, -1).join("|"));
-    return "https://www.google.com/maps/dir/?" + q.toString();
-  }
-
-  function viewGiro() {
+  function viewOggi() {
     if (!negozi.length) {
-      return `<div class="empty"><h2>${caricato || !db ? "Nessun negozio ancora" : "Carico i negozi…"}</h2>
-        <p>La lista arriva dal bot di ricerca: i negozi intorno a Bresso con meno di 100 recensioni, già divisi in giri da 10 nell'ordine più corto.</p>
-        <p>Nel frattempo puoi aggiungere un negozio a mano con <b>+ Negozio</b> in alto.</p></div>`;
+      return `<div class="empty"><h3>${caricato || !db ? "Nessun negozio caricato" : "Carico i negozi…"}</h3>
+        <p>I negozi arrivano dal bot di ricerca, già divisi in giri da 10 nell'ordine più corto.</p></div>`;
     }
-    const q = cerca.trim().toLowerCase();
-    const lista = negozi.filter((n) => {
-      const s = stato(n);
-      if (filtro === "da" && s !== "da") return false;
-      if (filtro === "aperti" && !["prova", "ripasso"].includes(s)) return false;
-      if (filtro === "fatti" && (s === "da" || s === "prova" || s === "ripasso")) return false;
-      return !q || (n.nome + " " + (n.zona || "") + " " + (CATEGORIE[n.categoria] || "")).toLowerCase().includes(q);
-    });
-    const gruppi = new Map();
-    lista.forEach((n) => { const g = n.giro ?? "manuale"; if (!gruppi.has(g)) gruppi.set(g, []); gruppi.get(g).push(n); });
-    const chiavi = [...gruppi.keys()].sort((a, b) => (a === "manuale") - (b === "manuale") || a - b);
-    const filtri = [["tutti", "Tutti"], ["da", "Da visitare"], ["aperti", "In sospeso"], ["fatti", "Chiusi"]]
-      .map(([k, l]) => `<button type="button" data-filtro="${k}" aria-pressed="${filtro === k}">${l}</button>`).join("");
-    let html = `<div class="tools"><input type="search" id="cerca" placeholder="Cerca nome, zona, categoria" value="${esc(cerca)}" aria-label="Cerca"></div>
-      <div class="seg" role="group" aria-label="Filtro">${filtri}</div>`;
-    if (!chiavi.length) html += `<p class="note">Nessun negozio con questo filtro.</p>`;
-    chiavi.forEach((g) => {
-      const tutti = negozi.filter((n) => (n.giro ?? "manuale") === g);
-      const fatti = tutti.filter((n) => stato(n) !== "da").length;
-      const link = g === "manuale" ? "" : mapsGiro(tutti);
-      const items = gruppi.get(g).sort((a, b) => (a.ordine ?? 999) - (b.ordine ?? 999));
-      html += `<section class="group"><div class="group-head"><h2>${g === "manuale" ? "Aggiunti a mano" : "Giro " + g}</h2>
-        <span class="num">${fatti}/${tutti.length} fatti</span>
-        ${link ? `<a class="btn small" href="${esc(link)}" target="_blank" rel="noopener">Apri in Maps</a>` : ""}</div>
-        <div class="list">${items.map((n) => rowHtml(n, g !== "manuale")).join("")}</div></section>`;
-    });
+    const gs = giri(), g = giroCorrente(), lista = delGiro(g);
+    const fatti = lista.filter((n) => stato(n) !== "da").length;
+    const prossimo = lista.find((n) => stato(n) === "da" && !saltati.has(n.id)) || lista.find((n) => stato(n) === "da");
+    const idx = gs.indexOf(g);
+    let html = `<div class="giro-bar">
+        <button class="icon-btn" type="button" data-giro="${gs[idx - 1] ?? ""}" ${idx <= 0 ? "disabled" : ""} aria-label="Giro precedente">‹</button>
+        <div class="mid"><h2>Giro ${g} <span class="muted small">di ${gs.length}</span></h2>
+          <div class="progress" aria-label="${fatti} su ${lista.length} fatti"><i style="width:${(fatti / lista.length) * 100}%"></i></div>
+          <span class="muted small num">${fatti} su ${lista.length} fatti</span></div>
+        <button class="icon-btn" type="button" data-giro="${gs[idx + 1] ?? ""}" ${idx >= gs.length - 1 ? "disabled" : ""} aria-label="Giro successivo">›</button>
+      </div>`;
+    const due = ritorniDovuti();
+    if (due.length) html += `<a class="btn" href="#ritorni" style="justify-content:space-between"><span>${due.length} ${due.length === 1 ? "ritorno da fare" : "ritorni da fare"} oggi</span><span>›</span></a>`;
+
+    if (prossimo) {
+      const p = priorita(prossimo), sug = strategiaSuggerita(prossimo.categoria), st = STRAT[sug];
+      const nav = prossimo.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${prossimo.lat},${prossimo.lng}&travelmode=walking` : "";
+      html += `<article class="next" aria-label="Prossimo negozio">
+        <div class="eyebrow"><span>Prossimo · n. ${prossimo.ordine ?? ""}</span><span class="pill p-${p.livello}">Priorità ${p.livello}</span></div>
+        <div style="display:grid;gap:6px"><h2>${esc(prossimo.nome)}</h2>
+          <div class="facts"><span>${esc(catNome(prossimo.categoria))}</span><span><b class="num">${prossimo.recensioni ?? "?"}</b> recensioni ${stelle(prossimo.rating)}</span></div>
+          ${p.motivi.length ? `<p class="why">Perché: ${esc(p.motivi.join(", "))}</p>` : ""}</div>
+        <div class="row-btns">${nav ? `<a class="btn primary" href="${esc(nav)}" target="_blank" rel="noopener">Naviga</a>` : ""}
+          ${prossimo.mapsUrl ? `<a class="btn" href="${esc(prossimo.mapsUrl)}" target="_blank" rel="noopener">Scheda Google</a>` : ""}</div>
+        <div class="strategy"><span class="lbl">Prova la strategia ${sug}</span><b>${esc(st.nome)}</b><p>${esc(st.frase)}</p><a href="#pitch">Pitch completo ›</a></div>
+        <div style="display:grid;gap:8px"><span class="eyebrow"><span>Com'è andata?</span></span>
+          <div class="outcomes">
+            <button class="outcome venduto" type="button" data-esito="venduto" data-id="${esc(prossimo.id)}">Venduto</button>
+            <button class="outcome prova" type="button" data-esito="prova" data-id="${esc(prossimo.id)}">Prova lasciata</button>
+            <button class="outcome ripasso" type="button" data-esito="ripasso" data-id="${esc(prossimo.id)}">Ripasso</button>
+            <button class="outcome no" type="button" data-esito="no" data-id="${esc(prossimo.id)}">No</button>
+            <button class="outcome chiuso wide" type="button" data-esito="chiuso" data-id="${esc(prossimo.id)}">Chiuso / non c'era nessuno</button>
+          </div>
+          <button class="btn ghost sm" type="button" data-salta="${esc(prossimo.id)}">Salta, lo faccio dopo</button></div>
+      </article>`;
+    } else {
+      const nextG = gs.find((x) => x > g && delGiro(x).some((n) => stato(n) === "da"));
+      html += `<div class="next done-card"><h2>Giro ${g} finito</h2>
+        <p class="muted">${fatti} negozi visitati.</p>
+        ${nextG ? `<div><button class="btn primary" type="button" data-giro="${nextG}">Vai al giro ${nextG}</button></div>` : ""}</div>`;
+    }
+
+    const daFare = lista.filter((n) => stato(n) === "da");
+    const q = new URLSearchParams({ api: "1", travelmode: "walking" });
+    if (daFare.length) {
+      const c = daFare.slice(0, 10).map((n) => `${n.lat},${n.lng}`);
+      q.set("destination", c[c.length - 1]); if (c.length > 1) q.set("waypoints", c.slice(0, -1).join("|"));
+    }
+    html += `<section class="section"><div class="section-head"><h3>Tutto il giro</h3>
+        ${daFare.length > 1 ? `<a class="btn sm" href="https://www.google.com/maps/dir/?${q}" target="_blank" rel="noopener">Percorso in Maps</a>` : ""}</div>
+      <div class="list">${lista.map((n) => rigaNegozio(n, { ord: n.ordine, next: prossimo && n.id === prossimo.id })).join("")}</div></section>`;
+    const manuali = negozi.filter((n) => n.giro == null);
+    if (manuali.length) html += `<section class="section"><div class="section-head"><h3>Aggiunti a mano</h3></div><div class="list">${manuali.map((n) => rigaNegozio(n)).join("")}</div></section>`;
+    html += `<div><button class="btn sm ghost" type="button" id="addBtn">+ Aggiungi un negozio che non è in lista</button></div>`;
     return html;
   }
 
+  // ---------- Ritorni ----------
   function viewRitorni() {
-    const lista = negozi.filter((n) => ["prova", "ripasso"].includes(stato(n)))
-      .sort((a, b) => (a.visita?.dataRitorno || "9999").localeCompare(b.visita?.dataRitorno || "9999"));
-    if (!lista.length) {
-      return `<div class="empty"><h2>Nessun ritorno in programma</h2>
-        <p>Quando lasci una card in prova o un negozio ti chiede di ripassare, lo trovi qui in ordine di data. Quelli scaduti sono in rosso.</p></div>`;
-    }
-    const t = oggi();
-    return `<section class="group"><div class="group-head"><h2>Da ripassare</h2><span class="num">${lista.length}</span></div>
-      <div class="list">${lista.map((n) => {
-        const d = n.visita?.dataRitorno;
-        const tag = !d ? "Senza data" : d < t ? `In ritardo · ${dataBreve(d)}` : d === t ? "Oggi" : dataBreve(d);
-        const s = stato(n);
-        return `<button class="row" type="button" data-id="${esc(n.id)}"><span class="ord">${STRAT[n.visita?.strategia] ? n.visita.strategia : ""}</span>
-          <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">${esc(STATI[s])} · ${n.visita?.recensioni ?? "?"} rec al giorno della visita</span></span>
-          <span class="pill ${d && d <= t ? "s-no" : "s-" + s}">${esc(tag)}</span></button>`;
-      }).join("")}</div></section>`;
+    const lista = ritorniAperti().sort((a, b) => (dataRitorno(a) || "9").localeCompare(dataRitorno(b) || "9"));
+    if (!lista.length) return `<div class="empty"><h3>Nessun ritorno in programma</h3><p>Quando lasci una card in prova o ti dicono di ripassare, il negozio compare qui con la data. Quelli da fare oggi hanno il numerino rosso in basso.</p></div>`;
+    const t = oggi(), oraL = lista.filter((n) => (dataRitorno(n) || "0") <= t), dopoL = lista.filter((n) => (dataRitorno(n) || "0") > t);
+    const riga = (n) => {
+      const d = dataRitorno(n), s = stato(n);
+      const quando = !d ? "Senza data" : d < t ? `In ritardo (${dataBreve(d)})` : d === t ? "Oggi" : dataBreve(d);
+      return `<button class="row" type="button" data-id="${esc(n.id)}"><span class="ord">${n.visita?.strategia || ""}</span>
+        <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">${esc(STATI[s])} dal ${dataBreve(n.visita?.data)} · ${n.visita?.recensioni ?? "?"} rec allora</span></span>
+        <span class="right"><span class="pill ${d && d <= t ? "s-no" : "s-" + s}">${esc(quando)}</span></span></button>`;
+    };
+    return (oraL.length ? `<section class="section"><div class="section-head"><h3>Da fare oggi</h3><span class="muted num">${oraL.length}</span></div><div class="list">${oraL.map(riga).join("")}</div>
+        <p class="muted small">Tocca il negozio, controlla le recensioni su Google e segna com'è finita.</p></section>` : "") +
+      (dopoL.length ? `<section class="section"><div class="section-head"><h3>Prossimi giorni</h3><span class="muted num">${dopoL.length}</span></div><div class="list">${dopoL.map(riga).join("")}</div></section>` : "");
   }
 
-  function tabella(titolo, chiaveFn, etichetta, nota) {
-    const righe = new Map();
+  // ---------- Clienti ----------
+  function viewClienti() {
+    const cl = negozi.filter(cliente).sort((a, b) => (vendita(b)?.data || b.visita.data || "").localeCompare(vendita(a)?.data || a.visita.data || ""));
+    const prove = negozi.filter((n) => stato(n) === "prova");
+    if (!cl.length && !prove.length) return `<div class="empty"><h3>Ancora nessun cliente</h3><p>Chi compra finisce qui, con quanto ha pagato e quante recensioni ha preso da quando ha la card. Sono i numeri da mostrare ai prossimi negozi.</p></div>`;
+    const crescite = cl.map(crescita).filter(Boolean);
+    const media = crescite.length ? crescite.reduce((s, c) => s + c.settimana, 0) / crescite.length : null;
+    const rigaC = (n) => {
+      const v = vendita(n), c = crescita(n);
+      return `<button class="row" type="button" data-id="${esc(n.id)}"><span class="ord">${n.visita?.strategia || ""}</span>
+        <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">${esc(catNome(n.categoria))} · ${v?.card || "?"} card · ${euro(v?.prezzo)} · ${dataBreve(v?.data || n.visita.data)}</span></span>
+        <span class="right">${c ? `<span class="gain num">${c.piu >= 0 ? "+" : ""}${c.piu}</span><span class="muted small">rec. in ${c.giorni} gg</span>` : `<span class="muted small">recensioni<br>da aggiornare</span>`}</span></button>`;
+    };
+    const rigaP = (n) => {
+      const c = crescita(n);
+      return `<button class="row" type="button" data-id="${esc(n.id)}"><span class="ord">${n.visita?.strategia || ""}</span>
+        <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">In prova dal ${dataBreve(n.visita.data)} · ritorno ${dataBreve(dataRitorno(n))}</span></span>
+        <span class="right">${c ? `<span class="gain num">+${c.piu}</span>` : `<span class="pill s-prova">In prova</span>`}</span></button>`;
+    };
+    return `<div class="kpis">
+        <div class="kpi"><span>Clienti</span><b>${cl.length}</b><small>${euro(negozi.reduce((s, n) => s + ricavo(n), 0))} incassati</small></div>
+        <div class="kpi"><span>Recensioni in più</span><b>${media === null ? "–" : "+" + media.toFixed(1).replace(".", ",")}</b><small>media a settimana per cliente</small></div>
+      </div>
+      ${cl.length ? `<section class="section"><div class="section-head"><h3>Hanno comprato</h3></div><div class="list">${cl.map(rigaC).join("")}</div></section>` : ""}
+      ${prove.length ? `<section class="section"><div class="section-head"><h3>In prova adesso</h3></div><div class="list">${prove.map(rigaP).join("")}</div></section>` : ""}
+      <p class="muted small">Per aggiornare le recensioni di tutti i clienti in un colpo, chiedi a Claude "aggiorna le recensioni".</p>`;
+  }
+
+  // ---------- Numeri ----------
+  const GRUPPI = {
+    strategia: ["Strategia", (n) => n.visita.strategia, (k) => STRAT[k] ? `${k} · ${STRAT[k].corto}` : k],
+    categoria: ["Categoria", (n) => n.categoria, (k) => catNome(k)],
+    priorita: ["Priorità", (n) => priorita(n).livello, (k) => ({ alta: "Alta", media: "Media", bassa: "Bassa" }[k] || k)],
+    zona: ["Zona", (n) => n.zona || "–", (k) => k],
+    chi: ["Con chi", (n) => n.visita.interlocutore || "–", (k) => ({ titolare: "Titolare", dipendente: "Dipendente" }[k] || k)],
+  };
+  function aggrega(chiaveFn) {
+    const m = new Map();
     negozi.filter(visitato).forEach((n) => {
       const k = chiaveFn(n) || "–";
-      if (!righe.has(k)) righe.set(k, { vis: 0, prove: 0, provaDecise: 0, provaOk: 0, ven: 0, ric: 0 });
-      const r = righe.get(k);
-      r.vis++; r.ric += ricavo(n);
-      if (venduto(n)) r.ven++;
-      if (n.visita.esito === "prova") {
-        r.prove++;
-        if (["comprato", "non"].includes(n.ritorno?.esito)) { r.provaDecise++; if (n.ritorno.esito === "comprato") r.provaOk++; }
-      }
+      if (!m.has(k)) m.set(k, { vis: 0, ven: 0, ric: 0, prove: 0, proveOk: 0, proveDecise: 0 });
+      const r = m.get(k); r.vis++; r.ric += ricavo(n); if (cliente(n)) r.ven++;
+      if (n.visita.esito === "prova") { r.prove++; if (["comprato", "non"].includes(n.ritorno?.esito)) { r.proveDecise++; if (n.ritorno.esito === "comprato") r.proveOk++; } }
     });
-    if (!righe.size) return "";
-    const max = Math.max(...[...righe.values()].map((r) => r.vis ? r.ven / r.vis : 0), 0.01);
-    const body = [...righe.entries()].sort((a, b) => b[1].vis - a[1].vis).map(([k, r]) => {
-      const c = r.vis ? r.ven / r.vis : 0;
-      return `<tr><td>${esc(etichetta(k))}</td><td>${r.vis}</td><td>${r.ven}</td>
-        <td><span class="bar" style="width:${Math.round((c / max) * 28)}px"></span>${pct(r.ven, r.vis)}</td><td>${r.provaDecise ? `${r.provaOk}/${r.provaDecise}` : "–"}</td><td>${euro(r.ric)}</td></tr>`;
-    }).join("");
-    return `<section class="group"><div class="group-head"><h2>${titolo}</h2></div>
-      <div class="tbl-wrap"><table><thead><tr><th></th><th>Visite</th><th>Vendite</th><th>Conv.</th><th>Prova→sì</th><th>Incasso</th></tr></thead>
-      <tbody>${body}</tbody></table></div>${nota ? `<p class="note">${nota}</p>` : ""}</section>`;
+    return m;
   }
-
-  function viewRisultati() {
+  function migliore(chiaveFn, etichetta) {
+    const righe = [...aggrega(chiaveFn).entries()].filter(([, r]) => r.vis >= MIN_CAMPIONE);
+    if (!righe.length) return null;
+    righe.sort((a, b) => (b[1].ven / b[1].vis) - (a[1].ven / a[1].vis) || b[1].vis - a[1].vis);
+    const [k, r] = righe[0];
+    return `${etichetta(k)}: ${r.ven} su ${r.vis} (${pct(r.ven, r.vis)})`;
+  }
+  function viewNumeri() {
     const vis = negozi.filter(visitato);
-    if (!vis.length) {
-      return `<div class="empty"><h2>Ancora nessuna visita</h2>
-        <p>Qui vedrai quale strategia vende di più, in quali categorie e in quali zone, con le obiezioni più frequenti. Servono almeno 15-20 visite per strategia prima di fidarsi dei numeri.</p></div>`;
-    }
-    const ven = negozi.filter(venduto);
-    const ric = negozi.reduce((s, n) => s + ricavo(n), 0);
-    const cv = negozi.reduce((s, n) => s + cardVendute(n), 0);
-    const fuori = negozi.reduce((s, n) => s + cardFuori(n), 0);
-    const titolari = vis.filter((n) => n.visita.interlocutore === "titolare").length;
-    const deltas = negozi.map(delta).filter((d) => d !== null);
-    const medDelta = deltas.length ? (deltas.reduce((a, b) => a + b, 0) / deltas.length).toFixed(1).replace(".", ",") : "–";
-    const ob = {};
-    vis.forEach((n) => { const o = n.visita.obiezione; if (o && !venduto(n)) ob[o] = (ob[o] || 0) + 1; });
-    const obHtml = Object.entries(ob).sort((a, b) => b[1] - a[1]).map(([k, c]) => `<tr><td>${esc(OBIEZIONI[k] || k)}</td><td>${c}</td></tr>`).join("");
+    if (!vis.length) return `<div class="empty"><h3>Ancora nessuna visita</h3><p>Dopo le prime visite qui vedi, in parole semplici, quale strategia vende di più, in che tipo di negozio e in che zona. I confronti partono da ${MIN_CAMPIONE} visite per gruppo.</p></div>`;
+    const cl = negozi.filter(cliente), ric = negozi.reduce((s, n) => s + ricavo(n), 0);
+    const cv = negozi.reduce((s, n) => s + cardVendute(n), 0), fuori = negozi.reduce((s, n) => s + cardFuori(n), 0);
+    const prove = vis.filter((n) => n.visita.esito === "prova"), proveDecise = prove.filter((n) => ["comprato", "non"].includes(n.ritorno?.esito));
+    const ob = {}; vis.forEach((n) => { const o = n.visita.obiezione; if (o && !cliente(n)) ob[o] = (ob[o] || 0) + 1; });
+    const obTop = Object.entries(ob).sort((a, b) => b[1] - a[1]);
+    const ins = (lbl, txt, attesa) => `<div class="insight ${txt ? "" : "wait"}"><span>${lbl}</span><b>${esc(txt || attesa)}</b></div>`;
+    const [titolo, fn, et] = GRUPPI[numeriBy];
+    const righe = [...aggrega(fn).entries()].sort((a, b) => b[1].vis - a[1].vis);
+    const max = Math.max(0.01, ...righe.map(([, r]) => r.ven / r.vis));
     return `<div class="kpis">
-        <div class="kpi"><span>Visite</span><b>${vis.length}</b><small>${pct(titolari, vis.length)} col titolare</small></div>
-        <div class="kpi"><span>Vendite</span><b>${ven.length}</b><small>conversione ${pct(ven.length, vis.length)}</small></div>
-        <div class="kpi"><span>Incasso</span><b>${euro(ric)}</b><small>margine ${euro(ric - cv * COSTO_CARD)}</small></div>
-        <div class="kpi"><span>Card</span><b>${MAGAZZINO - cv - fuori}</b><small>${cv} vendute · ${fuori} in prova</small></div>
-        <div class="kpi"><span>Da visitare</span><b>${negozi.filter((n) => stato(n) === "da").length}</b><small>${negozi.filter((n) => ["prova", "ripasso"].includes(stato(n))).length} ritorni aperti</small></div>
-        <div class="kpi"><span>Recensioni in prova</span><b>${deltas.length ? "+" + medDelta : "–"}</b><small>media per negozio al ritorno</small></div>
+        <div class="kpi"><span>Visite</span><b>${vis.length}</b><small>${negozi.filter((n) => stato(n) === "da").length} ancora da fare</small></div>
+        <div class="kpi"><span>Dicono sì</span><b>${pct(cl.length, vis.length)}</b><small>${cl.length} clienti su ${vis.length}</small></div>
+        <div class="kpi"><span>Guadagno</span><b>${euro(ric - cv * COSTO_CARD)}</b><small>${euro(ric)} incassati − card</small></div>
+        <div class="kpi"><span>Card rimaste</span><b>${MAGAZZINO - cv - fuori}</b><small>${cv} vendute · ${fuori} in prova</small></div>
       </div>
-      ${tabella("Per strategia", (n) => n.visita.strategia, (k) => STRAT[k] ? `${k} · ${STRAT[k].corto}` : k, "Prova→sì: prove trasformate in vendita su quelle già decise.")}
-      ${tabella("Per categoria", (n) => n.categoria, (k) => CATEGORIE[k] || k)}
-      ${tabella("Per zona", (n) => n.zona || "–", (k) => k)}
-      ${tabella("Con chi hai parlato", (n) => n.visita.interlocutore, (k) => ({ titolare: "Titolare", dipendente: "Dipendente" }[k] || k))}
-      ${obHtml ? `<section class="group"><div class="group-head"><h2>Obiezioni (chi non ha comprato)</h2></div>
-        <div class="tbl-wrap"><table><tbody>${obHtml}</tbody></table></div></section>` : ""}
-      <section class="group"><div class="group-head"><h2>Dati</h2></div>
-        <p class="note">Per l'analisi basta dirlo a Claude: legge i dati direttamente da qui. Se ti serve un foglio di calcolo, copia la tabella e incollala in Excel o Fogli.</p>
-        <div><button class="btn" type="button" id="csvBtn">Copia tabella</button></div>
+      <section class="section"><div class="section-head"><h3>Cosa funziona finora</h3></div><div class="insights">
+        ${ins("Strategia migliore", migliore(GRUPPI.strategia[1], GRUPPI.strategia[2]), `Servono ${MIN_CAMPIONE} visite per strategia`)}
+        ${ins("Negozi migliori", migliore(GRUPPI.categoria[1], GRUPPI.categoria[2]), `Servono ${MIN_CAMPIONE} visite per categoria`)}
+        ${ins("Zona migliore", migliore(GRUPPI.zona[1], GRUPPI.zona[2]), `Servono ${MIN_CAMPIONE} visite per zona`)}
+        ${ins("Prove che diventano vendite", proveDecise.length ? `${proveDecise.filter((n) => n.ritorno.esito === "comprato").length} su ${proveDecise.length} (${pct(proveDecise.filter((n) => n.ritorno.esito === "comprato").length, proveDecise.length)})` : "", "Ancora nessuna prova conclusa")}
+        ${ins("Obiezione più frequente", obTop.length ? `${OBIEZIONI[obTop[0][0]] || obTop[0][0]} (${obTop[0][1]} volte)` : "", "Nessuna obiezione segnata")}
+      </div></section>
+      <section class="section"><div class="section-head"><h3>Confronta per</h3></div>
+        <div class="tabs-inline" role="group" aria-label="Raggruppa per">${Object.entries(GRUPPI).map(([k, [l]]) => `<button type="button" data-by="${k}" aria-pressed="${numeriBy === k}">${l}</button>`).join("")}</div>
+        <div class="tbl-wrap"><table><thead><tr><th>${titolo}</th><th>Visite</th><th>Sì</th><th>% sì</th><th>Incasso</th></tr></thead><tbody>
+        ${righe.map(([k, r]) => `<tr><td>${esc(et(k))}</td><td>${r.vis}</td><td>${r.ven}</td><td><span class="bar" style="width:${Math.round((r.ven / r.vis / max) * 26)}px"></span>${pct(r.ven, r.vis)}</td><td>${euro(r.ric)}</td></tr>`).join("")}
+        </tbody></table></div>
+        <p class="muted small">Con meno di ${MIN_CAMPIONE} visite in un gruppo il numero può essere un caso.</p></section>
+      <section class="section"><div class="section-head"><h3>Dati</h3></div>
+        <p class="muted small">Per l'analisi basta chiedere a Claude: legge i dati da qui. Per un foglio Excel, copia la tabella.</p>
+        <div><button class="btn sm" type="button" id="csvBtn">Copia tabella per Excel</button></div>
         <textarea id="csvOut" hidden readonly aria-label="Dati da copiare"></textarea></section>`;
   }
 
+  // ---------- Pitch ----------
   function viewPitch() {
     const P = [
-      ["A", "Prova gratuita 5 giorni", "Ho visto che avete [47] recensioni su Google. Il cliente contento se ne va e si dimentica. Vi lascio questa card 5 giorni, gratis: il cliente appoggia il telefono e lascia la recensione in 10 secondi. Voi dite solo: “Ci lasci una stellina? Basta avvicinare il telefono.” Passo [martedì]: se vi è servita la tenete, 39 € per due. Se no me la ridate.",
-        ["Programma la card davanti a loro.", "Di' il giorno del ritorno ad alta voce e segnalo qui.", "Al ritorno: “In 5 giorni ne avete prese 8. Senza la card tra un mese siete di nuovo fermi.”"]],
+      ["A", "Prova gratis 5 giorni", "Ho visto che avete [47] recensioni su Google. Il cliente contento se ne va e si dimentica. Vi lascio questa card 5 giorni, gratis: il cliente appoggia il telefono e lascia la recensione in 10 secondi. Voi dite solo: “Ci lasci una stellina? Basta avvicinare il telefono.” Passo [martedì]: se vi è servita la tenete, 39 € per due. Se no me la ridate.",
+        ["Programma la card davanti a loro.", "Di' il giorno del ritorno ad alta voce.", "Al ritorno: “In 5 giorni ne avete prese 8. Senza la card tra un mese siete di nuovo fermi.”"]],
       ["B", "Demo dal vivo", "Posso farle vedere una cosa in 10 secondi? Prenda il suo telefono e lo avvicini qui… Ecco, questo vede il suo cliente: niente da cercare, niente app. Due card 39 €, una per la cassa e una per la postazione. Gliele programmo adesso.",
         ["Mai con la fila alla cassa.", "Meglio se la card apre già la loro scheda."]],
       ["C", "Vendita con garanzia", "Sono card per le recensioni Google: il cliente avvicina il telefono e lascia la recensione in 10 secondi. 39 € per due, una tantum, nessun abbonamento. Se tra 14 giorni non ha più recensioni di prima, ripasso e le ridò i soldi.",
@@ -415,159 +550,211 @@ details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
       ["Costa troppo", "Una sola cliente nuova la ripaga. Poi scendi a 1 card a 25 €."],
       ["Non mi serve, mi conoscono", "Appunto, i clienti sono contenti. Ma chi non vi conosce vede solo le recensioni."],
       ["Ce l'ho già (QR)", "Quante recensioni vi arrivano a settimana? Con l'NFC non serve aprire la fotocamera."],
-      ["Devo chiedere al titolare", "Segna Ripasso con la data e lascia un biglietto."],
+      ["Devo chiedere al titolare", "Segna Ripasso e lascia un biglietto."],
       ["Non mi fido", "Niente dati, niente abbonamenti: la lascio in prova gratis (passa ad A)."],
-      ["Regola Google", "Mai sconti o regali in cambio di recensioni, e la card si offre a tutti i clienti, non solo ai contenti."],
+      ["Regola Google", "Mai sconti o regali in cambio di recensioni. La card si offre a tutti i clienti, non solo ai contenti."],
     ];
-    return P.map(([k, t, s, tips]) => `<article class="pitch"><h2><span class="letter">${k}</span>${t}</h2>
-        <blockquote>${esc(s)}</blockquote><ul>${tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></article>`).join("") +
-      `<section class="group"><div class="group-head"><h2>Obiezioni</h2></div><div class="objections">${O.map(([a, b]) => `<div><b>${esc(a)}</b>${esc(b)}</div>`).join("")}</div></section>
-      <p class="note">Prezzi: 1 card 25 € · 2 card 39 € · dalla terza 15 € l'una.</p>`;
+    return P.map(([k, t, s, tips]) => `<article class="pitch"><h3><span class="letter">${k}</span>${t}</h3><blockquote>${esc(s)}</blockquote><ul>${tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></article>`).join("") +
+      `<section class="section"><div class="section-head"><h3>Obiezioni</h3></div>${O.map(([a, b]) => `<div class="obj"><b>${esc(a)}</b>${esc(b)}</div>`).join("")}</section>
+      <p class="muted small">Prezzi: 1 card 25 € · 2 card 39 € · 3 card 45 €.</p>`;
   }
 
   // ---------- routing ----------
-  const VIEWS = { giro: viewGiro, ritorni: viewRitorni, risultati: viewRisultati, pitch: viewPitch };
-  const tab = () => { const h = location.hash.slice(1); return VIEWS[h] ? h : "giro"; };
+  const VIEWS = { oggi: viewOggi, ritorni: viewRitorni, clienti: viewClienti, numeri: viewNumeri, pitch: viewPitch };
+  const tab = () => { const h = location.hash.slice(1); return VIEWS[h] ? h : "oggi"; };
+  let ultimoTab = null;
   function render() {
     const t = tab();
     document.querySelectorAll("nav a").forEach((a) => { if (a.dataset.tab === t) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
-    const focus = document.activeElement?.id === "cerca";
     $("#view").innerHTML = VIEWS[t]();
-    renderTally();
-    if (focus) { const i = $("#cerca"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+    renderHeader();
+    if (ultimoTab !== t) { scrollTo(0, 0); ultimoTab = t; }
   }
-  addEventListener("hashchange", render);
+  addEventListener("hashchange", () => { if (!$("#sheet").hidden) chiudi(); render(); });
 
   $("#view").addEventListener("click", (e) => {
+    const es = e.target.closest("[data-esito]");
+    if (es) return es.dataset.esito === "chiuso" ? salvaChiuso(es.dataset.id) : apri(es.dataset.id, es.dataset.esito);
     const r = e.target.closest(".row"); if (r) return apri(r.dataset.id);
-    const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; render(); }
-    if (e.target.id === "csvBtn") copiaCsv();
+    const g = e.target.closest("[data-giro]");
+    if (g && g.dataset.giro !== "") { giroScelto = Number(g.dataset.giro); store.set("giro", giroScelto); saltati.clear(); render(); return scrollTo(0, 0); }
+    const s = e.target.closest("[data-salta]"); if (s) { saltati.add(s.dataset.salta); return render(); }
+    const by = e.target.closest("[data-by]"); if (by) { numeriBy = by.dataset.by; return render(); }
+    if (e.target.id === "csvBtn") return copiaCsv();
+    if (e.target.id === "addBtn") return apri(null);
   });
-  $("#view").addEventListener("input", (e) => { if (e.target.id === "cerca") { cerca = e.target.value; render(); } });
-  $("#addBtn").addEventListener("click", () => apri(null));
 
   // ---------- sheet ----------
-  const chips = (name, opts, val, hint) => `<div class="chips">${Object.entries(opts).map(([k, l]) =>
+  const chips = (name, opts, val, hint, cls = "") => `<div class="chips ${cls}">${Object.entries(opts).map(([k, l]) =>
     `<label><input type="radio" name="${name}" id="${name}-${k}" value="${k}" ${val === k ? "checked" : ""}><span>${esc(l)}${hint === k ? '<span class="hint">consigliata</span>' : ""}</span></label>`).join("")}</div>`;
+  const packs = (name, card, prezzo) => {
+    const scelto = Object.entries(PACCHETTI).find(([, [c, p]]) => c === card && p === prezzo)?.[0] || (card == null ? "p2" : "altro");
+    return `<div class="packs">${Object.entries(PACCHETTI).map(([k, [c, p, l]]) =>
+      `<label><input type="radio" name="${name}" id="${name}-${k}" value="${k}" ${scelto === k ? "checked" : ""}><span>${l}<small>${euro(p)}</small></span></label>`).join("")}</div>
+      <label class="check"><input type="radio" name="${name}" id="${name}-altro" value="altro" ${scelto === "altro" ? "checked" : ""}> Altro prezzo o quantità</label>
+      <div class="two" data-altro="${name}"><div class="field"><label for="${name}-card">Card</label><input type="number" inputmode="numeric" id="${name}-card" value="${esc(card ?? 2)}"></div>
+        <div class="field"><label for="${name}-prezzo">Prezzo €</label><input type="number" inputmode="decimal" id="${name}-prezzo" value="${esc(prezzo ?? 39)}"></div></div>`;
+  };
+  const leggiPack = (name) => {
+    const k = $(`input[name="${name}"]:checked`)?.value || "p2";
+    if (k === "altro") return { card: Number($(`#${name}-card`).value || 0), prezzo: Number($(`#${name}-prezzo`).value || 0) };
+    const [card, prezzo] = PACCHETTI[k]; return { card, prezzo };
+  };
 
   let corrente = null;
-  function apri(id) {
-    const n = id ? negozi.find((x) => x.id === id) : { id: null, nome: "", categoria: "barbiere", zona: "", recensioni: "", manuale: true };
+  function apri(id, esitoScelto) {
+    const n = id ? negozi.find((x) => x.id === id) : { id: null, nome: "", categoria: "barbiere", zona: "", recensioni: null, manuale: true };
     if (!n) return;
     corrente = n;
     const v = n.visita || {}, r = n.ritorno || {};
-    const sugg = strategiaSuggerita(n.categoria);
-    const strat = v.strategia || sugg;
+    const sug = strategiaSuggerita(n.categoria);
+    const esito = esitoScelto || v.esito || "";
     const nav = n.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${n.lat},${n.lng}&travelmode=walking` : "";
-    const d = delta(n);
-    $("#sheet").innerHTML = `<div class="wrap"><form id="form" novalidate>
-      <div class="sheet-head"><div><h2 id="sheetTitle">${n.id ? esc(n.nome) : "Nuovo negozio"}</h2>
-        ${n.id ? `<p>${esc(CATEGORIE[n.categoria] || n.categoria)}${n.zona ? " · " + esc(n.zona) : ""}${n.indirizzo ? " · " + esc(n.indirizzo) : ""}</p>` : ""}</div>
-        <button class="btn small" type="button" id="chiudi">Chiudi</button></div>
-      ${n.id ? `<div class="links">${n.mapsUrl ? `<a class="btn small" href="${esc(n.mapsUrl)}" target="_blank" rel="noopener">Scheda Google</a>` : ""}
-        ${nav ? `<a class="btn small" href="${esc(nav)}" target="_blank" rel="noopener">Naviga</a>` : ""}
-        ${n.telefono ? `<span class="btn small" style="user-select:all">${esc(n.telefono)}</span>` : ""}</div>
-        <p class="note num">${n.recensioni ?? "?"} recensioni${n.rating ? ` · ${String(n.rating).replace(".", ",")}★` : ""} quando è stato trovato</p>
-        ${n.orari?.length ? `<details><summary>Orari</summary><ul class="orari">${n.orari.map((o) => `<li>${esc(o)}</li>`).join("")}</ul></details>` : ""}` : ""}
-      ${n.manuale ? `<div class="card"><h3>Negozio</h3>
-        <div class="field"><label for="m-nome">Nome</label><input type="text" id="m-nome" value="${esc(n.nome)}" required></div>
-        <div class="two"><div class="field"><label for="m-cat">Categoria</label><select id="m-cat">${Object.entries(CATEGORIE).map(([k, l]) => `<option value="${k}" ${n.categoria === k ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div>
-        <div class="field"><label for="m-zona">Zona</label><input type="text" id="m-zona" value="${esc(n.zona)}" placeholder="Bresso"></div></div></div>` : ""}
-      <div class="card"><h3>Visita</h3>
-        <div class="two"><div class="field"><label for="v-data">Data</label><input type="date" id="v-data" value="${esc(v.data || oggi())}"></div>
-          <div class="field"><label for="v-rec">Recensioni oggi</label><input type="number" inputmode="numeric" id="v-rec" value="${esc(v.recensioni ?? n.recensioni ?? "")}"></div></div>
-        <fieldset class="field"><legend>Strategia</legend>${chips("strategia", Object.fromEntries(Object.entries(STRAT).map(([k, s]) => [k, `${k} · ${s.corto}`])), strat, sugg)}</fieldset>
-        <fieldset class="field"><legend>Con chi hai parlato</legend>${chips("interlocutore", { titolare: "Titolare", dipendente: "Dipendente" }, v.interlocutore)}</fieldset>
-        <fieldset class="field"><legend>Esito</legend>${chips("esito", ESITI, v.esito)}</fieldset>
-        <div class="two" data-show="venduto"><div class="field"><label for="v-card">Card vendute</label><input type="number" inputmode="numeric" id="v-card" value="${esc(v.card ?? 2)}"></div>
-          <div class="field"><label for="v-prezzo">Prezzo €</label><input type="number" inputmode="decimal" id="v-prezzo" value="${esc(v.prezzo ?? 39)}"></div></div>
-        <div class="two" data-show="prova ripasso"><div class="field"><label for="v-ritorno">Ritorno il</label><input type="date" id="v-ritorno" value="${esc(v.dataRitorno || "")}"></div>
+    const ult = ultimeRecensioni(n);
+    const c = crescita(n);
+    const isRitorno = !esitoScelto && ["prova", "ripasso"].includes(v.esito);
+    const sub = n.id ? `${esc(catNome(n.categoria))}${n.zona ? " · " + esc(n.zona) : ""} · ${n.recensioni ?? "?"} recensioni ${stelle(n.rating)}` : "";
+
+    $("#sheet").innerHTML = `<div class="wrap"><div class="grab"></div><form id="form" novalidate>
+      <div style="display:grid;gap:16px">
+      <div class="sheet-head"><div><h2 id="sheetTitle">${n.id ? esc(n.nome) : "Nuovo negozio"}</h2>${sub ? `<p class="muted small">${sub}</p>` : ""}</div>
+        <button class="btn sm" type="button" data-chiudi>Chiudi</button></div>
+      ${n.id ? `<div class="row-btns">${nav ? `<a class="btn sm" href="${esc(nav)}" target="_blank" rel="noopener">Naviga</a>` : ""}${n.mapsUrl ? `<a class="btn sm" href="${esc(n.mapsUrl)}" target="_blank" rel="noopener">Scheda Google</a>` : ""}
+        ${n.telefono ? `<span class="btn sm" style="user-select:all">${esc(n.telefono)}</span>` : ""}</div>` : ""}
+      ${n.manuale ? `<div class="box"><h3>Negozio</h3>
+        <div class="field"><label for="m-nome">Nome</label><input type="text" id="m-nome" value="${esc(n.nome)}"></div>
+        <div class="two"><div class="field"><label for="m-cat">Tipo</label><select id="m-cat">${Object.entries(CAT).map(([k, [l]]) => `<option value="${k}" ${n.categoria === k ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div>
+        <div class="field"><label for="m-rec">Recensioni</label><input type="number" inputmode="numeric" id="m-rec" value="${esc(n.recensioni ?? "")}"></div></div>
+        <div class="field"><label for="m-zona">Zona</label><input type="text" id="m-zona" value="${esc(n.zona)}" placeholder="Bresso"></div></div>` : ""}
+
+      ${isRitorno ? `<div class="box"><h3>Ritorno</h3>
+        <p>${v.esito === "prova" ? `Card in prova dal <b>${dataBreve(v.data)}</b>, quel giorno aveva <b>${v.recensioni ?? "?"}</b> recensioni.` : `Ti ha detto di ripassare il <b>${dataBreve(v.data)}</b>.`}</p>
+        <div class="field"><label for="r-rec">Quante recensioni ha adesso? <span class="muted">(guarda la scheda Google)</span></label>
+          <input type="number" inputmode="numeric" id="r-rec" value="${esc(r.recensioni ?? "")}" placeholder="${esc(ult?.rec ?? "")}"></div>
+        ${c ? `<p class="gain num">${c.piu >= 0 ? "+" : ""}${c.piu} recensioni in ${c.giorni} giorni</p>` : ""}
+        <fieldset class="field"><legend>Com'è finita?</legend>${chips("resito", { comprato: "Ha comprato", non: "Non compra", ripasso: "Ripasso ancora" }, r.esito, null, "big-chips")}</fieldset>
+        <div data-rshow="comprato">${packs("rpack", r.card, r.prezzo)}</div>
+        <label class="check" data-rshow="non"><input type="checkbox" id="r-restituita" ${r.cardRestituita === false ? "" : "checked"}> Mi ha ridato la card</label>
+        <div class="field" data-rshow="ripasso"><label for="r-prossimo">Ripasso il</label><input type="date" id="r-prossimo" value="${esc(r.prossimo || piuGiorni(oggi(), GIORNI_RIPASSO))}"></div>
+        <details><summary>Aggiungi una nota</summary><textarea id="r-note" aria-label="Nota sul ritorno">${esc(r.note || "")}</textarea></details>
+      </div>
+      <details><summary>Modifica la prima visita</summary><div style="height:10px"></div>` : ""}
+
+      <div class="box"><h3>${isRitorno ? "Prima visita" : "Visita"}</h3>
+        <fieldset class="field"><legend>Esito</legend>${chips("esito", ESITI, esito, null, "big-chips")}</fieldset>
+        <div data-show="venduto">${packs("vpack", v.card, v.prezzo)}</div>
+        <div class="two" data-show="prova ripasso">
+          <div class="field"><label for="v-ritorno">Torno il</label><input type="date" id="v-ritorno" value="${esc(v.dataRitorno || "")}"></div>
           <div class="field" data-show="prova"><label for="v-cardprova">Card lasciate</label><input type="number" inputmode="numeric" id="v-cardprova" value="${esc(v.cardProva ?? 1)}"></div></div>
-        <fieldset class="field" data-show="no ripasso prova"><legend>Obiezione principale</legend>${chips("obiezione", OBIEZIONI, v.obiezione)}</fieldset>
-        <div class="field"><label for="v-note">Note</label><textarea id="v-note">${esc(v.note || "")}</textarea></div>
+        <fieldset class="field" data-show="no ripasso prova"><legend>Cosa ti ha frenato?</legend>${chips("obiezione", OBIEZIONI, v.obiezione)}</fieldset>
+        <fieldset class="field" data-show="venduto prova ripasso no"><legend>Strategia usata</legend>${chips("strategia", Object.fromEntries(Object.entries(STRAT).map(([k, s]) => [k, `${k} · ${s.corto}`])), v.strategia || sug, sug)}</fieldset>
+        <fieldset class="field" data-show="venduto prova ripasso no"><legend>Con chi hai parlato</legend>${chips("interlocutore", { titolare: "Titolare", dipendente: "Dipendente" }, v.interlocutore || "titolare")}</fieldset>
+        <div class="two" data-show="venduto prova ripasso no">
+          <div class="field"><label for="v-rec">Recensioni oggi</label><input type="number" inputmode="numeric" id="v-rec" value="${esc(v.recensioni ?? n.recensioni ?? "")}"></div>
+          <div class="field"><label for="v-data">Data</label><input type="date" id="v-data" value="${esc(v.data || oggi())}"></div></div>
+        <details data-show="venduto prova ripasso no chiuso"><summary>Aggiungi una nota</summary><textarea id="v-note" aria-label="Nota sulla visita">${esc(v.note || "")}</textarea></details>
       </div>
-      <div class="card" data-show="prova ripasso"><h3>Ritorno</h3>
-        ${d !== null ? `<p class="delta num">${d >= 0 ? "+" : ""}${d} recensioni dalla visita</p>` : ""}
-        <div class="two"><div class="field"><label for="r-data">Data</label><input type="date" id="r-data" value="${esc(r.data || "")}"></div>
-          <div class="field"><label for="r-rec">Recensioni al ritorno</label><input type="number" inputmode="numeric" id="r-rec" value="${esc(r.recensioni ?? "")}"></div></div>
-        <fieldset class="field"><legend>Com'è finita</legend>${chips("resito", { comprato: "Ha comprato", non: "Non compra", ripasso: "Ripasso ancora" }, r.esito)}</fieldset>
-        <div class="two" data-rshow="comprato"><div class="field"><label for="r-card">Card vendute</label><input type="number" inputmode="numeric" id="r-card" value="${esc(r.card ?? 2)}"></div>
-          <div class="field"><label for="r-prezzo">Prezzo €</label><input type="number" inputmode="decimal" id="r-prezzo" value="${esc(r.prezzo ?? 39)}"></div></div>
-        <label class="check" data-rshow="non"><input type="checkbox" id="r-restituita" ${r.cardRestituita === false ? "" : "checked"}> Card restituita</label>
-        <div class="field"><label for="r-note">Note</label><textarea id="r-note">${esc(r.note || "")}</textarea></div>
+      ${isRitorno ? `</details>` : ""}
+      ${n.orari?.length ? `<details><summary>Orari di apertura</summary><ul class="orari">${n.orari.map((o) => `<li>${esc(o)}</li>`).join("")}</ul></details>` : ""}
+      ${v.esito ? `<button class="btn ghost sm" type="button" id="resetBtn" style="justify-self:start">Cancella la visita (torna "da visitare")</button>` : ""}
       </div>
-      <div class="save"><button class="btn" type="button" id="annulla">Annulla</button><button class="btn primary" type="submit">Salva</button></div>
+      <div class="save"><button class="btn ghost" type="button" data-chiudi>Annulla</button><button class="btn primary" type="submit">Salva</button></div>
     </form></div>`;
-    $("#sheet").hidden = false;
+    $("#sheet").hidden = false; $("#scrim").hidden = false;
     document.body.style.overflow = "hidden";
     $("#sheet").scrollTop = 0;
     aggiornaVisibili();
   }
 
-  function chiudi() { $("#sheet").hidden = true; document.body.style.overflow = ""; corrente = null; }
+  function chiudi() { $("#sheet").hidden = true; $("#scrim").hidden = true; document.body.style.overflow = ""; corrente = null; }
   function aggiornaVisibili() {
     const f = $("#form"); if (!f) return;
     const es = f.querySelector('input[name="esito"]:checked')?.value || "";
     const re = f.querySelector('input[name="resito"]:checked')?.value || "";
     f.querySelectorAll("[data-show]").forEach((el) => { el.hidden = !el.dataset.show.split(" ").includes(es); });
     f.querySelectorAll("[data-rshow]").forEach((el) => { el.hidden = el.dataset.rshow !== re; });
+    ["vpack", "rpack"].forEach((p) => { const el = f.querySelector(`[data-altro="${p}"]`); if (el) el.hidden = f.querySelector(`input[name="${p}"]:checked`)?.value !== "altro"; });
     const rit = $("#v-ritorno");
-    if (rit && !rit.value && (es === "prova" || es === "ripasso")) rit.value = piuGiorni($("#v-data").value || oggi(), es === "prova" ? GIORNI_PROVA : 3);
+    if (rit && !rit.value && (es === "prova" || es === "ripasso")) rit.value = piuGiorni($("#v-data")?.value || oggi(), es === "prova" ? GIORNI_PROVA : GIORNI_RIPASSO);
   }
   $("#sheet").addEventListener("change", aggiornaVisibili);
-  $("#sheet").addEventListener("click", (e) => { if (e.target.id === "chiudi" || e.target.id === "annulla") chiudi(); });
+  $("#sheet").addEventListener("click", (e) => {
+    if (e.target.closest("[data-chiudi]")) chiudi();
+    if (e.target.id === "resetBtn") resetVisita();
+  });
+  $("#scrim").addEventListener("click", chiudi);
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#sheet").hidden) chiudi(); });
 
-  const numOrNull = (id) => { const v = $(id)?.value; return v === "" || v == null ? null : Number(v); };
+  const numOrNull = (sel) => { const el = $(sel); if (!el || el.value === "") return null; return Number(el.value); };
+
+  async function scrivi(doc, messaggio, annulla) {
+    if (!db) { toast("Non salvato: apri la pagina da claude.ai con il tuo account"); return false; }
+    doc.aggiornato = new Date().toISOString();
+    try { await db.collection("negozi").doc(doc.id).set(doc); toast(messaggio, annulla); return true; }
+    catch (err) { toast(err?.code === "invalid_argument" ? "Non hai il permesso di modificare questi dati" : "Non salvato, riprova tra un attimo"); return false; }
+  }
+  const copia = (n) => JSON.parse(JSON.stringify(n));
+
+  async function salvaChiuso(id) {
+    const n = negozi.find((x) => x.id === id); if (!n) return;
+    const prima = copia(n), doc = copia(n);
+    doc.visita = { data: oggi(), esito: "chiuso" }; delete doc.ritorno;
+    await scrivi(doc, `${n.nome}: chiuso`, () => scrivi(prima, "Annullato"));
+  }
+  async function resetVisita() {
+    const n = corrente; if (!n) return;
+    const prima = copia(n), doc = copia(n);
+    delete doc.visita; delete doc.ritorno;
+    if (await scrivi(doc, "Visita cancellata", () => scrivi(prima, "Ripristinata"))) chiudi();
+  }
+
   $("#sheet").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = $("#form"), n = corrente; if (!n) return;
     const pick = (name) => f.querySelector(`input[name="${name}"]:checked`)?.value || null;
-    const doc = JSON.parse(JSON.stringify(n));
+    const prima = n.id ? copia(n) : null, doc = copia(n);
     if (n.manuale) {
       const nome = $("#m-nome").value.trim();
       if (!nome) { $("#m-nome").focus(); return toast("Scrivi il nome del negozio"); }
-      Object.assign(doc, { nome, categoria: $("#m-cat").value, zona: $("#m-zona").value.trim() });
+      Object.assign(doc, { nome, categoria: $("#m-cat").value, zona: $("#m-zona").value.trim(), recensioni: numOrNull("#m-rec") });
       if (!doc.id) doc.id = "m-" + Date.now().toString(36);
     }
     const esito = pick("esito");
     if (esito) {
-      doc.visita = {
-        data: $("#v-data").value || oggi(), recensioni: numOrNull("#v-rec"), strategia: pick("strategia"),
-        interlocutore: pick("interlocutore"), esito, obiezione: ["no", "ripasso", "prova"].includes(esito) ? pick("obiezione") : null,
-        note: $("#v-note").value.trim(),
-      };
-      if (esito === "venduto") Object.assign(doc.visita, { card: numOrNull("#v-card"), prezzo: numOrNull("#v-prezzo") });
+      const old = n.visita || {};
+      doc.visita = { data: $("#v-data")?.value || old.data || oggi(), esito, note: $("#v-note")?.value.trim() || "" };
+      if (esito !== "chiuso") Object.assign(doc.visita, { recensioni: numOrNull("#v-rec"), strategia: pick("strategia"), interlocutore: pick("interlocutore") });
+      if (esito === "venduto") Object.assign(doc.visita, leggiPack("vpack"));
       if (esito === "prova" || esito === "ripasso") doc.visita.dataRitorno = $("#v-ritorno").value || null;
       if (esito === "prova") doc.visita.cardProva = numOrNull("#v-cardprova") ?? 1;
-      const resito = pick("resito");
-      if ((esito === "prova" || esito === "ripasso") && (resito || $("#r-rec").value || $("#r-note").value.trim())) {
-        doc.ritorno = { data: $("#r-data").value || oggi(), recensioni: numOrNull("#r-rec"), esito: resito, note: $("#r-note").value.trim() };
-        if (resito === "comprato") Object.assign(doc.ritorno, { card: numOrNull("#r-card"), prezzo: numOrNull("#r-prezzo") });
+      if (["no", "ripasso", "prova"].includes(esito)) doc.visita.obiezione = pick("obiezione");
+      const resito = pick("resito"), rrec = numOrNull("#r-rec");
+      if ((esito === "prova" || esito === "ripasso") && (resito || rrec != null)) {
+        doc.ritorno = { data: oggi(), recensioni: rrec, esito: resito, note: $("#r-note")?.value.trim() || "" };
+        if (resito === "comprato") Object.assign(doc.ritorno, leggiPack("rpack"));
         if (resito === "non") doc.ritorno.cardRestituita = $("#r-restituita").checked;
-        if (resito === "ripasso") doc.visita.dataRitorno = piuGiorni(oggi(), 3);
-      } else delete doc.ritorno;
+        if (resito === "ripasso") doc.ritorno.prossimo = $("#r-prossimo").value || piuGiorni(oggi(), GIORNI_RIPASSO);
+      } else if (!(esito === "prova" || esito === "ripasso")) delete doc.ritorno;
     } else { delete doc.visita; delete doc.ritorno; }
-    doc.aggiornato = new Date().toISOString();
-    if (!db) return toast("Non salvato: apri la pagina da claude.ai, con l'accesso fatto");
     const btn = f.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Salvo…";
-    try {
-      await db.collection("negozi").doc(doc.id).set(doc);
-      chiudi(); toast("Salvato");
-    } catch (err) {
-      btn.disabled = false; btn.textContent = "Salva";
-      toast(err?.code === "invalid_argument" ? "Non hai il permesso di modificare questi dati" : "Non salvato, riprova tra un attimo");
-    }
+    const msg = doc.ritorno?.esito === "comprato" || doc.visita?.esito === "venduto" ? `Venduto a ${doc.nome}` : "Salvato";
+    if (await scrivi(doc, msg, prima ? () => scrivi(prima, "Annullato") : null)) { if (n.giro != null) saltati.delete(n.id); chiudi(); }
+    else { btn.disabled = false; btn.textContent = "Salva"; }
   });
 
   let toastT;
-  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 2600); }
+  function toast(msg, annulla) {
+    const t = $("#toast");
+    t.innerHTML = `<span>${esc(msg)}</span>${annulla ? '<button type="button">Annulla</button>' : ""}`;
+    if (annulla) t.querySelector("button").onclick = () => { t.hidden = true; annulla(); };
+    t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), annulla ? 5000 : 2600);
+  }
 
   function copiaCsv() {
-    const col = ["giro", "ordine", "nome", "categoria", "zona", "recensioni", "rating", "stato", "v_data", "strategia", "interlocutore", "esito", "obiezione", "v_rec", "v_card", "v_prezzo", "r_data", "r_rec", "r_esito", "r_card", "r_prezzo", "delta_rec", "note"];
+    const col = ["giro", "ordine", "nome", "categoria", "zona", "priorita", "recensioni", "rating", "stato", "data", "strategia", "con_chi", "esito", "obiezione", "rec_visita", "card", "prezzo", "ritorno_data", "rec_ritorno", "ritorno_esito", "note"];
     const righe = negozi.filter((n) => n.visita).map((n) => {
-      const v = n.visita, r = n.ritorno || {};
-      return [n.giro, n.ordine, n.nome, n.categoria, n.zona, n.recensioni, n.rating, stato(n), v.data, v.strategia, v.interlocutore, v.esito, v.obiezione, v.recensioni, v.card, v.prezzo, r.data, r.recensioni, r.esito, r.card, r.prezzo, delta(n), [v.note, r.note].filter(Boolean).join(" / ")];
+      const v = n.visita, r = n.ritorno || {}, x = vendita(n) || {};
+      return [n.giro, n.ordine, n.nome, n.categoria, n.zona, priorita(n).livello, n.recensioni, n.rating, stato(n), v.data, v.strategia, v.interlocutore, v.esito, v.obiezione, v.recensioni, x.card, x.prezzo, r.data, r.recensioni, r.esito, [v.note, r.note].filter(Boolean).join(" / ")];
     });
     const txt = [col, ...righe].map((r) => r.map((x) => String(x ?? "").replace(/[\t\n]/g, " ")).join("\t")).join("\n");
     const ta = $("#csvOut"); ta.value = txt;
@@ -581,16 +768,16 @@ details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
   render();
   (async () => {
     db = window.claude?.use ? await window.claude.use("db") : null;
-    if (!db) { notice("Dati non disponibili: apri la pagina da claude.ai con il tuo account per salvare le visite."); caricato = true; return render(); }
-    const timer = setTimeout(() => notice("Non riesco a raggiungere i dati. Controlla la connessione: le modifiche si salvano appena torna."), 10000);
+    if (!db) { notice("Per salvare le visite apri questa pagina da claude.ai con il tuo account."); caricato = true; return render(); }
+    const timer = setTimeout(() => notice("Non riesco a raggiungere i dati. Controlla la connessione."), 10000);
     db.collection("negozi").onSnapshot((snap) => {
       negozi = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
       caricato = true;
       if (!snap.metadata.fromCache) { clearTimeout(timer); notice(""); }
-      if ($("#sheet").hidden) render(); else renderTally();
+      if ($("#sheet").hidden) render(); else renderHeader();
     }, (err) => {
       clearTimeout(timer); caricato = true;
-      notice(err.code === "revoked" ? "Accesso ai dati non più disponibile." : "Errore nel caricare i dati. Ricarica la pagina più tardi.");
+      notice(err.code === "revoked" ? "Accesso ai dati non più disponibile." : "Errore nel caricare i dati. Riapri la pagina più tardi.");
       render();
     });
   })();
