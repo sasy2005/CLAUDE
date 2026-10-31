@@ -1,0 +1,598 @@
+<title>Giro Review Card</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a field notebook for the phone. Sticky header with the day's numbers, one list per view, bottom tab bar, a full-height sheet to log a visit. */
+:root {
+  --bg: #F3F4EF; --surface: #FFFFFF; --sunk: #E9EBE4; --ink: #18211D; --muted: #5E6A64; --line: #D7DCD2;
+  --brand: #1E5B47; --brand-ink: #FFFFFF; --star: #A86A10; --star-bg: #FBEFD6;
+  --ok: #276B43; --ok-bg: #DFF0E5; --trial: #2B5C9F; --trial-bg: #E1EAF7;
+  --wait: #8C6100; --wait-bg: #FBEFD6; --no: #8A3B34; --no-bg: #F5E2DF; --off: #646B67; --off-bg: #E7E9E5;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111614; --surface: #1A211E; --sunk: #232B27; --ink: #E7ECE8; --muted: #9AA6A0; --line: #2E3833;
+  --brand: #63B597; --brand-ink: #0D1914; --star: #E3B24C; --star-bg: #392D15;
+  --ok: #7DC89C; --ok-bg: #1C3226; --trial: #93B6EC; --trial-bg: #1B2940;
+  --wait: #E3B24C; --wait-bg: #392D15; --no: #EC9C92; --no-bg: #3C2320; --off: #A4AAA7; --off-bg: #262D2A;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #111614; --surface: #1A211E; --sunk: #232B27; --ink: #E7ECE8; --muted: #9AA6A0; --line: #2E3833;
+  --brand: #63B597; --brand-ink: #0D1914; --star: #E3B24C; --star-bg: #392D15;
+  --ok: #7DC89C; --ok-bg: #1C3226; --trial: #93B6EC; --trial-bg: #1B2940;
+  --wait: #E3B24C; --wait-bg: #392D15; --no: #EC9C92; --no-bg: #3C2320; --off: #A4AAA7; --off-bg: #262D2A;
+  color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* header */
+header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+header .wrap { padding-block: 12px 10px; display: grid; gap: 8px; }
+.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.tally { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--muted); font-size: 13px; }
+.tally b { color: var(--ink); font-weight: 600; }
+.notice { font-size: 13px; padding: 8px 10px; border-radius: 8px; background: var(--wait-bg); color: var(--wait); }
+
+main .wrap { padding-block: 14px 110px; display: grid; gap: 16px; }
+
+/* toolbar */
+.tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.tools input[type=search] { flex: 1 1 180px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 13px; }
+.seg button[aria-pressed=true] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); text-decoration: none; font-weight: 600; font-size: 14px; color: var(--ink); }
+.btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.btn.small { padding: 6px 10px; font-size: 13px; }
+
+/* groups + rows */
+.group { display: grid; gap: 6px; }
+.group-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: 4px; }
+.group-head h2 { font-size: 16px; font-weight: 700; }
+.group-head span { color: var(--muted); font-size: 13px; }
+.list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.row { width: 100%; display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 11px 12px; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; }
+.row:first-child { border-top: 0; }
+.row:hover { background: var(--sunk); }
+.ord { font-family: var(--display); font-weight: 700; color: var(--muted); text-align: center; font-size: 14px; }
+.row .main { min-width: 0; display: grid; gap: 2px; }
+.row .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .meta { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stars { color: var(--star); font-weight: 600; }
+.pill { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.s-da { background: var(--off-bg); color: var(--off); }
+.s-prova { background: var(--trial-bg); color: var(--trial); }
+.s-ripasso { background: var(--wait-bg); color: var(--wait); }
+.s-venduto { background: var(--ok-bg); color: var(--ok); }
+.s-no, .s-perso { background: var(--no-bg); color: var(--no); }
+.s-chiuso { background: var(--off-bg); color: var(--off); }
+.due { color: var(--no); font-weight: 600; }
+
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 22px 18px; display: grid; gap: 8px; }
+.empty h2 { font-size: 18px; }
+.empty p { margin: 0; color: var(--muted); max-width: 60ch; }
+
+/* stats */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 2px; }
+.kpi span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.kpi b { font-family: var(--display); font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.kpi small { color: var(--muted); font-size: 12px; }
+.tbl-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { padding: 9px 10px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
+th { border-top: 0; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+th:first-child, td:first-child { text-align: left; }
+.bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--brand); vertical-align: middle; margin-right: 6px; }
+.note { color: var(--muted); font-size: 13px; margin: 0; }
+
+/* pitch */
+.pitch { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 8px; }
+.pitch h2 { font-size: 17px; display: flex; gap: 10px; align-items: center; }
+.letter { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: var(--ink); color: var(--bg); font-size: 15px; flex: none; }
+.pitch blockquote { margin: 0; padding-left: 12px; border-left: 3px solid var(--line); font-size: 15px; }
+.pitch ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
+.objections { display: grid; gap: 8px; }
+.objections div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; font-size: 14px; }
+.objections b { display: block; }
+
+/* bottom nav */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+nav.tabs .in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+nav.tabs a { padding: 12px 4px 13px; text-align: center; text-decoration: none; color: var(--muted); font-weight: 600; font-size: 13px; border-top: 3px solid transparent; }
+nav.tabs a[aria-current=page] { color: var(--ink); border-top-color: var(--brand); }
+nav.tabs a .count { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 3px; border-radius: 9px; background: var(--no); color: var(--surface); font-size: 11px; line-height: 18px; }
+
+/* sheet */
+.sheet { position: fixed; inset: 0; z-index: 20; background: var(--bg); overflow-y: auto; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.sheet .wrap { padding-block: 12px 40px; display: grid; gap: 16px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sheet-head h2 { font-size: 21px; font-weight: 800; }
+.sheet-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.links { display: flex; gap: 8px; flex-wrap: wrap; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 14px; }
+.card h3 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.field { display: grid; gap: 6px; }
+.field > label, .field > legend { font-size: 13px; font-weight: 600; padding: 0; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips label { position: relative; }
+.chips input { position: absolute; opacity: 0; inset: 0; margin: 0; }
+.chips span { display: inline-block; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; }
+.chips input:checked + span { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chips input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+.chips .hint { font-size: 11px; font-weight: 700; margin-left: 4px; color: var(--brand); }
+.chips input:checked + span .hint { color: inherit; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.two > * { min-width: 0; }
+input[type=text], input[type=number], input[type=date], select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+textarea { min-height: 70px; resize: vertical; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.delta { font-family: var(--display); font-weight: 700; color: var(--ok); }
+.save { position: sticky; bottom: 0; padding-block: 10px; background: var(--bg); display: flex; gap: 8px; }
+.save .btn { flex: 1; padding: 13px; font-size: 15px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; }
+.orari { font-size: 13px; color: var(--muted); margin: 0; padding-left: 18px; }
+details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { .toast { animation: up .2s ease-out; } @keyframes up { from { opacity: 0; transform: translate(-50%, 8px); } } }
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>Giro Review Card</h1>
+      <button class="btn small" id="addBtn" type="button">+ Negozio</button>
+    </div>
+    <div class="tally" id="tally"></div>
+    <div class="notice" id="notice" hidden></div>
+  </div>
+</header>
+
+<main><div class="wrap" id="view"></div></main>
+
+<nav class="tabs" aria-label="Sezioni">
+  <div class="in">
+    <a href="#giro" data-tab="giro">Giro</a>
+    <a href="#ritorni" data-tab="ritorni">Ritorni</a>
+    <a href="#risultati" data-tab="risultati">Risultati</a>
+    <a href="#pitch" data-tab="pitch">Pitch</a>
+  </div>
+</nav>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  const MAGAZZINO = 100;          // card comprate
+  const COSTO_CARD = 1.8;         // 180 € / 100
+  const GIORNI_PROVA = 5;
+
+  const STRAT = {
+    A: { nome: "Prova 5 giorni", corto: "Prova" },
+    B: { nome: "Demo dal vivo", corto: "Demo" },
+    C: { nome: "Vendita con garanzia", corto: "Garanzia" },
+    D: { nome: "Confronto concorrente", corto: "Concorrente" },
+  };
+  const CATEGORIE = {
+    "barbiere": "Barbiere", "parrucchiere": "Parrucchiere", "estetica": "Estetica / unghie",
+    "tatuaggi": "Tatuaggi", "gelateria": "Gelateria", "pasticceria": "Pasticceria", "bar": "Bar",
+    "pizzeria-asporto": "Pizza / asporto", "officina": "Officina / gommista", "autolavaggio": "Autolavaggio",
+    "animali": "Animali", "veterinario": "Veterinario", "ottico": "Ottico", "lavanderia": "Lavanderia",
+    "palestra": "Palestra", "esperienze": "Escape room / paintball", "altro": "Altro",
+  };
+  const ESITI = { no: "No", ripasso: "Ripasso", prova: "Prova lasciata", venduto: "Venduto", chiuso: "Chiuso / assente" };
+  const OBIEZIONI = { prezzo: "Costa troppo", nonserve: "Non serve", celho: "Ce l'ho già", titolare: "Devo chiedere", fiducia: "Non mi fido", tempo: "Non ha tempo", altro: "Altro" };
+  const STATI = {
+    da: "Da visitare", prova: "In prova", ripasso: "Ripasso", venduto: "Venduto",
+    no: "No", perso: "Prova persa", chiuso: "Chiuso",
+  };
+
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const oggi = () => new Date().toISOString().slice(0, 10);
+  const piuGiorni = (d, n) => { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+  const dataBreve = (d) => d ? new Date(d + "T12:00:00").toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" }) : "";
+  const euro = (n) => (n || 0).toLocaleString("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  const pct = (a, b) => b ? Math.round((a / b) * 100) + "%" : "–";
+
+  let db = null, negozi = [], caricato = false, filtro = "tutti", cerca = "";
+
+  // ---------- derived state ----------
+  function stato(n) {
+    const v = n.visita || {}, r = n.ritorno || {};
+    if (!v.esito) return "da";
+    if (v.esito === "venduto") return "venduto";
+    if (v.esito === "prova" || v.esito === "ripasso") {
+      if (r.esito === "comprato") return "venduto";
+      if (r.esito === "non") return v.esito === "prova" ? "perso" : "no";
+      return v.esito;
+    }
+    return v.esito;
+  }
+  const visitato = (n) => ["no", "ripasso", "prova", "venduto"].includes(n.visita?.esito);
+  const venduto = (n) => stato(n) === "venduto";
+  const ricavo = (n) => !venduto(n) ? 0 : Number((n.visita?.esito === "venduto" ? n.visita.prezzo : n.ritorno?.prezzo) || 0);
+  const cardVendute = (n) => !venduto(n) ? 0 : Number((n.visita?.esito === "venduto" ? n.visita.card : n.ritorno?.card) || 0);
+  const cardFuori = (n) => {
+    const v = n.visita || {}, r = n.ritorno || {};
+    if (v.esito !== "prova") return 0;
+    if (!r.esito || r.esito === "ripasso") return Number(v.cardProva || 1);
+    if (r.esito === "non" && r.cardRestituita === false) return Number(v.cardProva || 1);
+    return 0;
+  };
+  const delta = (n) => {
+    const a = n.visita?.recensioni, b = n.ritorno?.recensioni;
+    return (a === undefined || a === null || a === "" || b === undefined || b === null || b === "") ? null : Number(b) - Number(a);
+  };
+
+  function strategiaSuggerita(cat) {
+    const conta = (filtroFn) => {
+      const c = { A: 0, B: 0, C: 0, D: 0 };
+      negozi.filter((n) => visitato(n) && filtroFn(n)).forEach((n) => { if (c[n.visita.strategia] !== undefined) c[n.visita.strategia]++; });
+      return c;
+    };
+    const perCat = conta((n) => n.categoria === cat), tot = conta(() => true);
+    return Object.keys(STRAT).sort((a, b) => (perCat[a] - perCat[b]) || (tot[a] - tot[b]) || a.localeCompare(b))[0];
+  }
+
+  // ---------- header ----------
+  function renderTally() {
+    const vis = negozi.filter(visitato).length;
+    const ven = negozi.filter(venduto).length;
+    const ric = negozi.reduce((s, n) => s + ricavo(n), 0);
+    const usate = negozi.reduce((s, n) => s + cardVendute(n) + cardFuori(n), 0);
+    $("#tally").innerHTML =
+      `<span><b class="num">${vis}</b> visitati</span><span><b class="num">${ven}</b> venduti</span>` +
+      `<span><b class="num">${euro(ric)}</b> incassati</span><span><b class="num">${MAGAZZINO - usate}</b> card in magazzino</span>`;
+    const dovuti = negozi.filter((n) => ["prova", "ripasso"].includes(stato(n)) && n.visita?.dataRitorno && n.visita.dataRitorno <= oggi()).length;
+    const a = $('nav a[data-tab="ritorni"]');
+    a.innerHTML = "Ritorni" + (dovuti ? ` <span class="count num">${dovuti}</span>` : "");
+  }
+
+  // ---------- views ----------
+  function rowHtml(n, showOrd = true) {
+    const s = stato(n);
+    let pill = STATI[s];
+    if ((s === "prova" || s === "ripasso") && n.visita?.dataRitorno) pill += " · " + dataBreve(n.visita.dataRitorno);
+    const rec = `${n.recensioni ?? "?"} rec` + (n.rating ? ` · <span class="stars">${String(n.rating).replace(".", ",")}★</span>` : "");
+    return `<button class="row" type="button" data-id="${esc(n.id)}">
+      <span class="ord num">${showOrd ? esc(n.ordine ?? "·") : ""}</span>
+      <span class="main"><span class="name">${esc(n.nome)}</span>
+      <span class="meta">${esc(CATEGORIE[n.categoria] || n.categoria)}${n.zona ? " · " + esc(n.zona) : ""} · ${rec}</span></span>
+      <span class="pill s-${s}">${esc(pill)}</span></button>`;
+  }
+
+  function mapsGiro(lista) {
+    const tappe = lista.filter((n) => n.lat != null && stato(n) === "da").slice(0, 10);
+    if (!tappe.length) return "";
+    const c = tappe.map((n) => `${n.lat},${n.lng}`);
+    const q = new URLSearchParams({ api: "1", destination: c[c.length - 1], travelmode: "walking" });
+    if (c.length > 1) q.set("waypoints", c.slice(0, -1).join("|"));
+    return "https://www.google.com/maps/dir/?" + q.toString();
+  }
+
+  function viewGiro() {
+    if (!negozi.length) {
+      return `<div class="empty"><h2>${caricato || !db ? "Nessun negozio ancora" : "Carico i negozi…"}</h2>
+        <p>La lista arriva dal bot di ricerca: i negozi intorno a Bresso con meno di 100 recensioni, già divisi in giri da 10 nell'ordine più corto.</p>
+        <p>Nel frattempo puoi aggiungere un negozio a mano con <b>+ Negozio</b> in alto.</p></div>`;
+    }
+    const q = cerca.trim().toLowerCase();
+    const lista = negozi.filter((n) => {
+      const s = stato(n);
+      if (filtro === "da" && s !== "da") return false;
+      if (filtro === "aperti" && !["prova", "ripasso"].includes(s)) return false;
+      if (filtro === "fatti" && (s === "da" || s === "prova" || s === "ripasso")) return false;
+      return !q || (n.nome + " " + (n.zona || "") + " " + (CATEGORIE[n.categoria] || "")).toLowerCase().includes(q);
+    });
+    const gruppi = new Map();
+    lista.forEach((n) => { const g = n.giro ?? "manuale"; if (!gruppi.has(g)) gruppi.set(g, []); gruppi.get(g).push(n); });
+    const chiavi = [...gruppi.keys()].sort((a, b) => (a === "manuale") - (b === "manuale") || a - b);
+    const filtri = [["tutti", "Tutti"], ["da", "Da visitare"], ["aperti", "In sospeso"], ["fatti", "Chiusi"]]
+      .map(([k, l]) => `<button type="button" data-filtro="${k}" aria-pressed="${filtro === k}">${l}</button>`).join("");
+    let html = `<div class="tools"><input type="search" id="cerca" placeholder="Cerca nome, zona, categoria" value="${esc(cerca)}" aria-label="Cerca"></div>
+      <div class="seg" role="group" aria-label="Filtro">${filtri}</div>`;
+    if (!chiavi.length) html += `<p class="note">Nessun negozio con questo filtro.</p>`;
+    chiavi.forEach((g) => {
+      const tutti = negozi.filter((n) => (n.giro ?? "manuale") === g);
+      const fatti = tutti.filter((n) => stato(n) !== "da").length;
+      const link = g === "manuale" ? "" : mapsGiro(tutti);
+      const items = gruppi.get(g).sort((a, b) => (a.ordine ?? 999) - (b.ordine ?? 999));
+      html += `<section class="group"><div class="group-head"><h2>${g === "manuale" ? "Aggiunti a mano" : "Giro " + g}</h2>
+        <span class="num">${fatti}/${tutti.length} fatti</span>
+        ${link ? `<a class="btn small" href="${esc(link)}" target="_blank" rel="noopener">Apri in Maps</a>` : ""}</div>
+        <div class="list">${items.map((n) => rowHtml(n, g !== "manuale")).join("")}</div></section>`;
+    });
+    return html;
+  }
+
+  function viewRitorni() {
+    const lista = negozi.filter((n) => ["prova", "ripasso"].includes(stato(n)))
+      .sort((a, b) => (a.visita?.dataRitorno || "9999").localeCompare(b.visita?.dataRitorno || "9999"));
+    if (!lista.length) {
+      return `<div class="empty"><h2>Nessun ritorno in programma</h2>
+        <p>Quando lasci una card in prova o un negozio ti chiede di ripassare, lo trovi qui in ordine di data. Quelli scaduti sono in rosso.</p></div>`;
+    }
+    const t = oggi();
+    return `<section class="group"><div class="group-head"><h2>Da ripassare</h2><span class="num">${lista.length}</span></div>
+      <div class="list">${lista.map((n) => {
+        const d = n.visita?.dataRitorno;
+        const tag = !d ? "Senza data" : d < t ? `In ritardo · ${dataBreve(d)}` : d === t ? "Oggi" : dataBreve(d);
+        const s = stato(n);
+        return `<button class="row" type="button" data-id="${esc(n.id)}"><span class="ord">${STRAT[n.visita?.strategia] ? n.visita.strategia : ""}</span>
+          <span class="main"><span class="name">${esc(n.nome)}</span><span class="meta">${esc(STATI[s])} · ${n.visita?.recensioni ?? "?"} rec al giorno della visita</span></span>
+          <span class="pill ${d && d <= t ? "s-no" : "s-" + s}">${esc(tag)}</span></button>`;
+      }).join("")}</div></section>`;
+  }
+
+  function tabella(titolo, chiaveFn, etichetta, nota) {
+    const righe = new Map();
+    negozi.filter(visitato).forEach((n) => {
+      const k = chiaveFn(n) || "–";
+      if (!righe.has(k)) righe.set(k, { vis: 0, prove: 0, provaDecise: 0, provaOk: 0, ven: 0, ric: 0 });
+      const r = righe.get(k);
+      r.vis++; r.ric += ricavo(n);
+      if (venduto(n)) r.ven++;
+      if (n.visita.esito === "prova") {
+        r.prove++;
+        if (["comprato", "non"].includes(n.ritorno?.esito)) { r.provaDecise++; if (n.ritorno.esito === "comprato") r.provaOk++; }
+      }
+    });
+    if (!righe.size) return "";
+    const max = Math.max(...[...righe.values()].map((r) => r.vis ? r.ven / r.vis : 0), 0.01);
+    const body = [...righe.entries()].sort((a, b) => b[1].vis - a[1].vis).map(([k, r]) => {
+      const c = r.vis ? r.ven / r.vis : 0;
+      return `<tr><td>${esc(etichetta(k))}</td><td>${r.vis}</td><td>${r.ven}</td>
+        <td><span class="bar" style="width:${Math.round((c / max) * 28)}px"></span>${pct(r.ven, r.vis)}</td><td>${r.provaDecise ? `${r.provaOk}/${r.provaDecise}` : "–"}</td><td>${euro(r.ric)}</td></tr>`;
+    }).join("");
+    return `<section class="group"><div class="group-head"><h2>${titolo}</h2></div>
+      <div class="tbl-wrap"><table><thead><tr><th></th><th>Visite</th><th>Vendite</th><th>Conv.</th><th>Prova→sì</th><th>Incasso</th></tr></thead>
+      <tbody>${body}</tbody></table></div>${nota ? `<p class="note">${nota}</p>` : ""}</section>`;
+  }
+
+  function viewRisultati() {
+    const vis = negozi.filter(visitato);
+    if (!vis.length) {
+      return `<div class="empty"><h2>Ancora nessuna visita</h2>
+        <p>Qui vedrai quale strategia vende di più, in quali categorie e in quali zone, con le obiezioni più frequenti. Servono almeno 15-20 visite per strategia prima di fidarsi dei numeri.</p></div>`;
+    }
+    const ven = negozi.filter(venduto);
+    const ric = negozi.reduce((s, n) => s + ricavo(n), 0);
+    const cv = negozi.reduce((s, n) => s + cardVendute(n), 0);
+    const fuori = negozi.reduce((s, n) => s + cardFuori(n), 0);
+    const titolari = vis.filter((n) => n.visita.interlocutore === "titolare").length;
+    const deltas = negozi.map(delta).filter((d) => d !== null);
+    const medDelta = deltas.length ? (deltas.reduce((a, b) => a + b, 0) / deltas.length).toFixed(1).replace(".", ",") : "–";
+    const ob = {};
+    vis.forEach((n) => { const o = n.visita.obiezione; if (o && !venduto(n)) ob[o] = (ob[o] || 0) + 1; });
+    const obHtml = Object.entries(ob).sort((a, b) => b[1] - a[1]).map(([k, c]) => `<tr><td>${esc(OBIEZIONI[k] || k)}</td><td>${c}</td></tr>`).join("");
+    return `<div class="kpis">
+        <div class="kpi"><span>Visite</span><b>${vis.length}</b><small>${pct(titolari, vis.length)} col titolare</small></div>
+        <div class="kpi"><span>Vendite</span><b>${ven.length}</b><small>conversione ${pct(ven.length, vis.length)}</small></div>
+        <div class="kpi"><span>Incasso</span><b>${euro(ric)}</b><small>margine ${euro(ric - cv * COSTO_CARD)}</small></div>
+        <div class="kpi"><span>Card</span><b>${MAGAZZINO - cv - fuori}</b><small>${cv} vendute · ${fuori} in prova</small></div>
+        <div class="kpi"><span>Da visitare</span><b>${negozi.filter((n) => stato(n) === "da").length}</b><small>${negozi.filter((n) => ["prova", "ripasso"].includes(stato(n))).length} ritorni aperti</small></div>
+        <div class="kpi"><span>Recensioni in prova</span><b>${deltas.length ? "+" + medDelta : "–"}</b><small>media per negozio al ritorno</small></div>
+      </div>
+      ${tabella("Per strategia", (n) => n.visita.strategia, (k) => STRAT[k] ? `${k} · ${STRAT[k].corto}` : k, "Prova→sì: prove trasformate in vendita su quelle già decise.")}
+      ${tabella("Per categoria", (n) => n.categoria, (k) => CATEGORIE[k] || k)}
+      ${tabella("Per zona", (n) => n.zona || "–", (k) => k)}
+      ${tabella("Con chi hai parlato", (n) => n.visita.interlocutore, (k) => ({ titolare: "Titolare", dipendente: "Dipendente" }[k] || k))}
+      ${obHtml ? `<section class="group"><div class="group-head"><h2>Obiezioni (chi non ha comprato)</h2></div>
+        <div class="tbl-wrap"><table><tbody>${obHtml}</tbody></table></div></section>` : ""}
+      <section class="group"><div class="group-head"><h2>Dati</h2></div>
+        <p class="note">Per l'analisi basta dirlo a Claude: legge i dati direttamente da qui. Se ti serve un foglio di calcolo, copia la tabella e incollala in Excel o Fogli.</p>
+        <div><button class="btn" type="button" id="csvBtn">Copia tabella</button></div>
+        <textarea id="csvOut" hidden readonly aria-label="Dati da copiare"></textarea></section>`;
+  }
+
+  function viewPitch() {
+    const P = [
+      ["A", "Prova gratuita 5 giorni", "Ho visto che avete [47] recensioni su Google. Il cliente contento se ne va e si dimentica. Vi lascio questa card 5 giorni, gratis: il cliente appoggia il telefono e lascia la recensione in 10 secondi. Voi dite solo: “Ci lasci una stellina? Basta avvicinare il telefono.” Passo [martedì]: se vi è servita la tenete, 39 € per due. Se no me la ridate.",
+        ["Programma la card davanti a loro.", "Di' il giorno del ritorno ad alta voce e segnalo qui.", "Al ritorno: “In 5 giorni ne avete prese 8. Senza la card tra un mese siete di nuovo fermi.”"]],
+      ["B", "Demo dal vivo", "Posso farle vedere una cosa in 10 secondi? Prenda il suo telefono e lo avvicini qui… Ecco, questo vede il suo cliente: niente da cercare, niente app. Due card 39 €, una per la cassa e una per la postazione. Gliele programmo adesso.",
+        ["Mai con la fila alla cassa.", "Meglio se la card apre già la loro scheda."]],
+      ["C", "Vendita con garanzia", "Sono card per le recensioni Google: il cliente avvicina il telefono e lascia la recensione in 10 secondi. 39 € per due, una tantum, nessun abbonamento. Se tra 14 giorni non ha più recensioni di prima, ripasso e le ridò i soldi.",
+        ["La più veloce: misura se si vende senza prova.", "“Nessun abbonamento” va detto sempre."]],
+      ["D", "Confronto concorrente", "Ho visto che [Barber X] qui vicino ha 210 recensioni, voi 38. Chi cerca “barbiere Bresso” vede prima lui, anche se magari lavorate meglio voi. Con questa card i clienti la lasciano in 10 secondi…",
+        ["Prima di entrare trova il concorrente più vicino con più recensioni.", "Tono: meritano di più, non sono scarsi.", "Poi chiudi come in C."]],
+    ];
+    const O = [
+      ["Costa troppo", "Una sola cliente nuova la ripaga. Poi scendi a 1 card a 25 €."],
+      ["Non mi serve, mi conoscono", "Appunto, i clienti sono contenti. Ma chi non vi conosce vede solo le recensioni."],
+      ["Ce l'ho già (QR)", "Quante recensioni vi arrivano a settimana? Con l'NFC non serve aprire la fotocamera."],
+      ["Devo chiedere al titolare", "Segna Ripasso con la data e lascia un biglietto."],
+      ["Non mi fido", "Niente dati, niente abbonamenti: la lascio in prova gratis (passa ad A)."],
+      ["Regola Google", "Mai sconti o regali in cambio di recensioni, e la card si offre a tutti i clienti, non solo ai contenti."],
+    ];
+    return P.map(([k, t, s, tips]) => `<article class="pitch"><h2><span class="letter">${k}</span>${t}</h2>
+        <blockquote>${esc(s)}</blockquote><ul>${tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></article>`).join("") +
+      `<section class="group"><div class="group-head"><h2>Obiezioni</h2></div><div class="objections">${O.map(([a, b]) => `<div><b>${esc(a)}</b>${esc(b)}</div>`).join("")}</div></section>
+      <p class="note">Prezzi: 1 card 25 € · 2 card 39 € · dalla terza 15 € l'una.</p>`;
+  }
+
+  // ---------- routing ----------
+  const VIEWS = { giro: viewGiro, ritorni: viewRitorni, risultati: viewRisultati, pitch: viewPitch };
+  const tab = () => { const h = location.hash.slice(1); return VIEWS[h] ? h : "giro"; };
+  function render() {
+    const t = tab();
+    document.querySelectorAll("nav a").forEach((a) => { if (a.dataset.tab === t) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    const focus = document.activeElement?.id === "cerca";
+    $("#view").innerHTML = VIEWS[t]();
+    renderTally();
+    if (focus) { const i = $("#cerca"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  }
+  addEventListener("hashchange", render);
+
+  $("#view").addEventListener("click", (e) => {
+    const r = e.target.closest(".row"); if (r) return apri(r.dataset.id);
+    const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; render(); }
+    if (e.target.id === "csvBtn") copiaCsv();
+  });
+  $("#view").addEventListener("input", (e) => { if (e.target.id === "cerca") { cerca = e.target.value; render(); } });
+  $("#addBtn").addEventListener("click", () => apri(null));
+
+  // ---------- sheet ----------
+  const chips = (name, opts, val, hint) => `<div class="chips">${Object.entries(opts).map(([k, l]) =>
+    `<label><input type="radio" name="${name}" id="${name}-${k}" value="${k}" ${val === k ? "checked" : ""}><span>${esc(l)}${hint === k ? '<span class="hint">consigliata</span>' : ""}</span></label>`).join("")}</div>`;
+
+  let corrente = null;
+  function apri(id) {
+    const n = id ? negozi.find((x) => x.id === id) : { id: null, nome: "", categoria: "barbiere", zona: "", recensioni: "", manuale: true };
+    if (!n) return;
+    corrente = n;
+    const v = n.visita || {}, r = n.ritorno || {};
+    const sugg = strategiaSuggerita(n.categoria);
+    const strat = v.strategia || sugg;
+    const nav = n.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${n.lat},${n.lng}&travelmode=walking` : "";
+    const d = delta(n);
+    $("#sheet").innerHTML = `<div class="wrap"><form id="form" novalidate>
+      <div class="sheet-head"><div><h2 id="sheetTitle">${n.id ? esc(n.nome) : "Nuovo negozio"}</h2>
+        ${n.id ? `<p>${esc(CATEGORIE[n.categoria] || n.categoria)}${n.zona ? " · " + esc(n.zona) : ""}${n.indirizzo ? " · " + esc(n.indirizzo) : ""}</p>` : ""}</div>
+        <button class="btn small" type="button" id="chiudi">Chiudi</button></div>
+      ${n.id ? `<div class="links">${n.mapsUrl ? `<a class="btn small" href="${esc(n.mapsUrl)}" target="_blank" rel="noopener">Scheda Google</a>` : ""}
+        ${nav ? `<a class="btn small" href="${esc(nav)}" target="_blank" rel="noopener">Naviga</a>` : ""}
+        ${n.telefono ? `<span class="btn small" style="user-select:all">${esc(n.telefono)}</span>` : ""}</div>
+        <p class="note num">${n.recensioni ?? "?"} recensioni${n.rating ? ` · ${String(n.rating).replace(".", ",")}★` : ""} quando è stato trovato</p>
+        ${n.orari?.length ? `<details><summary>Orari</summary><ul class="orari">${n.orari.map((o) => `<li>${esc(o)}</li>`).join("")}</ul></details>` : ""}` : ""}
+      ${n.manuale ? `<div class="card"><h3>Negozio</h3>
+        <div class="field"><label for="m-nome">Nome</label><input type="text" id="m-nome" value="${esc(n.nome)}" required></div>
+        <div class="two"><div class="field"><label for="m-cat">Categoria</label><select id="m-cat">${Object.entries(CATEGORIE).map(([k, l]) => `<option value="${k}" ${n.categoria === k ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div>
+        <div class="field"><label for="m-zona">Zona</label><input type="text" id="m-zona" value="${esc(n.zona)}" placeholder="Bresso"></div></div></div>` : ""}
+      <div class="card"><h3>Visita</h3>
+        <div class="two"><div class="field"><label for="v-data">Data</label><input type="date" id="v-data" value="${esc(v.data || oggi())}"></div>
+          <div class="field"><label for="v-rec">Recensioni oggi</label><input type="number" inputmode="numeric" id="v-rec" value="${esc(v.recensioni ?? n.recensioni ?? "")}"></div></div>
+        <fieldset class="field"><legend>Strategia</legend>${chips("strategia", Object.fromEntries(Object.entries(STRAT).map(([k, s]) => [k, `${k} · ${s.corto}`])), strat, sugg)}</fieldset>
+        <fieldset class="field"><legend>Con chi hai parlato</legend>${chips("interlocutore", { titolare: "Titolare", dipendente: "Dipendente" }, v.interlocutore)}</fieldset>
+        <fieldset class="field"><legend>Esito</legend>${chips("esito", ESITI, v.esito)}</fieldset>
+        <div class="two" data-show="venduto"><div class="field"><label for="v-card">Card vendute</label><input type="number" inputmode="numeric" id="v-card" value="${esc(v.card ?? 2)}"></div>
+          <div class="field"><label for="v-prezzo">Prezzo €</label><input type="number" inputmode="decimal" id="v-prezzo" value="${esc(v.prezzo ?? 39)}"></div></div>
+        <div class="two" data-show="prova ripasso"><div class="field"><label for="v-ritorno">Ritorno il</label><input type="date" id="v-ritorno" value="${esc(v.dataRitorno || "")}"></div>
+          <div class="field" data-show="prova"><label for="v-cardprova">Card lasciate</label><input type="number" inputmode="numeric" id="v-cardprova" value="${esc(v.cardProva ?? 1)}"></div></div>
+        <fieldset class="field" data-show="no ripasso prova"><legend>Obiezione principale</legend>${chips("obiezione", OBIEZIONI, v.obiezione)}</fieldset>
+        <div class="field"><label for="v-note">Note</label><textarea id="v-note">${esc(v.note || "")}</textarea></div>
+      </div>
+      <div class="card" data-show="prova ripasso"><h3>Ritorno</h3>
+        ${d !== null ? `<p class="delta num">${d >= 0 ? "+" : ""}${d} recensioni dalla visita</p>` : ""}
+        <div class="two"><div class="field"><label for="r-data">Data</label><input type="date" id="r-data" value="${esc(r.data || "")}"></div>
+          <div class="field"><label for="r-rec">Recensioni al ritorno</label><input type="number" inputmode="numeric" id="r-rec" value="${esc(r.recensioni ?? "")}"></div></div>
+        <fieldset class="field"><legend>Com'è finita</legend>${chips("resito", { comprato: "Ha comprato", non: "Non compra", ripasso: "Ripasso ancora" }, r.esito)}</fieldset>
+        <div class="two" data-rshow="comprato"><div class="field"><label for="r-card">Card vendute</label><input type="number" inputmode="numeric" id="r-card" value="${esc(r.card ?? 2)}"></div>
+          <div class="field"><label for="r-prezzo">Prezzo €</label><input type="number" inputmode="decimal" id="r-prezzo" value="${esc(r.prezzo ?? 39)}"></div></div>
+        <label class="check" data-rshow="non"><input type="checkbox" id="r-restituita" ${r.cardRestituita === false ? "" : "checked"}> Card restituita</label>
+        <div class="field"><label for="r-note">Note</label><textarea id="r-note">${esc(r.note || "")}</textarea></div>
+      </div>
+      <div class="save"><button class="btn" type="button" id="annulla">Annulla</button><button class="btn primary" type="submit">Salva</button></div>
+    </form></div>`;
+    $("#sheet").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("#sheet").scrollTop = 0;
+    aggiornaVisibili();
+  }
+
+  function chiudi() { $("#sheet").hidden = true; document.body.style.overflow = ""; corrente = null; }
+  function aggiornaVisibili() {
+    const f = $("#form"); if (!f) return;
+    const es = f.querySelector('input[name="esito"]:checked')?.value || "";
+    const re = f.querySelector('input[name="resito"]:checked')?.value || "";
+    f.querySelectorAll("[data-show]").forEach((el) => { el.hidden = !el.dataset.show.split(" ").includes(es); });
+    f.querySelectorAll("[data-rshow]").forEach((el) => { el.hidden = el.dataset.rshow !== re; });
+    const rit = $("#v-ritorno");
+    if (rit && !rit.value && (es === "prova" || es === "ripasso")) rit.value = piuGiorni($("#v-data").value || oggi(), es === "prova" ? GIORNI_PROVA : 3);
+  }
+  $("#sheet").addEventListener("change", aggiornaVisibili);
+  $("#sheet").addEventListener("click", (e) => { if (e.target.id === "chiudi" || e.target.id === "annulla") chiudi(); });
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#sheet").hidden) chiudi(); });
+
+  const numOrNull = (id) => { const v = $(id)?.value; return v === "" || v == null ? null : Number(v); };
+  $("#sheet").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = $("#form"), n = corrente; if (!n) return;
+    const pick = (name) => f.querySelector(`input[name="${name}"]:checked`)?.value || null;
+    const doc = JSON.parse(JSON.stringify(n));
+    if (n.manuale) {
+      const nome = $("#m-nome").value.trim();
+      if (!nome) { $("#m-nome").focus(); return toast("Scrivi il nome del negozio"); }
+      Object.assign(doc, { nome, categoria: $("#m-cat").value, zona: $("#m-zona").value.trim() });
+      if (!doc.id) doc.id = "m-" + Date.now().toString(36);
+    }
+    const esito = pick("esito");
+    if (esito) {
+      doc.visita = {
+        data: $("#v-data").value || oggi(), recensioni: numOrNull("#v-rec"), strategia: pick("strategia"),
+        interlocutore: pick("interlocutore"), esito, obiezione: ["no", "ripasso", "prova"].includes(esito) ? pick("obiezione") : null,
+        note: $("#v-note").value.trim(),
+      };
+      if (esito === "venduto") Object.assign(doc.visita, { card: numOrNull("#v-card"), prezzo: numOrNull("#v-prezzo") });
+      if (esito === "prova" || esito === "ripasso") doc.visita.dataRitorno = $("#v-ritorno").value || null;
+      if (esito === "prova") doc.visita.cardProva = numOrNull("#v-cardprova") ?? 1;
+      const resito = pick("resito");
+      if ((esito === "prova" || esito === "ripasso") && (resito || $("#r-rec").value || $("#r-note").value.trim())) {
+        doc.ritorno = { data: $("#r-data").value || oggi(), recensioni: numOrNull("#r-rec"), esito: resito, note: $("#r-note").value.trim() };
+        if (resito === "comprato") Object.assign(doc.ritorno, { card: numOrNull("#r-card"), prezzo: numOrNull("#r-prezzo") });
+        if (resito === "non") doc.ritorno.cardRestituita = $("#r-restituita").checked;
+        if (resito === "ripasso") doc.visita.dataRitorno = piuGiorni(oggi(), 3);
+      } else delete doc.ritorno;
+    } else { delete doc.visita; delete doc.ritorno; }
+    doc.aggiornato = new Date().toISOString();
+    if (!db) return toast("Non salvato: apri la pagina da claude.ai, con l'accesso fatto");
+    const btn = f.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Salvo…";
+    try {
+      await db.collection("negozi").doc(doc.id).set(doc);
+      chiudi(); toast("Salvato");
+    } catch (err) {
+      btn.disabled = false; btn.textContent = "Salva";
+      toast(err?.code === "invalid_argument" ? "Non hai il permesso di modificare questi dati" : "Non salvato, riprova tra un attimo");
+    }
+  });
+
+  let toastT;
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 2600); }
+
+  function copiaCsv() {
+    const col = ["giro", "ordine", "nome", "categoria", "zona", "recensioni", "rating", "stato", "v_data", "strategia", "interlocutore", "esito", "obiezione", "v_rec", "v_card", "v_prezzo", "r_data", "r_rec", "r_esito", "r_card", "r_prezzo", "delta_rec", "note"];
+    const righe = negozi.filter((n) => n.visita).map((n) => {
+      const v = n.visita, r = n.ritorno || {};
+      return [n.giro, n.ordine, n.nome, n.categoria, n.zona, n.recensioni, n.rating, stato(n), v.data, v.strategia, v.interlocutore, v.esito, v.obiezione, v.recensioni, v.card, v.prezzo, r.data, r.recensioni, r.esito, r.card, r.prezzo, delta(n), [v.note, r.note].filter(Boolean).join(" / ")];
+    });
+    const txt = [col, ...righe].map((r) => r.map((x) => String(x ?? "").replace(/[\t\n]/g, " ")).join("\t")).join("\n");
+    const ta = $("#csvOut"); ta.value = txt;
+    const fallback = () => { ta.hidden = false; ta.focus(); ta.select(); toast("Seleziona tutto e copia"); };
+    try { navigator.clipboard.writeText(txt).then(() => toast(`Copiate ${righe.length} righe`), fallback); } catch { fallback(); }
+  }
+
+  function notice(msg) { const el = $("#notice"); el.textContent = msg || ""; el.hidden = !msg; }
+
+  // ---------- data ----------
+  render();
+  (async () => {
+    db = window.claude?.use ? await window.claude.use("db") : null;
+    if (!db) { notice("Dati non disponibili: apri la pagina da claude.ai con il tuo account per salvare le visite."); caricato = true; return render(); }
+    const timer = setTimeout(() => notice("Non riesco a raggiungere i dati. Controlla la connessione: le modifiche si salvano appena torna."), 10000);
+    db.collection("negozi").onSnapshot((snap) => {
+      negozi = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+      caricato = true;
+      if (!snap.metadata.fromCache) { clearTimeout(timer); notice(""); }
+      if ($("#sheet").hidden) render(); else renderTally();
+    }, (err) => {
+      clearTimeout(timer); caricato = true;
+      notice(err.code === "revoked" ? "Accesso ai dati non più disponibile." : "Errore nel caricare i dati. Ricarica la pagina più tardi.");
+      render();
+    });
+  })();
+})();
+</script>
