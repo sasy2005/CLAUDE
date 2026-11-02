@@ -1,0 +1,31 @@
+{
+  "business": "Trasferta Facile (alloggi per squadre in trasferta, Milano Nord)",
+  "unit": "notte-posto letto gestita",
+  "price": 9.00,
+  "variable": [
+    {"label": "Pulizia finale (stima: 60 euro a soggiorno / 84 notti-letto medie)", "cost": 0.71},
+    {"label": "Cambio biancheria settimanale (stima: 8 euro a persona a settimana)", "cost": 1.15},
+    {"label": "Materiali di consumo e kit casa (stima)", "cost": 0.30},
+    {"label": "Spostamenti per consegne chiavi e controlli (stima)", "cost": 0.40},
+    {"label": "Fondo emergenze 5% della fee", "cost": 0.45}
+  ],
+  "fixed_monthly": [
+    {"label": "INPS gestione commercianti, forfettario con riduzione 35% (4.611,64/anno x 0,65 / 12)", "cost": 250},
+    {"label": "Google Ads (circa 7 euro al giorno)", "cost": 200},
+    {"label": "Servizio online per partita IVA forfettaria (stima)", "cost": 40},
+    {"label": "Assicurazione RC professionale (stima 360 euro/anno)", "cost": 30},
+    {"label": "Telefono Iliad, dominio, email (stima)", "cost": 15},
+    {"label": "Carburante e trasporti fissi (stima)", "cost": 75}
+  ],
+  "startup": [
+    {"label": "Dominio trasfertafacile.it (Aruba, primo anno)", "cost": 4},
+    {"label": "Iscrizione Registro Imprese, diritti e bolli (stima)", "cost": 100},
+    {"label": "Kit appartamenti: biancheria di scorta, lucchetti portachiavi (stima)", "cost": 300},
+    {"label": "Volantini e stampa (stima)", "cost": 50},
+    {"label": "Test Google Ads e Subito prima del lancio", "cost": 150}
+  ],
+  "days_per_month": 30,
+  "capacity_per_day": 60,
+  "plan_per_day": 40,
+  "ramp_per_day": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20]
+}
