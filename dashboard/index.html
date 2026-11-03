@@ -666,6 +666,15 @@
     <div class="row" style="margin-top:0;align-items:center"><span class="note" id="syncLbl" style="margin:0;flex:1"></span><button class="btn sm" type="button" id="syncBtn">☁️ Sincronizza ora</button></div>
     <div class="note">Cose da fare, giornata, abitudini, esami e impostazioni vengono salvati in una cartella nascosta del tuo Google Drive, che vede solo questa app.</div>
 
+    <div class="sec">🤖 Collegamento con l'agente (secondo cervello)</div>
+    <div class="note" style="margin:0 0 8px">Con questo collegamento l'agente Claude vede cose da fare, eventi, esami e abitudini, e può aggiungerne o modificarne. Lo scambio passa dal tuo repository privato su GitHub (quello di Obsidian).</div>
+    <div class="two">
+      <div class="field"><label for="sGhRepo">Repository</label><input type="text" id="sGhRepo" placeholder="sasy2005/sasybrain"></div>
+      <div class="field"><label for="sGhToken">Token GitHub</label><input type="password" id="sGhToken" placeholder="github_pat_…"></div>
+    </div>
+    <div class="row" style="margin-top:0;align-items:center"><span class="note" id="ghLbl" style="margin:0;flex:1"></span><button class="btn sm" type="button" id="ghBtn">🔄 Collega ora</button></div>
+    <div class="hint">Il token si crea su github.com → Settings → Developer settings → Fine-grained tokens, solo per questo repository, con il permesso «Contents: Read and write». Arriva da solo anche sul telefono.</div>
+
     <div class="sec">🕘 Ultimi comandi</div>
     <div class="note" style="margin:0 0 8px">Cosa ha sentito l'assistente, cosa ha capito e cosa ha fatto. Utile se qualcosa non va.</div>
     <div id="cmdLogBox" class="logbox"></div>
@@ -771,7 +780,7 @@ const DEF = {
   geminiKey:'', geminiModel:'gemini-flash-latest',
   autoDrafts:true, signature:'', voiceReplies:true, theme:'auto',
   voiceEngine:'auto', gVoice:'Sulafat', bVoice:'', voiceRate:1.05, voicePause:3, voiceVolume:1,
-  notify:false, notifyLead:10, planToCal:false, lessonCal:'', calendars:null, u:0
+  notify:false, notifyLead:10, planToCal:false, lessonCal:'', calendars:null, ghRepo:'sasy2005/sasybrain', ghToken:'', u:0
 };
 let S = {...DEF, ...store.get('settings', {})};
 let mode = store.get('mode', 'demo');                 // 'demo' | 'google'
@@ -1969,7 +1978,7 @@ const saveLog = () => { cmdLog = cmdLog.slice(-30); store.set('cmdlog', cmdLog);
 const descr = c => c.action === 'multi' ? c.actions.map(descr).join(' + ') : c.action + (c.title || c.name ? ` «${c.title || c.name}»` : '') + (c.date || c.due ? ' ' + (c.date || c.due) : '') + (c.time ? ' ' + c.time : '');
 function logCommand({text, engine, aiErr, cmd}){ cmdLog.push({at:Date.now(), text, engine, aiErr, did:descr(cmd)}); saveLog(); }
 function renderLog(){
-  $('#cmdLogBox').innerHTML = cmdLog.length ? [...cmdLog].reverse().map(l => `<div class="logrow"><div><b>«${esc(l.text)}»</b> <span class="tag ${l.engine === 'AI' ? 'violet' : ''}">${l.engine === 'AI' ? '✨ AI' : '⚙️ regole'}</span> <span class="lt">${esc(new Date(l.at).toLocaleString('it-IT', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}))}</span></div>
+  $('#cmdLogBox').innerHTML = cmdLog.length ? [...cmdLog].reverse().map(l => `<div class="logrow"><div><b>«${esc(l.text)}»</b> <span class="tag ${l.engine === 'AI' ? 'violet' : ''}">${l.engine === 'AI' ? '✨ AI' : l.engine === 'Agente' ? '🤖 agente' : '⚙️ regole'}</span> <span class="lt">${esc(new Date(l.at).toLocaleString('it-IT', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}))}</span></div>
     <div class="lt">Ho capito: ${esc(l.did)}${l.aiErr ? ' · ⚠️ AI: ' + esc(l.aiErr) : ''}</div>${l.result ? `<div class="lt">Risultato: ${esc(l.result.slice(0, 160))}</div>` : ''}</div>`).join('') : '<div class="note">Ancora nessun comando.</div>';
 }
 
@@ -2626,6 +2635,7 @@ function openSettings(){
   renderHiddenSettings();
   $('#sNotify').checked = !!S.notify && 'Notification' in window && Notification.permission === 'granted';
   $('#sLead').value = String(S.notifyLead || 10); $('#sPlanCal').checked = !!S.planToCal;
+  $('#sGhRepo').value = S.ghRepo || ''; $('#sGhToken').value = S.ghToken || ''; $('#ghLbl').textContent = bridgeLabel();
   $('#syncLbl').innerHTML = mode === 'google' ? (syncState || 'Non ancora sincronizzato.') : 'Disponibile dopo aver collegato l\'account.';
   if (mode === 'google') steps.push([hasScopes(), 'Permessi completi', hasScopes() ? 'archivio email, tutti i calendari, sincronizzazione col telefono' : 'premi il pulsante qui sotto e accetta tutto']);
   renderLog();
@@ -2646,7 +2656,7 @@ function saveSettings(){
     voiceEngine:$('#sEngine').value, gVoice:$('#sGVoice').value, bVoice:$('#sBVoice').value, voiceRate:+$('#sRate').value || 1,
     voicePause:+$('#sPause').value || 3, voiceVolume:+$('#sVol').value,
     calendars:calendars.length ? cals : S.calendars, lessonCal:$('#sLessonCal').value, notify:$('#sNotify').checked, notifyLead:+$('#sLead').value || 10,
-    planToCal:$('#sPlanCal').checked
+    planToCal:$('#sPlanCal').checked, ghRepo:$('#sGhRepo').value.trim(), ghToken:$('#sGhToken').value.trim()
   });
   S.su ||= {};
   for (const k of SYNC_KEYS) if (JSON.stringify(S[k]) !== prev[k]) S.su[k] = Date.now();   // si sincronizza solo ciò che hai cambiato
@@ -2656,6 +2666,7 @@ function saveSettings(){
   if (before !== JSON.stringify([S.uniEmail, S.aliases, S.mailQuery, S.maxMails, S.geminiKey, S.calendars, S.lessonCal]) && (mode === 'demo' || token)) refreshAll();
   if (S.planToCal) syncPlanToCalendar(planKey('today')).then(() => syncPlanToCalendar(planKey('tomorrow'))).catch(err => console.warn(err));
   toast('Impostazioni salvate');
+  bridgeNow(true);
 }
 
 /* =====================================================================
@@ -3232,7 +3243,7 @@ const saveExams = saveWith(() => { stampList('exams', exams, 'exam:'); store.set
 const saveHidden = saveWith(() => { stampMap('hidden', hiddenCourses, 'hide:'); store.set(K('hidden'), hiddenCourses); });
 
 const SYNC_KEYS = ['name', 'uniEmail', 'aliases', 'signature', 'geminiKey', 'geminiModel', 'groqKey', 'orKey', 'aiEmails', 'autoDrafts', 'voiceReplies', 'voiceEngine', 'gVoice', 'voiceRate', 'voicePause', 'voiceVolume',
-  'theme', 'notifyLead', 'planToCal', 'lessonCal', 'calendars', 'mailQuery', 'maxMails'];
+  'theme', 'notifyLead', 'planToCal', 'lessonCal', 'calendars', 'mailQuery', 'maxMails', 'ghRepo', 'ghToken'];
 function localDoc(){
   return {v:1, tasks, plans, habits, habitLog, exams, hiddenCourses, eventImp, tombs,
     settings:{fields:Object.fromEntries(SYNC_KEYS.map(k => [k, {v:S[k], u:S.su?.[k] || 0}]))}};
@@ -3313,6 +3324,7 @@ async function syncNow(){
       syncFileId = f.id; store.set('syncFileId', syncFileId);
     }
     setSync('☁️ Sincronizzato alle ' + fmtTime(new Date()));
+    bridgeNow();
   }catch(err){
     console.warn(err);
     setSync(/has not been used|accessNotConfigured|SERVICE_DISABLED|disabled/i.test(err.message)
@@ -3329,6 +3341,90 @@ async function upgradeScopes(){
     toast(hasScopes() ? 'Permessi aggiornati ✓' : 'Alcuni permessi non sono stati concessi: nella finestra di Google spunta tutte le caselle.', null, null, 8000);
   }
   catch(err){ toast('Non riuscito: ' + err.message, null, null, 8000); }
+}
+
+/* =====================================================================
+   Collegamento con l'agente Claude (repository GitHub del secondo cervello)
+   - la dashboard scrive dashboard/stato.json (cosa c'è sulla dashboard)
+   - l'agente scrive comandi in dashboard/comandi.json; la dashboard li esegue e svuota il file
+   ===================================================================== */
+const GH = 'https://api.github.com';
+const AGENT_ACTIONS = new Set(['add_task', 'edit_task', 'complete_task', 'delete_task', 'add_event', 'move_event', 'delete_event',
+  'set_importance', 'add_exam', 'delete_exam', 'add_habit', 'plan_day']);
+let bridging = false, lastBridge = 0, bridgeState = '';
+const ghOn = () => mode === 'google' && !!token && !!(S.ghToken && S.ghRepo);
+const bridgeLabel = () => !(S.ghToken && S.ghRepo) ? 'Non collegato: incolla il token e salva.' : mode !== 'google' ? 'Disponibile dopo aver collegato l\'account Google.' : (bridgeState || 'In attesa del primo collegamento…');
+function b64e(str){ const b = new TextEncoder().encode(str); let out = ''; for (let i = 0; i < b.length; i += 0x8000) out += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(out); }
+const b64d = str => new TextDecoder().decode(Uint8Array.from(atob((str || '').replace(/\s/g, '')), c => c.charCodeAt(0)));
+async function ghFile(path, opts = {}){
+  const r = await fetch(`${GH}/repos/${S.ghRepo.trim()}/contents/${path}`, {...opts, cache:'no-store',
+    headers:{Authorization:'Bearer ' + S.ghToken.trim(), Accept:'application/vnd.github+json', ...(opts.headers || {})}});
+  if (r.status === 404 && !opts.method) return null;
+  if (r.status === 401) throw new Error('il token GitHub non è valido o è scaduto');
+  if (r.status === 403 || r.status === 404) throw new Error('il token non ha accesso al repository (serve «Contents: Read and write»)');
+  if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 120)}`);
+  return r.json();
+}
+const ghPut = (path, text, sha, message) => ghFile(path, {method:'PUT', body:JSON.stringify({message, content:b64e(text), ...(sha ? {sha} : {})})});
+function agentSnapshot(){
+  const today = sod(new Date()), lim = addDays(today, 21), week = weekStart();
+  const plan = k => (plans[k]?.blocks || []).map(b => ({dalle:fmtMin(b.s), alle:fmtMin(b.e), cosa:b.t}));
+  return {
+    cose_da_fare:tasks.filter(t => !t.done || (t.doneAt && Date.now() - t.doneAt < 7 * DAY))
+      .map(t => ({id:t.id, titolo:t.title, scadenza:t.due || null, priorita:t.priority || 'media', fatto:!!t.done})),
+    eventi:events.filter(e => e.start >= today && e.start < lim).sort((a, b) => a.start - b.start)
+      .map(e => ({id:e.id, titolo:e.title, giorno:ymd(e.start), ora:e.allDay ? null : fmtTime(e.start), fine:e.allDay ? null : fmtTime(e.end),
+        lezione:!!e.lesson, importanza:impOf(e) || 'normale'})),
+    esami:exams.filter(x => x.date >= ymd(today)).map(x => ({id:x.id, nome:x.name, giorno:x.date, ora:x.time || null})),
+    abitudini:habits.map(h => ({id:h.id, nome:h.name, obiettivo_settimana:h.goal, fatte_questa_settimana:weekCount(h, week)})),
+    giornata:{oggi:plan(planKey('today')), domani:plan(planKey('tomorrow'))},
+    email_per_me:emails.filter(e => e.cls?.type === 'direct').slice(0, 15)
+      .map(e => ({da:e.from?.name || '', oggetto:e.subject || '', non_letta:!!e.unread})),
+    ultimi_comandi_agente:cmdLog.filter(l => l.engine === 'Agente').slice(-10)
+      .map(l => ({id:l.cmdId || null, quando:new Date(l.at).toISOString(), cosa:l.did, risultato:l.result || ''}))
+  };
+}
+async function bridgeNow(force = false){
+  if (!ghOn() || bridging) return;
+  if (!force && Date.now() - lastBridge < 60000) return;
+  bridging = true; lastBridge = Date.now();
+  try{
+    // 1) comandi dell'agente
+    const f = await ghFile('dashboard/comandi.json');
+    if (f){
+      let list = []; try{ list = JSON.parse(b64d(f.content) || '[]'); }catch{ list = []; }
+      if (!Array.isArray(list)) list = [];
+      const todo = list.filter(c => c && c.id && c.action && !tombs['cmd:' + c.id]);
+      for (const c of todo){
+        tombs['cmd:' + c.id] = Date.now(); saveTombs();      // segnato subito: non lo rifaccio, neanche dall'altro dispositivo
+        let result = '';
+        if (!AGENT_ACTIONS.has(c.action)) result = 'azione non permessa all\'agente';
+        else {
+          sayCollect = [];
+          try{ await runCommand({...c}, c.nota || c.query || ''); result = sayCollect.map(o => o.text).join(' ') || 'fatto'; }
+          catch(err){ result = '⚠️ ' + err.message; }
+          finally{ sayCollect = null; }
+        }
+        cmdLog.push({at:Date.now(), text:c.nota || descr(c), engine:'Agente', did:descr(c), result, cmdId:c.id}); saveLog();
+      }
+      if (list.length) try{ await ghPut('dashboard/comandi.json', '[]\n', f.sha, 'dashboard | comandi eseguiti'); }catch(err){ console.warn(err); }
+      if (todo.length){ dirty(); renderAll(); toast(`🤖 L'agente ha aggiornato la dashboard (${todo.length} ${todo.length === 1 ? 'modifica' : 'modifiche'})`); }
+    }
+    // 2) stato della dashboard, solo se è cambiato
+    const snap = agentSnapshot(), key = JSON.stringify(snap);
+    if (force || key !== store.get('ghSnapKey', '')){
+      const cur = await ghFile('dashboard/stato.json');
+      await ghPut('dashboard/stato.json', JSON.stringify({aggiornato:new Date().toISOString(), ...snap}, null, 1) + '\n', cur?.sha, 'dashboard | stato aggiornato');
+      store.set('ghSnapKey', key);
+    }
+    bridgeState = '✅ Collegato · ultimo scambio alle ' + fmtTime(new Date());
+  }catch(err){
+    console.warn(err);
+    bridgeState = '⚠️ Collegamento non riuscito: ' + String(err.message).slice(0, 140);
+  }finally{
+    bridging = false;
+    if ($('#settingsDlg').open) $('#ghLbl').textContent = bridgeLabel();
+  }
 }
 
 /* =====================================================================
@@ -3406,6 +3502,8 @@ $('#hiddenSettings').onclick = e => {
 };
 $('#sNotify').onchange = async e => { if (e.target.checked && !(await enableNotify())) e.target.checked = false; };
 $('#testNotify').onclick = async () => { if (await enableNotify()) notify('🔔 Funziona!', 'Ti avviserò prima di impegni e attività della giornata.', 'test'); };
+$('#ghBtn').onclick = () => { if (mode !== 'google' || !token) return toast('Prima collega l\'account Google.'); S.su ||= {}; for (const [k, id] of [['ghRepo', '#sGhRepo'], ['ghToken', '#sGhToken']]){ const v = $(id).value.trim(); if (v !== S[k]){ S[k] = v; S.su[k] = Date.now(); } } store.set('settings', S); dirty(); $('#ghLbl').textContent = '⏳ Collego…'; bridgeNow(true); };
+setInterval(() => { if (document.visibilityState === 'visible') bridgeNow(); }, 5 * 60000);
 $('#syncBtn').onclick = () => { if (mode !== 'google' || !token) return toast('Prima collega l\'account.'); if (!hasScopes()) return upgradeScopes(); syncNow(); };
 setInterval(checkReminders, 30e3);
 setInterval(() => { if (document.visibilityState === 'visible') syncNow(); }, 5 * 60e3);
@@ -3444,7 +3542,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '29 ottobre · 19';
+const APP_VERSION = '3 novembre · 1';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();

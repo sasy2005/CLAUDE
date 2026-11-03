@@ -52,6 +52,19 @@ Il riconoscimento vocale è quello gratuito del browser: funziona su **Chrome, E
 
 ---
 
+## 🤖 Collegamento con l'agente Claude (secondo cervello)
+
+La dashboard può parlare con l'agente Claude attraverso il repository privato del secondo cervello (`sasy2005/sasybrain`):
+
+- ogni volta che cambia qualcosa, la dashboard scrive **`dashboard/stato.json`** con cose da fare, eventi dei prossimi 21 giorni, esami, abitudini, giornata di oggi e domani, e mittente e oggetto delle email per te;
+- l'agente scrive i suoi comandi in **`dashboard/comandi.json`**; la dashboard li esegue (al massimo una volta al minuto, e ogni 5 minuti quando è aperta), li segna come fatti e svuota il file. Li trovi in ⚙️ Impostazioni → «Ultimi comandi» con l'etichetta 🤖 agente.
+
+L'agente può solo: aggiungere, modificare, completare o eliminare cose da fare; aggiungere, spostare o eliminare eventi e cambiarne l'importanza; aggiungere o togliere esami; aggiungere abitudini; programmare la giornata. **Non può inviare email.**
+
+**Come attivarlo:** su github.com → Settings → Developer settings → **Fine-grained tokens** → *Generate new token* → Repository access: *Only select repositories* → `sasybrain` → Permissions → **Contents: Read and write** → *Generate*. Copia il token (`github_pat_…`) in ⚙️ Impostazioni → **Collegamento con l'agente** e premi **Collega ora**.
+
+---
+
 ## 🚀 Messa online (gratis, 2 minuti)
 
 Il login Google non funziona aprendo il file dal disco: serve un indirizzo web.
