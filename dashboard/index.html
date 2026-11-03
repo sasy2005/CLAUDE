@@ -1659,7 +1659,7 @@ async function addEvent({title, date, time, hours = 1, imp}){
 /* =====================================================================
    Comandi (voce o testo)
    ===================================================================== */
-const HELP = [
+const HELP = ['nota: il preparatore dice di lavorare sulla ricezione', 
   'ho finito la relazione di fisica',
   'programma domani dalle 10 alle 14 università, 15 17 palestra, 19 21 beach volley',
   'recap',
@@ -1992,6 +1992,9 @@ async function handleCommand(text){
     if (/^(salva|bozza|salvala)/.test(n)) return $('#cDraft').click();
     if (/^(annulla|no|lascia stare|chiudi)\b/.test(n)){ $('#composeDlg').close(); return say('Ok, email annullata.', true, 'Annullata.'); }
   }
+  // nota veloce per il secondo cervello: «nota: …», «appunta …», «idea: …», «salva nel cervello …»
+  const nm = text.match(/^\s*(?:nota(?: per il cervello)?|appunta(?:mi)?|annota|idea|salva nel cervello)\b\s*(?:che\s+)?[:,.-]?\s*([\s\S]{3,})$/i);
+  if (nm){ const r = await saveNote(nm[1].trim(), /^\s*idea\b/i.test(text) ? 'idea' : 'nota'); logCommand({text, engine:'regole', cmd:{action:'nota'}}); cmdLog[cmdLog.length - 1].result = r; saveLog(); return; }
   let cmd = ruleParse(text), engine = 'regole', aiErr = '', voice = '';
   // con Gemini l'assistente (che vede tutta la dashboard) capisce per primo ogni comando; le regole restano di riserva
   const QUICK = ['accept_proposal', 'help'];
@@ -2099,6 +2102,13 @@ async function runCommand(cmd, text){
       }
       const e = allEvents.find(x => x.lesson && simTitle(courseLabel(x), q) >= .5); if (!e) return say(`Non trovo il corso «${q}» nell'orario.`);
       hideCourse(e); reveal('agenda', '#uniCard'); return say(`Nascoste le lezioni di ${courseLabel(e)}.`, true, 'Nascosto.');
+    }
+    case 'save_draft':{   // solo per l'agente: salva una bozza di risposta nelle Bozze di Gmail, non invia mai
+      const e = emails.find(x => x.id === cmd.email_id);
+      if (!e) return say('Non trovo l\'email per la bozza (forse è più vecchia di quelle caricate).');
+      if (!cmd.body || cmd.body.length < 5) return say('Bozza vuota.');
+      await saveDraft(e, String(cmd.body), true);
+      return say(`Bozza salvata nelle Bozze di Gmail: risposta a ${e.from.name} («${e.subject}»). Non è stato inviato nulla.`, true, 'Bozza salvata.');
     }
     case 'add_habit':{
       if (!cmd.name) return say('Che abitudine aggiungo?');
@@ -3349,7 +3359,7 @@ async function upgradeScopes(){
    - l'agente scrive comandi in dashboard/comandi.json; la dashboard li esegue e svuota il file
    ===================================================================== */
 const GH = 'https://api.github.com';
-const AGENT_ACTIONS = new Set(['add_task', 'edit_task', 'complete_task', 'delete_task', 'add_event', 'move_event', 'delete_event',
+const AGENT_ACTIONS = new Set(['save_draft', 'add_task', 'edit_task', 'complete_task', 'delete_task', 'add_event', 'move_event', 'delete_event',
   'set_importance', 'add_exam', 'delete_exam', 'add_habit', 'plan_day']);
 let bridging = false, lastBridge = 0, bridgeState = '';
 const ghOn = () => mode === 'google' && !!token && !!(S.ghToken && S.ghRepo);
@@ -3378,17 +3388,43 @@ function agentSnapshot(){
     esami:exams.filter(x => x.date >= ymd(today)).map(x => ({id:x.id, nome:x.name, giorno:x.date, ora:x.time || null})),
     abitudini:habits.map(h => ({id:h.id, nome:h.name, obiettivo_settimana:h.goal, fatte_questa_settimana:weekCount(h, week)})),
     giornata:{oggi:plan(planKey('today')), domani:plan(planKey('tomorrow'))},
-    email_per_me:emails.filter(e => e.cls?.type === 'direct').slice(0, 15)
-      .map(e => ({da:e.from?.name || '', oggetto:e.subject || '', non_letta:!!e.unread})),
+    email_per_me:emails.filter(e => e.cls?.type === 'direct').slice(0, 12)
+      .map(e => ({id:e.id, da:e.from?.name || '', indirizzo:e.from?.email || '', giorno:e.date ? ymd(e.date) : null, oggetto:e.subject || '',
+        non_letta:!!e.unread, serve_risposta:!!getAnalysis(e)?.serve_risposta, ha_bozza:!!drafts[e.id],
+        testo:(e.body || e.snippet || '').replace(/\n{3,}/g, '\n\n').trim().slice(0, 1500)})),
     ultimi_comandi_agente:cmdLog.filter(l => l.engine === 'Agente').slice(-10)
       .map(l => ({id:l.cmdId || null, quando:new Date(l.at).toISOString(), cosa:l.did, risultato:l.result || ''}))
   };
+}
+let noteQueue = store.get('noteQueue', []);
+async function saveNote(text, kind = 'nota'){
+  const d = new Date(), stamp = `${ymd(d)}-${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
+  noteQueue.push({path:`da-smistare/${kind}-${stamp}-${uid().slice(-4)}.md`,
+    text:`---\ntipo: ${kind}\nda: dashboard\nquando: ${d.toISOString()}\n---\n\n${text}\n`});
+  store.set('noteQueue', noteQueue);
+  if (!(S.ghToken && S.ghRepo)){
+    say('Ho tenuto la nota qui, ma per mandarla al secondo cervello devi collegare l\'agente in ⚙️ Impostazioni.', true, 'Nota salvata, ma l\'agente non è collegato.');
+    return 'in attesa: agente non collegato';
+  }
+  const ok = await flushNotes();
+  say(ok ? `📝 Nota mandata al secondo cervello: «${text.slice(0, 80)}${text.length > 80 ? '…' : ''}». L'agente la mette al posto giusto.` : '📝 Nota salvata: la mando al secondo cervello appena c\'è connessione.', true, 'Nota salvata.');
+  return ok ? 'mandata al secondo cervello' : 'in coda';
+}
+async function flushNotes(){
+  if (!(S.ghToken && S.ghRepo) || !noteQueue.length) return !noteQueue.length;
+  while (noteQueue.length){
+    try{ await ghPut(noteQueue[0].path, noteQueue[0].text, null, 'nota | dalla dashboard'); }
+    catch(err){ console.warn(err); return false; }
+    noteQueue.shift(); store.set('noteQueue', noteQueue);
+  }
+  return true;
 }
 async function bridgeNow(force = false){
   if (!ghOn() || bridging) return;
   if (!force && Date.now() - lastBridge < 60000) return;
   bridging = true; lastBridge = Date.now();
   try{
+    await flushNotes();
     // 1) comandi dell'agente
     const f = await ghFile('dashboard/comandi.json');
     if (f){
@@ -3542,7 +3578,7 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '3 novembre · 1';
+const APP_VERSION = '3 novembre · 2';
 $('#appVer').textContent = APP_VERSION;
 applyTheme();
 loadLocal();
