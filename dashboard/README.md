@@ -59,6 +59,10 @@ La dashboard può parlare con l'agente Claude attraverso il repository privato d
 - ogni volta che cambia qualcosa, la dashboard scrive **`dashboard/stato.json`** con cose da fare, eventi dei prossimi 21 giorni, esami, abitudini, giornata di oggi e domani, e mittente e oggetto delle email per te;
 - l'agente scrive i suoi comandi in **`dashboard/comandi.json`**; la dashboard li esegue (al massimo una volta al minuto, e ogni 5 minuti quando è aperta), li segna come fatti e svuota il file. Li trovi in ⚙️ Impostazioni → «Ultimi comandi» con l'etichetta 🤖 agente.
 
+**Briefing in home:** quando l'agente scrive il briefing del mattino (`wiki/briefing.md`), nella scheda ☀️ Oggi compare la card «🤖 Briefing dell'agente», con la data (verde se è di oggi).
+
+**Manutenzione:** in `stato.json` la dashboard scrive la sua versione, le note ancora in coda e, se GitHub la comunica, la scadenza del token; 14 giorni prima della scadenza mostra un avviso.
+
 **Note veloci:** di' o scrivi «nota: …», «appunta …», «idea: …» o «salva nel cervello …»: la nota finisce nella cartella `da-smistare/` del secondo cervello e l'agente la mette al posto giusto. Senza connessione resta in coda e parte appena può.
 
 **Bozze dell'agente:** in `stato.json` ci sono anche il testo (primi 1500 caratteri) delle ultime email per te e se serve una risposta. L'agente può chiedere alla dashboard di salvare una bozza di risposta (`save_draft`) nelle Bozze di Gmail dell'account universitario: non viene inviato nulla.

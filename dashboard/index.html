@@ -270,6 +270,9 @@
   textarea:focus{border-color:var(--accent)}
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .note{font-size:.76rem;color:var(--muted);margin-top:8px}
+  .agent-b{padding:0 18px 14px;font-size:.9rem;line-height:1.55;max-height:460px}
+  .agent-b h3{font-size:.92rem;margin:12px 0 4px} .agent-b h4{font-size:.86rem;margin:10px 0 2px;color:var(--muted)}
+  .agent-b ul{margin:4px 0;padding-left:18px} .agent-b p{margin:6px 0} .agent-b li{margin:2px 0}
   .cnt{font-size:.72rem;font-weight:600;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);border-radius:99px;padding:0 6px;margin-left:2px}
   details.older{border-top:1px solid var(--border);padding:8px 0}
   details.older:first-of-type{border-top:0}
@@ -482,6 +485,12 @@
     </section>
 
     <div class="col">
+    <!-- BRIEFING DELL'AGENTE -->
+    <section class="card" id="agentCard" data-sec="oggi" hidden>
+      <div class="card-h"><h2>🤖 Briefing dell'agente</h2><span class="pill" id="agentWhen"></span></div>
+      <div class="card-b agent-b" id="agentBody"></div>
+    </section>
+
     <!-- LA MIA GIORNATA -->
     <section class="card" id="planCard" data-sec="oggi">
       <div class="card-h">
@@ -3366,9 +3375,12 @@ const ghOn = () => mode === 'google' && !!token && !!(S.ghToken && S.ghRepo);
 const bridgeLabel = () => !(S.ghToken && S.ghRepo) ? 'Non collegato: incolla il token e salva.' : mode !== 'google' ? 'Disponibile dopo aver collegato l\'account Google.' : (bridgeState || 'In attesa del primo collegamento…');
 function b64e(str){ const b = new TextEncoder().encode(str); let out = ''; for (let i = 0; i < b.length; i += 0x8000) out += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(out); }
 const b64d = str => new TextDecoder().decode(Uint8Array.from(atob((str || '').replace(/\s/g, '')), c => c.charCodeAt(0)));
+let ghTokenExp = store.get('ghTokenExp', null);
 async function ghFile(path, opts = {}){
   const r = await fetch(`${GH}/repos/${S.ghRepo.trim()}/contents/${path}`, {...opts, cache:'no-store',
     headers:{Authorization:'Bearer ' + S.ghToken.trim(), Accept:'application/vnd.github+json', ...(opts.headers || {})}});
+  const exp = r.headers.get('github-authentication-token-expiration');   // es. «2027-11-03 12:00:00 +0100»
+  if (exp){ const d = new Date(exp.replace(' ', 'T').replace(/ ([+-]\d\d)(\d\d)$/, '$1:$2')); if (!isNaN(d)){ ghTokenExp = d.toISOString(); store.set('ghTokenExp', ghTokenExp); } }
   if (r.status === 404 && !opts.method) return null;
   if (r.status === 401) throw new Error('il token GitHub non è valido o è scaduto');
   if (r.status === 403 || r.status === 404) throw new Error('il token non ha accesso al repository (serve «Contents: Read and write»)');
@@ -3392,9 +3404,34 @@ function agentSnapshot(){
       .map(e => ({id:e.id, da:e.from?.name || '', indirizzo:e.from?.email || '', giorno:e.date ? ymd(e.date) : null, oggetto:e.subject || '',
         non_letta:!!e.unread, serve_risposta:!!getAnalysis(e)?.serve_risposta, ha_bozza:!!drafts[e.id],
         testo:(e.body || e.snippet || '').replace(/\n{3,}/g, '\n\n').trim().slice(0, 1500)})),
+    manutenzione:{versione_dashboard:APP_VERSION, token_github_scade:ghTokenExp ? ghTokenExp.slice(0, 10) : null, note_in_coda:noteQueue.length},
     ultimi_comandi_agente:cmdLog.filter(l => l.engine === 'Agente').slice(-10)
       .map(l => ({id:l.cmdId || null, quando:new Date(l.at).toISOString(), cosa:l.did, risultato:l.result || ''}))
   };
+}
+function mdLite(md){   // markdown minimo per la scheda del briefing
+  const inl = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2').replace(/\[\[([^\]]+)\]\]/g, (m, a) => a.split('/').pop().replace(/-/g, ' '));
+  const out = []; let list = false;
+  for (const raw of md.replace(/^---[\s\S]*?\n---\n/, '').split('\n')){
+    const l = raw.trimEnd(), li = l.match(/^\s*[-*]\s+(.*)$/) || l.match(/^\s*\d+[.)]\s+(.*)$/);
+    if (li){ if (!list){ out.push('<ul>'); list = true; } out.push('<li>' + inl(li[1]) + '</li>'); continue; }
+    if (list){ out.push('</ul>'); list = false; }
+    const h = l.match(/^(#{1,4})\s+(.*)$/);
+    if (h){ if (h[1].length > 1) out.push(`<h${h[1].length === 2 ? 3 : 4}>${inl(h[2])}</h${h[1].length === 2 ? 3 : 4}>`); continue; }
+    if (l.trim() && !/^>\s*\[!/.test(l)) out.push('<p>' + inl(l.replace(/^>\s?/, '')) + '</p>');
+  }
+  if (list) out.push('</ul>');
+  return out.join('');
+}
+function renderAgentCard(){
+  const md = store.get('briefMd', ''), card = $('#agentCard'); if (!card) return;
+  if (!md || mode !== 'google' || !(S.ghToken && S.ghRepo)){ card.hidden = true; return; }
+  const day = (md.match(/aggiornato:\s*(\d{4}-\d{2}-\d{2})/) || [])[1];
+  card.hidden = false;
+  $('#agentWhen').textContent = day ? (day === ymd(new Date()) ? 'di oggi' : 'del ' + fromYmd(day).toLocaleDateString('it-IT', {day:'numeric', month:'short'})) : '';
+  $('#agentWhen').className = 'pill ' + (day === ymd(new Date()) ? 'ok' : 'warn');
+  $('#agentBody').innerHTML = mdLite(md.split('\n## Collegamenti')[0]);
 }
 let noteQueue = store.get('noteQueue', []);
 async function saveNote(text, kind = 'nota'){
@@ -3446,7 +3483,13 @@ async function bridgeNow(force = false){
       if (list.length) try{ await ghPut('dashboard/comandi.json', '[]\n', f.sha, 'dashboard | comandi eseguiti'); }catch(err){ console.warn(err); }
       if (todo.length){ dirty(); renderAll(); toast(`🤖 L'agente ha aggiornato la dashboard (${todo.length} ${todo.length === 1 ? 'modifica' : 'modifiche'})`); }
     }
-    // 2) stato della dashboard, solo se è cambiato
+    // 2) briefing dell'agente per la scheda in home
+    try{
+      const bf = await ghFile('wiki/briefing.md');
+      if (bf && bf.sha !== store.get('briefSha', '')){ store.set('briefMd', b64d(bf.content)); store.set('briefSha', bf.sha); }
+    }catch(err){ console.warn(err); }
+    renderAgentCard();
+    // 3) stato della dashboard, solo se è cambiato
     const snap = agentSnapshot(), key = JSON.stringify(snap);
     if (force || key !== store.get('ghSnapKey', '')){
       const cur = await ghFile('dashboard/stato.json');
@@ -3454,6 +3497,11 @@ async function bridgeNow(force = false){
       store.set('ghSnapKey', key);
     }
     bridgeState = '✅ Collegato · ultimo scambio alle ' + fmtTime(new Date());
+    const left = ghTokenExp ? Math.ceil((new Date(ghTokenExp) - Date.now()) / DAY) : null;
+    if (left !== null && left <= 14){
+      bridgeState += ` · ⚠️ il token GitHub scade tra ${Math.max(0, left)} giorni: creane uno nuovo e incollalo qui`;
+      if (store.get('tokWarn', '') !== ymd(new Date())){ store.set('tokWarn', ymd(new Date())); toast(`⚠️ Il token dell'agente scade tra ${Math.max(0, left)} giorni: rinnovalo in ⚙️ Impostazioni.`, null, null, 10000); }
+    }
   }catch(err){
     console.warn(err);
     bridgeState = '⚠️ Collegamento non riuscito: ' + String(err.message).slice(0, 140);
@@ -3578,8 +3626,9 @@ new MutationObserver(() => { clearTimeout(replyTimer); if (isPhone()) replyTimer
   .observe($('#replyTxt'), {childList:true, characterData:true, subtree:true});
 
 /* ---------- avvio ---------- */
-const APP_VERSION = '3 novembre · 2';
+const APP_VERSION = '4 novembre · 1';
 $('#appVer').textContent = APP_VERSION;
+try{ renderAgentCard(); }catch(err){ console.warn(err); }
 applyTheme();
 loadLocal();
 if (token && Date.now() > token.exp){ token = null; store.del('token'); }
